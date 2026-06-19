@@ -13,6 +13,20 @@ Shadow Circuit in `C:\Users\joshs\Projects\sneak-game` is a baseline reference o
 
 Secrets stay outside git. Local key files may exist in `C:\Users\joshs\Projects`, but repo files must reference environment variables or ignored local paths only.
 
+## Change Workflow
+
+Always use `CHANGELOG.md` for user-visible, workflow, tooling, skill, or game changes. Keep entries concise and grouped by the version they ship in. If a change is not versioned yet, add it under `Unreleased`.
+
+Before implementing a request, split it into discrete changes and assign each change to exactly one SemVer bucket:
+
+- `major`: breaking project, save-data, API, asset-schema, or workflow changes.
+- `minor`: new backwards-compatible features, skills, systems, levels, assets, commands, or capabilities.
+- `patch`: fixes, docs, rules, tuning, validation, cleanup, or backwards-compatible refinements.
+
+Work one bucketed change at a time. Do not blend unrelated major, minor, and patch work in a single version bump. If a user asks for multiple changes, maintain a todo list, finish the current bucketed change, update version/changelog, validate, commit, and push before moving to the next bucket.
+
+Whenever a version bump is made, commit and push immediately after the bump, even when more todo items remain. The commit must include the version source and `CHANGELOG.md` entry for that bump.
+
 Validate skill edits with:
 
 ```powershell
