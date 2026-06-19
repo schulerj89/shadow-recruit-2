@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Game Director"
+  short_description: "Directs feature loops and review passes"
+  default_prompt: "Use $threejs-game-director to review the next Shadow Recruit 2 feature slice."

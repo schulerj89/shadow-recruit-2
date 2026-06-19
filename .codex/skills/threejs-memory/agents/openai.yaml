@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Memory"
+  short_description: "Audits runtime and asset memory pressure"
+  default_prompt: "Use $threejs-memory to diagnose a Three.js memory regression."

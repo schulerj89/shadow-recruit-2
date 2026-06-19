@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Gameplay Systems"
+  short_description: "Designs robust browser-game mechanics"
+  default_prompt: "Use $threejs-gameplay-systems to implement a stealth gameplay system."

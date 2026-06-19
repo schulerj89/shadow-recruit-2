@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Image Generator"
+  short_description: "Creates game art references with GPT Image"
+  default_prompt: "Use $threejs-image-generator to generate a concept sheet for a new game asset."

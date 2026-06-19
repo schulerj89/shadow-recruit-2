@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js WebGPU/WebGL Expert"
+  short_description: "Optimizes renderer, shaders, and fallbacks"
+  default_prompt: "Use $threejs-webgpu-webgl-expert to plan a renderer or shader change."
