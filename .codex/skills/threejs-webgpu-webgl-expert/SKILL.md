@@ -14,6 +14,8 @@ Keep WebGL stable as the baseline until the project has explicit WebGPU acceptan
 3. Keep material and shader decisions compatible with the selected renderer path.
 4. Validate visible output with browser screenshots and renderer counters.
 
+Default target: keep interactive gameplay at 60 FPS. Treat 16.7 ms/frame as the frame budget, and require a lower-cost quality profile before accepting renderer features that exceed it.
+
 ## WebGPU Rules
 
 - Probe `navigator.gpu` and adapter/device creation before assuming WebGPU availability.
@@ -58,6 +60,7 @@ Route GLB generation, rigging, and retargeting to `$threejs-aaa-asset-builder`. 
 
 - Capture at least one visible browser screenshot after renderer/material changes.
 - Assert nonblank canvas pixels for 3D scenes.
+- Prove a visible 60 FPS path or document the fallback quality profile that restores it.
 - Log or expose draw calls, triangles, geometries, textures, backend, pixel ratio, and asset load errors.
 - Test both the preferred backend and fallback when possible.
 - Compare one low-end profile and one cinematic profile when a change affects shadows, postprocessing, transparency, or generated assets.

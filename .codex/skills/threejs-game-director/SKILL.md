@@ -56,8 +56,10 @@ Use this triage before approving a feature slice:
 - **Signal over volume:** prefer one readable encounter with clear camera, animation, sound, and UI feedback over many thin levels.
 - **Evidence gate:** require at least one artifact for any visual claim: screenshot, short capture, debug overlay numbers, or browser smoke result.
 - **Regression gate:** require a repeatable way to enter, reset, and replay the new state before adding adjacent content.
+- **60 FPS gate:** require visible gameplay to keep a 60 FPS path, or require an explicit lower-cost quality profile before approving the slice.
 - **Budget gate:** ask `$threejs-memory` before accepting heavier GLBs, generated textures, extra postprocessing, or more live actors.
 - **Renderer gate:** ask `$threejs-webgpu-webgl-expert` before approving WebGPU-only effects, custom shaders, transparency-heavy passes, or postprocessing stacks.
+- **QA gate:** ask `$threejs-qa-automation` for smoke, visual, input, accessibility, and frame pacing evidence before release.
 
 ## Feature Slice Rubric
 

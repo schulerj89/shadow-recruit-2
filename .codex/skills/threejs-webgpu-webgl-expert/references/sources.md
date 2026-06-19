@@ -10,6 +10,8 @@ Research date: 2026-06-19.
   - WebGLRenderer uses WebGL 2. Its `info` property exposes GPU memory and render-process statistics.
   - `compileAsync()` can help precompile shaders asynchronously through parallel shader compile support.
   - `setAnimationLoop()` is the recommended animation loop entry point.
+- MDN `requestAnimationFrame`: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
+  - Browser animation callbacks generally follow the display refresh rate, and 60 Hz is the most common refresh rate.
 - Renderer: https://threejs.org/docs/pages/Renderer.html
   - `compileAsync()` exists on the common renderer API and is intended to reduce shader compilation stutter.
 - Material: https://threejs.org/docs/pages/Material.html

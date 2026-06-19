@@ -40,7 +40,7 @@ Before commit:
 
 - Run relevant skill validators for skill changes.
 - Run code tests/builds once the app exists.
-- Run browser smoke and screenshots for player-facing changes.
+- Run browser smoke, screenshots, and 60 FPS/frame pacing checks for player-facing Three.js changes.
 - Run `git diff --check`.
 - Scan for secrets and TODO placeholders when adding skills, scripts, or docs.
 

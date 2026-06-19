@@ -10,3 +10,4 @@
 ### Patch
 
 - Added agent workflow rules requiring changelog entries, SemVer bucket decisions, one-bucket-at-a-time request handling, and immediate commit/push after each version bump.
+- Added a standing 60 FPS performance gate and strengthened QA skill rules for player-facing Three.js changes.

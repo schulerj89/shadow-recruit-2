@@ -9,10 +9,13 @@ description: Audit and control Three.js browser memory, GPU resource lifetime, G
 
 Use this skill when memory or resource lifetime can affect browser stability. Start from observed counters and asset inventory, not guesses.
 
+Memory decisions must protect the 60 FPS target. A feature that fits in memory but causes frame spikes, garbage-collection stalls, shader/texture upload hitches, or unload leaks is not production-ready.
+
 Track:
 
 - `renderer.info.render.calls`, triangles, points, and lines.
 - `renderer.info.memory.geometries` and textures.
+- Frame pacing or visible FPS during load, gameplay, reset, and unload loops.
 - App-owned counts for loaded asset IDs, live actors, live chunks, pooled objects, mixers, render targets, and active effects.
 - File payload totals for GLB, textures, audio, and generated assets.
 - Browser heap when `performance.memory` is available, treating it as browser-specific telemetry.
@@ -50,6 +53,7 @@ Do not declare a memory fix complete until repeated load/reset/unload cycles ret
 - Required gameplay assets need primitive fallbacks so cinematic assets can fail or unload gracefully.
 - Prefer KTX2/Basis for repeated runtime textures and documentation-only webp/jpeg for non-runtime images.
 - Treat render target size as width x height x channels x bytes x samples x history buffers; post stacks can exceed asset memory quickly.
+- Reject asset payloads that meet file-size limits but break the visible 60 FPS gameplay path after decode, upload, animation, or postprocessing.
 
 ## Workflow
 
@@ -59,6 +63,7 @@ Do not declare a memory fix complete until repeated load/reset/unload cycles ret
 4. Capture the same counters after each loop.
 5. Fix ownership or cache-release bugs before reducing visual quality.
 6. Add smoke checks for count regressions and asset load failures.
+7. Hand off to `$threejs-qa-automation` when a memory change needs a 60 FPS smoke gate.
 
 ## Leak Hunt Pattern
 

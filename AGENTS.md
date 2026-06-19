@@ -20,6 +20,12 @@ Shadow Circuit in `C:\Users\joshs\Projects\sneak-game` is a baseline reference o
 
 Secrets stay outside git. Local key files may exist in `C:\Users\joshs\Projects`, but repo files must reference environment variables or ignored local paths only.
 
+## Performance And QA Gate
+
+Shadow Recruit 2 targets a visible 60 FPS gameplay experience. Treat 16.7 ms/frame as the default frame budget for interactive scenes, and do not approve heavier assets, effects, AI, physics, UI, or postprocessing unless the browser build can still show a 60 FPS path or an explicit lower-quality fallback.
+
+Use `$threejs-qa-automation` for every player-facing feature before release. QA evidence must include a nonblank canvas check, at least one visual artifact, relevant debug state assertions, and frame pacing or renderer metrics for Three.js gameplay changes.
+
 ## Change Workflow
 
 Always use `CHANGELOG.md` for user-visible, workflow, tooling, skill, or game changes. Keep entries concise and grouped by the version they ship in. If a change is not versioned yet, add it under `Unreleased`.

@@ -14,5 +14,9 @@ Research date: 2026-06-19.
   - Trace viewer helps inspect actions, DOM snapshots, network, attachments, and visual diffs.
 - Playwright best practices: https://playwright.dev/docs/best-practices
   - Traces are useful for CI failure diagnosis.
+- MDN `requestAnimationFrame`: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
+  - The callback cadence generally matches display refresh rate, with 60 Hz described as the most common refresh rate.
+- web.dev animation smoothness: https://web.dev/articles/smoothness
+  - FPS is useful but incomplete; smoothness work should consider frame updates and perceived quality, not only a single average number.
 
 Re-check Playwright docs before changing runner setup, screenshot thresholds, or trace collection.
