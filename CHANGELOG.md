@@ -5,6 +5,7 @@
 ### Minor
 
 - Expanded all six Three.js skills with advanced production, renderer, gameplay, image-generation, GLB asset, and memory guidance backed by fresh source research.
+- Added seven specialist handoff skills for level/world building, physics/navigation, character animation, audio/haptics, UI/accessibility, QA automation, and release management.
 
 ### Patch
 

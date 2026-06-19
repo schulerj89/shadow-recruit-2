@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Physics Navigation"
+  short_description: "Owns physics, collision, and navmesh"
+  default_prompt: "Use $threejs-physics-navigation to design character collision and enemy pathfinding."

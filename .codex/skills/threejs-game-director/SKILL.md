@@ -24,6 +24,13 @@ Invoke or recommend these repo-local skills when the task crosses their boundary
 - `$threejs-image-generator`: GPT Image 2 concept sheets, reference plates, UI art, texture references, orthographic character or prop sheets.
 - `$threejs-aaa-asset-builder`: GLB production, Meshy or Tripo generation, remesh, rigging, retargeting, animation sets, GLTFLoader integration.
 - `$threejs-memory`: asset budgets, runtime memory pressure, renderer.info trends, disposal leaks, loading/unloading, texture and GLB payload limits.
+- `$threejs-level-world-builder`: level slices, mission spaces, traversal readability, encounter layouts, world streaming, LOD boundaries, environmental storytelling.
+- `$threejs-physics-navigation`: physics worlds, collision proxies, Rapier-style character controllers, triggers, ray/shape queries, navmesh generation, pathfinding.
+- `$threejs-character-animation`: AnimationMixer state, clip maps, locomotion blends, action crossfades, root motion policy, hit reactions, retargeted clip QA.
+- `$threejs-audio-haptics`: Web Audio graphs, spatial cues, stealth sound propagation, music states, SFX pooling, compression budgets, gamepad haptics.
+- `$threejs-ui-accessibility`: HUDs, menus, overlays, touch controls, gamepad prompts, focus management, contrast, accessibility semantics.
+- `$threejs-qa-automation`: Playwright browser smoke tests, screenshots, visual regression, canvas-pixel checks, debug metric assertions, trace artifacts.
+- `$shadow-recruit-release-manager`: SemVer buckets, changelog entries, validation gates, version source updates, commits, pushes.
 
 If several apply, start with the skill that owns the riskiest decision, then loop back here for production prioritization.
 

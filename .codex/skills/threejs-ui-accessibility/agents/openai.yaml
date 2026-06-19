@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js UI Accessibility"
+  short_description: "Builds HUD, menus, and accessible input"
+  default_prompt: "Use $threejs-ui-accessibility to design a game HUD or menu flow."

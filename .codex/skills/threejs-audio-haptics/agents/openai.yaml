@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Audio Haptics"
+  short_description: "Designs Web Audio, music, and feedback"
+  default_prompt: "Use $threejs-audio-haptics to plan stealth audio and impact feedback."

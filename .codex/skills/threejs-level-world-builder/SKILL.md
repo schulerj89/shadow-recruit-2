@@ -1,0 +1,50 @@
+---
+name: threejs-level-world-builder
+description: Plan, build, and review Three.js game levels, mission spaces, encounter layouts, world streaming, traversal readability, LOD placement, nav/collision authoring boundaries, and environmental storytelling. Use when Codex designs Shadow Recruit 2 levels, districts, rooms, stealth routes, patrol spaces, objective layouts, or world-building pipelines.
+---
+
+# Three.js Level World Builder
+
+## Level Contract
+
+Use this skill when the playable space is the main risk. A good Shadow Recruit 2 level should read from the gameplay camera, teach the current objective, support stealth decisions, and expose enough debug hooks to iterate quickly.
+
+Start every level slice with:
+
+- Player fantasy and mission verb.
+- Start, objective, pressure point, optional route, failure zone, and exit.
+- Camera distance, sightline rules, cover language, and traversal scale.
+- Required gameplay proxies: navmesh, collision, trigger volumes, patrol rails, objective bounds, and camera blockers.
+- Performance budget: visible rooms, active enemies, draw calls, triangles, texture pressure, and streaming boundary.
+
+## Layout Rules
+
+- Block out with primitives first. Do not accept generated art as level geometry until routes, camera, and collision are proven.
+- Keep three routes in mind: safe route, fast route, and risky/reward route.
+- Use landmark silhouettes and light/value contrast so players can orient without a minimap.
+- Put objectives where the approach, interaction, and escape are all readable from gameplay camera height.
+- Keep patrol routes explainable: guard intent, blind spots, cover timing, and alert fallback.
+- Design reset paths. A failed stealth attempt should recover into search, chase, combat, or restart without breaking the level.
+
+## World And Streaming
+
+- Split large spaces by district, room, floor, or mission beat. Each slice owns its assets, collision proxies, audio zones, and debug teleport.
+- Use LOD for distant set dressing and ring/room streaming for asset payload control.
+- Keep navigation and collision authored as low-complexity data, not render mesh triangles.
+- Reserve expensive cinematic GLBs for focal objects. Use reusable kits for walls, trim, cover, doors, terminals, vents, lights, and signage.
+- Hand memory and streaming budget checks to `$threejs-memory`.
+- Hand GLB kit generation and registry work to `$threejs-aaa-asset-builder`.
+
+## Encounter Review
+
+Before a level is accepted, verify:
+
+- The player can identify the objective within 3 seconds of entering the space.
+- Cover, threats, exits, interactables, and locked gates have consistent visual language.
+- Enemy perception matches visual cones, lights, sound cues, and debug overlays.
+- Patrol and objective routes survive multiple player speeds and mobile input.
+- Debug teleport points exist for start, objective, failure, success, and each encounter beat.
+
+## References
+
+Read `references/sources.md` when source-backed current docs are needed.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Character Animation"
+  short_description: "Builds animation state and blending"
+  default_prompt: "Use $threejs-character-animation to wire character locomotion and action clips."

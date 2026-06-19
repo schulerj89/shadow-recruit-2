@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js Level World Builder"
+  short_description: "Builds readable missions and worlds"
+  default_prompt: "Use $threejs-level-world-builder to plan a Shadow Recruit 2 level slice."

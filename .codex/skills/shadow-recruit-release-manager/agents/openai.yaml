@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shadow Recruit Release Manager"
+  short_description: "Manages SemVer, changelogs, and pushes"
+  default_prompt: "Use $shadow-recruit-release-manager to bucket, version, commit, and push a release change."

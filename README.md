@@ -10,6 +10,13 @@ Shadow Recruit 2 is starting with repo-local Codex skills before gameplay implem
 - `.codex/skills/threejs-image-generator`
 - `.codex/skills/threejs-aaa-asset-builder`
 - `.codex/skills/threejs-memory`
+- `.codex/skills/threejs-level-world-builder`
+- `.codex/skills/threejs-physics-navigation`
+- `.codex/skills/threejs-character-animation`
+- `.codex/skills/threejs-audio-haptics`
+- `.codex/skills/threejs-ui-accessibility`
+- `.codex/skills/threejs-qa-automation`
+- `.codex/skills/shadow-recruit-release-manager`
 
 See `AGENTS.md` for when to use each skill.
 

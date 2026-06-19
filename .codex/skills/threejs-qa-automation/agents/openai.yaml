@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three.js QA Automation"
+  short_description: "Automates browser, visual, and smoke QA"
+  default_prompt: "Use $threejs-qa-automation to create a browser smoke test plan."

@@ -8,6 +8,13 @@ Shadow Recruit 2 starts as a repo-local Codex skill package. Before implementing
 - Use `$threejs-image-generator` for GPT Image 2 visual references and source plates. Never commit API keys or generated secret metadata.
 - Use `$threejs-aaa-asset-builder` for Meshy, Tripo, GLB, rigging, retargeting, animation, and asset registry work.
 - Use `$threejs-memory` for asset budgets, resource disposal, renderer.info trends, and scene reset leaks.
+- Use `$threejs-level-world-builder` for mission spaces, traversal readability, encounter layout, streaming boundaries, and world authoring.
+- Use `$threejs-physics-navigation` for Rapier-style physics, collision proxies, character controllers, navmeshes, pathfinding, triggers, and scene queries.
+- Use `$threejs-character-animation` for AnimationMixer state, clip maps, blend timing, root motion policy, retargeted clips, and animation QA.
+- Use `$threejs-audio-haptics` for Web Audio graphs, stealth cues, music states, spatial audio, SFX budgets, and gamepad haptics.
+- Use `$threejs-ui-accessibility` for HUDs, menus, responsive overlays, control prompts, focus handling, contrast, and accessible input.
+- Use `$threejs-qa-automation` for Playwright smoke tests, visual regression, canvas checks, accessibility snapshots, input simulation, and release evidence.
+- Use `$shadow-recruit-release-manager` for SemVer bucketing, changelog maintenance, validation gates, version bumps, commits, and pushes.
 
 Shadow Circuit in `C:\Users\joshs\Projects\sneak-game` is a baseline reference only. Prefer stronger architecture, clearer player feedback, richer asset pipelines, and better debug/verification coverage over copying old patterns.
 
