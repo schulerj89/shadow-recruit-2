@@ -17,6 +17,17 @@ Track:
 - File payload totals for GLB, textures, audio, and generated assets.
 - Browser heap when `performance.memory` is available, treating it as browser-specific telemetry.
 
+## Advanced Memory Model
+
+Separate these budgets because they fail differently:
+
+- **Network payload:** compressed GLB, KTX2, audio, image, and JSON transfer size.
+- **Decoded CPU memory:** ArrayBuffers, parsed geometry attributes, image bitmaps, animation tracks, nav data, and gameplay caches.
+- **GPU memory:** vertex/index buffers, textures, mip levels, render targets, shadow maps, environment maps, and postprocessing buffers.
+- **Transient spikes:** loader parse buffers, image decode, shader compile, screenshots, readbacks, and scene transitions.
+
+Do not declare a memory fix complete until repeated load/reset/unload cycles return counters to the expected baseline.
+
 ## Disposal Rules
 
 - Removing an object from the scene does not dispose GPU resources.
@@ -25,6 +36,9 @@ Track:
 - Stop animation actions before `AnimationMixer.uncacheAction`, `uncacheClip`, or `uncacheRoot`.
 - Do not dispose shared resources without ownership, reference counting, or an asset-cache release API.
 - Reuse geometries, materials, loaders, decoder instances, and textures for repeated props.
+- Clear app-owned references after disposal so JavaScript garbage collection can reclaim CPU objects.
+- Dispose postprocessing render targets, shadow-only helper resources, PMREM/environment resources, and debug-only canvases when scenes change.
+- For WebGPU paths, treat device loss as a full resource invalidation event and rebuild device-owned buffers/textures.
 
 ## Asset Budget Rules
 
@@ -34,6 +48,8 @@ Track:
 - Mipmaps add memory overhead but usually improve 3D texture sampling and distant rendering quality.
 - Large generated images should be resized or compressed before runtime use.
 - Required gameplay assets need primitive fallbacks so cinematic assets can fail or unload gracefully.
+- Prefer KTX2/Basis for repeated runtime textures and documentation-only webp/jpeg for non-runtime images.
+- Treat render target size as width x height x channels x bytes x samples x history buffers; post stacks can exceed asset memory quickly.
 
 ## Workflow
 
@@ -43,6 +59,14 @@ Track:
 4. Capture the same counters after each loop.
 5. Fix ownership or cache-release bugs before reducing visual quality.
 6. Add smoke checks for count regressions and asset load failures.
+
+## Leak Hunt Pattern
+
+1. Add a debug action that loads the target scene, idles, resets, and repeats three times.
+2. Record renderer info, app-owned resource counts, heap if available, and asset cache contents after each unload.
+3. If geometries or textures rise, inspect disposal ownership first.
+4. If heap rises while renderer counters stabilize, inspect retained arrays, event listeners, mixers, promises, UI nodes, and debug logs.
+5. If only first load spikes, check parser/image decode transients and staged loading before cutting quality.
 
 ## Helper Script
 

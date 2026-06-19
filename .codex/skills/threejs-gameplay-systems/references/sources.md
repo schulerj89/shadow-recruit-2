@@ -9,6 +9,8 @@ Research date: 2026-06-19.
   - `update(deltaTime)` advances mixer time; uncache methods release animation resources after actions are stopped.
 - SkeletonUtils: https://threejs.org/docs/pages/module-SkeletonUtils.html
   - `retarget()` and `retargetClip()` can transfer skeleton pose or animation clips between compatible skeletons.
+- glTF 2.0 spec animation section: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
+  - glTF supports animation of node transforms and morph target weights. Runtime clip playback behavior is left to the client engine.
 
 ## Loop And Renderer Hooks
 

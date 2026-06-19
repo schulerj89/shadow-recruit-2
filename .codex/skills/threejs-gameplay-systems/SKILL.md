@@ -27,6 +27,15 @@ Start every gameplay change by defining:
 - Avoid per-frame allocations in hot gameplay paths: raycasts, vectors, arrays, event payloads, and bounding boxes should be reused or pooled.
 - Expose debug controls for teleport, force alert, force objective state, spawn enemy, force camera, and reset scene.
 
+## Advanced Systems Patterns
+
+- Model AI as perception, intent, navigation, action, and presentation layers. Keep line-of-sight rays and hearing probes in perception, not in rendering.
+- Give every enemy a small state graph with explicit transitions and timers: idle, patrol, suspicious, investigate, alert, search, attack, recover, disabled.
+- Separate movement controller, animation controller, and ability/action controller so asset swaps do not rewrite gameplay rules.
+- Treat camera as a gameplay system with state: exploration, aim, stealth peek, chase, takedown, cinematic, debug, and menu.
+- Author levels as data with validation: spawn safety, patrol reachability, objective order, cover density, exit gating, and camera framing probes.
+- Keep save data versioned once persistence exists; migrations belong in pure functions with tests.
+
 ## Three.js Mechanics
 
 - Use `Clock` or equivalent delta time for animation mixers and motion, with clamping for tab-switch spikes.
@@ -35,6 +44,8 @@ Start every gameplay change by defining:
 - Keep camera collision and player collision separate from visual clipping.
 - Budget raycasts by purpose and frequency; broad AI awareness should use cheap spatial checks before line-of-sight rays.
 - Keep gameplay fallbacks when high-end GLB assets fail to load.
+- Do not rely on glTF animation auto-start. Select clips deliberately and map them to gameplay state names.
+- Keep root motion policy explicit: either consume root motion into gameplay movement or strip/ignore it and drive motion from simulation.
 
 ## Implementation Workflow
 
@@ -50,6 +61,8 @@ Start every gameplay change by defining:
 - Can a tester reproduce the state in under 30 seconds?
 - Can the system survive scene reset, level change, and asset load failure?
 - Does the mechanic remain readable at the actual gameplay camera distance?
+- Does the system remain deterministic enough for unit tests, replay tests, or scripted smoke paths?
+- Are failure states recoverable without refreshing the browser?
 
 ## References
 

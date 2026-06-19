@@ -41,6 +41,37 @@ Evaluate in this order:
 
 Treat Shadow Circuit as a useful baseline, not a template to copy. Shadow Recruit 2 should improve on it through clearer mission pacing, stronger third-person/camera language, better asset pipelines, richer NPC and enemy behaviors, more deliberate memory budgets, and more cinematic presentation without sacrificing browser stability.
 
+## Advanced Production Triage
+
+Use this triage before approving a feature slice:
+
+- **Playable first:** prove the core loop with primitives, debug toggles, and fallback art before committing cinematic assets.
+- **Signal over volume:** prefer one readable encounter with clear camera, animation, sound, and UI feedback over many thin levels.
+- **Evidence gate:** require at least one artifact for any visual claim: screenshot, short capture, debug overlay numbers, or browser smoke result.
+- **Regression gate:** require a repeatable way to enter, reset, and replay the new state before adding adjacent content.
+- **Budget gate:** ask `$threejs-memory` before accepting heavier GLBs, generated textures, extra postprocessing, or more live actors.
+- **Renderer gate:** ask `$threejs-webgpu-webgl-expert` before approving WebGPU-only effects, custom shaders, transparency-heavy passes, or postprocessing stacks.
+
+## Feature Slice Rubric
+
+Classify every proposed slice before routing work:
+
+- **Foundation:** build missing architecture, debug hooks, test harnesses, loading, or registry support.
+- **Feel:** tune camera, input, animation timing, hit reactions, stealth feedback, VFX, and audio timing.
+- **Content:** add levels, props, characters, enemies, encounters, cutscenes, or missions after foundation and feel hold.
+- **Polish:** improve fidelity, transitions, lighting, UI, and screenshots after core readability is stable.
+
+If a slice spans multiple classes, split it and land the foundation or feel piece first.
+
+## Director QA Shots
+
+For a meaningful director pass, request or capture:
+
+- Gameplay camera view at start, peak tension, objective interaction, failure, and success.
+- Debug view showing collision proxies, line of sight, active state, FPS, draw calls, and memory counters.
+- Close-up asset/animation view for any new hero, enemy, rig, or generated prop.
+- Mobile or narrow viewport shot if UI, touch, camera, or performance changes.
+
 ## Output Shape
 
 Lead with findings or direction, then next patches:

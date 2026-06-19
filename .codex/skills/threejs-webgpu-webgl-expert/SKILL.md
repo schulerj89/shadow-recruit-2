@@ -18,6 +18,8 @@ Keep WebGL stable as the baseline until the project has explicit WebGPU acceptan
 
 - Probe `navigator.gpu` and adapter/device creation before assuming WebGPU availability.
 - Treat adapter failure as expected behavior and provide a WebGL fallback.
+- Handle `device.lost` and recreate all device-owned resources when WebGPU is active.
+- Log adapter features and limits only as diagnostics; do not require optional features unless the fallback path is tested.
 - Prefer Three.js node materials or TSL for new renderer-portable shader work.
 - Avoid new WebGL-only `onBeforeCompile` customization unless the feature is explicitly WebGL-only or has a fallback material.
 - Record the selected backend in the debug API so smoke tests can assert it.
@@ -30,6 +32,16 @@ Keep WebGL stable as the baseline until the project has explicit WebGPU acceptan
 - Use `compileAsync()` or staged preload for shader-heavy scene transitions when first-frame hitches matter.
 - Prefer opaque or alpha-tested materials before transparent blending.
 - Keep shadows, transmission, high sample counts, and postprocessing earned by measured frame budget.
+
+## Advanced Graphics Decisions
+
+- Prefer `InstancedMesh` for many copies of the same geometry/material and `BatchedMesh` for many objects that share one material but use different geometries or transforms.
+- Recompute bounds after changing instance transforms or batched geometry visibility so culling remains correct.
+- Keep postprocessing passes explicit and budgeted. Every pass should disclose render target size, sample count, and whether it reads depth, normals, velocity, or color.
+- Use `compileAsync()` after lighting and environment setup for expensive first-use materials, especially new GLB actors or shader-heavy effects.
+- Keep color management stable: document output color space, tone mapping, exposure, environment map, and render target color space when changing materials or post.
+- Prefer shader uniforms or node parameters for runtime variation instead of creating new materials per object.
+- Treat readbacks, screenshot extraction, and picking buffers as stalls unless they are isolated from gameplay frames.
 
 ## Loader And Asset Integration
 
@@ -48,6 +60,8 @@ Route GLB generation, rigging, and retargeting to `$threejs-aaa-asset-builder`. 
 - Assert nonblank canvas pixels for 3D scenes.
 - Log or expose draw calls, triangles, geometries, textures, backend, pixel ratio, and asset load errors.
 - Test both the preferred backend and fallback when possible.
+- Compare one low-end profile and one cinematic profile when a change affects shadows, postprocessing, transparency, or generated assets.
+- Include a shader-warmup or first-interaction check for new materials so compile stutter is visible before release.
 
 ## References
 

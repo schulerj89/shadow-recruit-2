@@ -10,15 +10,25 @@ Research date: 2026-06-19.
   - WebGLRenderer uses WebGL 2. Its `info` property exposes GPU memory and render-process statistics.
   - `compileAsync()` can help precompile shaders asynchronously through parallel shader compile support.
   - `setAnimationLoop()` is the recommended animation loop entry point.
+- Renderer: https://threejs.org/docs/pages/Renderer.html
+  - `compileAsync()` exists on the common renderer API and is intended to reduce shader compilation stutter.
 - Material: https://threejs.org/docs/pages/Material.html
   - `onBeforeCompile` is WebGLRenderer-specific; docs recommend node materials/TSL for new renderer-portable customization.
+- InstancedMesh: https://threejs.org/docs/pages/InstancedMesh.html
+  - Use for many objects sharing the same geometry and material while varying transforms or colors.
+- BatchedMesh: https://threejs.org/docs/pages/BatchedMesh.html
+  - Use for many objects sharing one material while using different geometries or world transforms.
 
 ## Web Platform
 
 - MDN `GPU.requestAdapter()`: https://developer.mozilla.org/en-US/docs/Web/API/GPU/requestAdapter
   - `requestAdapter()` can resolve to `null` when no appropriate adapter is available.
+- MDN `GPUDevice.lost`: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/lost
+  - Device loss can happen after creation; device-owned resources must be recreated.
 - MDN WebGL best practices: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
   - Mipmaps usually help 3D sampling. GPU-compressed texture formats can reduce GPU memory and bandwidth.
+- MDN compressed texture formats: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Compressed_texture_formats
+  - Compressed textures require hardware support exposed through extensions.
 
 ## Asset Loading
 
