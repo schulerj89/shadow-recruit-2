@@ -39,6 +39,7 @@ Use this skill when movement or spatial truth is the risk. Gameplay collision sh
 
 - Route player verbs and enemy state machines to `$threejs-gameplay-systems`.
 - Route level traversal spaces to `$threejs-level-world-builder`.
+- Route blockout overlap, bounds, clearance, and authored wall validation to `$threejs-level-geometry-validator`.
 - Route visual debugging and renderer overlays to `$threejs-webgpu-webgl-expert`.
 - Route memory impact from navmesh, physics worlds, or debug geometry to `$threejs-memory`.
 

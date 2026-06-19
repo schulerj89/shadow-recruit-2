@@ -9,6 +9,7 @@ Shadow Recruit 2 starts as a repo-local Codex skill package. Before implementing
 - Use `$threejs-aaa-asset-builder` for Meshy, Tripo, GLB, rigging, retargeting, animation, and asset registry work.
 - Use `$threejs-memory` for asset budgets, resource disposal, renderer.info trends, and scene reset leaks.
 - Use `$threejs-level-world-builder` for mission spaces, traversal readability, encounter layout, streaming boundaries, and world authoring.
+- Use `$threejs-level-geometry-validator` for level blockout math, bounds containment, wall overlap checks, clearance rules, collision proxy sanity, and navmesh blocker preparation.
 - Use `$threejs-physics-navigation` for Rapier-style physics, collision proxies, character controllers, navmeshes, pathfinding, triggers, and scene queries.
 - Use `$threejs-character-animation` for AnimationMixer state, clip maps, blend timing, root motion policy, retargeted clips, and animation QA.
 - Use `$threejs-audio-haptics` for Web Audio graphs, stealth cues, music states, spatial audio, SFX budgets, and gamepad haptics.

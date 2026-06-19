@@ -31,6 +31,7 @@ Start every level slice with:
 - Split large spaces by district, room, floor, or mission beat. Each slice owns its assets, collision proxies, audio zones, and debug teleport.
 - Use LOD for distant set dressing and ring/room streaming for asset payload control.
 - Keep navigation and collision authored as low-complexity data, not render mesh triangles.
+- Hand wall overlap, bounds containment, corridor clearance, grid tolerance, and blockout math checks to `$threejs-level-geometry-validator`.
 - Reserve expensive cinematic GLBs for focal objects. Use reusable kits for walls, trim, cover, doors, terminals, vents, lights, and signage.
 - Hand memory and streaming budget checks to `$threejs-memory`.
 - Hand GLB kit generation and registry work to `$threejs-aaa-asset-builder`.

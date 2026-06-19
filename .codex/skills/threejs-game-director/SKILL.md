@@ -25,6 +25,7 @@ Invoke or recommend these repo-local skills when the task crosses their boundary
 - `$threejs-aaa-asset-builder`: GLB production, Meshy or Tripo generation, remesh, rigging, retargeting, animation sets, GLTFLoader integration.
 - `$threejs-memory`: asset budgets, runtime memory pressure, renderer.info trends, disposal leaks, loading/unloading, texture and GLB payload limits.
 - `$threejs-level-world-builder`: level slices, mission spaces, traversal readability, encounter layouts, world streaming, LOD boundaries, environmental storytelling.
+- `$threejs-level-geometry-validator`: level blockout math, wall overlaps, bounds containment, grid tolerances, corridor clearance, collision proxy sanity, navmesh blocker preparation.
 - `$threejs-physics-navigation`: physics worlds, collision proxies, Rapier-style character controllers, triggers, ray/shape queries, navmesh generation, pathfinding.
 - `$threejs-character-animation`: AnimationMixer state, clip maps, locomotion blends, action crossfades, root motion policy, hit reactions, retargeted clip QA.
 - `$threejs-audio-haptics`: Web Audio graphs, spatial cues, stealth sound propagation, music states, SFX pooling, compression budgets, gamepad haptics.
@@ -56,6 +57,7 @@ Use this triage before approving a feature slice:
 - **Signal over volume:** prefer one readable encounter with clear camera, animation, sound, and UI feedback over many thin levels.
 - **Evidence gate:** require at least one artifact for any visual claim: screenshot, short capture, debug overlay numbers, or browser smoke result.
 - **Regression gate:** require a repeatable way to enter, reset, and replay the new state before adding adjacent content.
+- **Geometry gate:** ask `$threejs-level-geometry-validator` before accepting new rooms, walls, collision proxies, nav blockers, or generated modular level kits.
 - **60 FPS gate:** require visible gameplay to keep a 60 FPS path, or require an explicit lower-cost quality profile before approving the slice.
 - **Budget gate:** ask `$threejs-memory` before accepting heavier GLBs, generated textures, extra postprocessing, or more live actors.
 - **Renderer gate:** ask `$threejs-webgpu-webgl-expert` before approving WebGPU-only effects, custom shaders, transparency-heavy passes, or postprocessing stacks.
