@@ -1,4 +1,9 @@
 {
+  "metadata": {
+    "id": "relay-vault",
+    "name": "Relay Vault",
+    "chapter": "Operation Night Compass"
+  },
   "bounds": {
     "min": [
       -48,
@@ -646,7 +651,12 @@
         4,
         0.8
       ],
-      "height": 3.3
+      "height": 3.3,
+      "axis": "x",
+      "opensWhen": [
+        "access-keycard"
+      ],
+      "speed": 1.8
     },
     {
       "id": "vault-door",
@@ -658,7 +668,12 @@
         4,
         0.8
       ],
-      "height": 3.3
+      "height": 3.3,
+      "axis": "x",
+      "opensWhen": [
+        "security-terminal"
+      ],
+      "speed": 1.8
     },
     {
       "id": "extraction-door",
@@ -670,7 +685,12 @@
         4,
         0.8
       ],
-      "height": 3.3
+      "height": 3.3,
+      "axis": "x",
+      "opensWhen": [
+        "command-codes"
+      ],
+      "speed": 1.9
     }
   ],
   "spawns": [
@@ -685,30 +705,223 @@
   "objectives": [
     {
       "id": "access-keycard",
+      "type": "keycard",
+      "label": "Recover the access keycard",
       "position": [
         -38,
         -31
-      ]
+      ],
+      "radius": 1.55,
+      "required": true,
+      "unlocks": [
+        "entry-door"
+      ],
+      "asset": "keycard"
     },
     {
       "id": "security-terminal",
+      "type": "terminal",
+      "label": "Breach the security terminal",
       "position": [
         34,
         0
-      ]
+      ],
+      "radius": 1.75,
+      "required": true,
+      "unlocks": [
+        "vault-door"
+      ],
+      "asset": "terminal"
     },
     {
       "id": "command-codes",
+      "type": "codes",
+      "label": "Copy the command codes",
       "position": [
         -34,
         25
-      ]
+      ],
+      "radius": 1.55,
+      "required": true,
+      "unlocks": [
+        "extraction-door"
+      ],
+      "asset": "codes"
     },
     {
       "id": "extraction",
       "position": [
         0,
         36
+      ]
+    }
+  ],
+  "enemies": [
+    {
+      "id": "sentry-south",
+      "label": "South sentry",
+      "start": [
+        16,
+        -32
+      ],
+      "patrol": [
+        [
+          16,
+          -32
+        ],
+        [
+          -12,
+          -28
+        ],
+        [
+          12,
+          -18
+        ]
+      ],
+      "speed": 2.0,
+      "detectionRadius": 2.4
+    },
+    {
+      "id": "sentry-mid",
+      "label": "Mid sentry",
+      "start": [
+        20,
+        4
+      ],
+      "patrol": [
+        [
+          20,
+          4
+        ],
+        [
+          36,
+          7
+        ],
+        [
+          18,
+          -8
+        ]
+      ],
+      "speed": 1.9,
+      "detectionRadius": 2.4
+    },
+    {
+      "id": "sentry-north",
+      "label": "North sentry",
+      "start": [
+        18,
+        31
+      ],
+      "patrol": [
+        [
+          18,
+          31
+        ],
+        [
+          -18,
+          30
+        ],
+        [
+          12,
+          22
+        ]
+      ],
+      "speed": 1.95,
+      "detectionRadius": 2.35
+    }
+  ],
+  "validationRoute": [
+    [
+      0,
+      -36
+    ],
+    [
+      -38,
+      -31
+    ],
+    [
+      0,
+      -15
+    ],
+    [
+      2,
+      -10
+    ],
+    [
+      34,
+      0
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      -34,
+      25
+    ],
+    [
+      0,
+      27
+    ],
+    [
+      0,
+      36
+    ]
+  ],
+  "tutorial": [
+    {
+      "id": "hero",
+      "title": "Insertion",
+      "target": "hero",
+      "text": "Cadet, Relay Vault stores a live signal mirror under Night Compass. Move through the entry locks, stay off the sentry lanes, and keep the relay core intact. Good luck, cadet.",
+      "alignmentKeywords": [
+        "cadet",
+        "relay vault",
+        "sentry"
+      ]
+    },
+    {
+      "id": "keycard",
+      "title": "First Lock",
+      "target": "access-keycard",
+      "text": "The access keycard opens the south entry gate. Cross from cover to cover and watch the first sentry sweep before committing. Good luck, cadet.",
+      "alignmentKeywords": [
+        "keycard",
+        "gate",
+        "cover"
+      ]
+    },
+    {
+      "id": "terminal",
+      "title": "Security Stack",
+      "target": "security-terminal",
+      "text": "The security terminal drops the vault gate. Hack it from the service-bank shadow, then move before the mid sentry doubles back. Good luck, cadet.",
+      "alignmentKeywords": [
+        "terminal",
+        "gate",
+        "stealth"
+      ]
+    },
+    {
+      "id": "codes",
+      "title": "Command Codes",
+      "target": "command-codes",
+      "text": "The command codes authorize extraction. Grab the relay packet from the north console and keep the exit lane in sight. Good luck, cadet.",
+      "alignmentKeywords": [
+        "command codes",
+        "extraction",
+        "landmark"
+      ]
+    },
+    {
+      "id": "extraction",
+      "title": "Extraction",
+      "target": "extraction",
+      "text": "Extraction is the lit relay pad past the final divider. Hold the zone until command confirms the mirror is burned. Good luck, cadet.",
+      "alignmentKeywords": [
+        "extraction",
+        "final approach",
+        "pressure"
       ]
     }
   ]

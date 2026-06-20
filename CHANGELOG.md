@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.24.0 - 2026-06-20
+
+### Minor
+
+- Moved registered mission runtime metadata into geometry JSON so future big levels can author mission names, objectives, door unlocks, sentries, validation routes, and tutorial beats from the level source file.
+- Added a shared `levelFromGeometry` adapter builder so new level adapters stay thin and scaffolded missions do not duplicate TypeScript conversion code.
+- Expanded `level:doctor`, `test:geometry`, and density tooling to instantiate registered levels, validate every geometry file, enforce tutorial/door/objective/sentry authoring fields, and expose a reliable JSON density report.
+
 ## 0.23.0 - 2026-06-20
 
 ### Minor

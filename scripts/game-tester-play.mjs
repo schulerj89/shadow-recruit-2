@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
+import { collectLevelAdapters } from './level-registry.mjs';
 
 const host = '127.0.0.1';
 const preferredPort = Number(process.env.TESTER_PORT ?? 5184);
@@ -142,28 +143,14 @@ async function runBrowserPlaythroughMatrix(env) {
 }
 
 function readRegisteredLevelIds() {
-  const indexSource = readFileSync(path.join('src', 'game', 'levels', 'index.ts'), 'utf8');
-  const imports = new Map();
-  for (const match of indexSource.matchAll(/import\s+\{\s*([A-Za-z0-9_$]+)\s*\}\s+from\s+['"]\.\/([^'"]+)['"]/g)) {
-    imports.set(match[1], match[2]);
-  }
-
-  const levelsMatch = indexSource.match(/levels\s*=\s*\[([^\]]*)\]/m);
-  if (!levelsMatch) throw new Error('Cannot find registered levels array in src/game/levels/index.ts.');
-
-  const levelIds = levelsMatch[1]
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((exportName) => {
-      const moduleName = imports.get(exportName);
-      if (!moduleName) throw new Error(`Cannot find import for registered level ${exportName}.`);
-      const adapterSource = readFileSync(path.join('src', 'game', 'levels', `${moduleName}.ts`), 'utf8');
-      const exportMatch = adapterSource.match(new RegExp(`export\\s+const\\s+${exportName}\\s*:\\s*LevelDefinition\\s*=\\s*{[\\s\\S]*?\\n};`));
-      const idMatch = (exportMatch?.[0] ?? adapterSource).match(/^\s*id:\s*['"]([^'"]+)['"]/m);
-      if (!idMatch) throw new Error(`Cannot find id for registered level ${exportName}.`);
-      return idMatch[1];
-    });
+  const levelIds = collectLevelAdapters({ root: process.cwd() }).map((adapter) => {
+    const geometry = JSON.parse(readFileSync(path.join('data', 'levels', adapter.geometryFile), 'utf8'));
+    const id = geometry?.metadata?.id;
+    if (typeof id !== 'string' || id.trim().length === 0) {
+      throw new Error(`Cannot find metadata.id for registered level ${adapter.exportName} in ${adapter.geometryFile}.`);
+    }
+    return id;
+  });
 
   if (levelIds.length === 0) throw new Error('No registered level IDs found for browser playthrough matrix.');
   return levelIds;

@@ -25,7 +25,7 @@ const adapterPath = path.join(root, 'src', 'game', 'levels', `${moduleName}.ts`)
 const indexPath = getLevelRegistryPath(root);
 const name = args.name ?? titleFromSlug(slug);
 const chapter = args.chapter ?? 'Operation New Shadow';
-const geometry = buildGeometryTemplate();
+const geometry = buildGeometryTemplate({ slug, name, chapter });
 const adapter = buildAdapterTemplate({ slug, exportName, name, chapter });
 const plannedFiles = [
   { path: geometryPath, content: `${JSON.stringify(geometry, null, 2)}\n`, allowExisting: false },
@@ -88,8 +88,13 @@ function requireValue(value, name) {
   return value;
 }
 
-function buildGeometryTemplate() {
+function buildGeometryTemplate({ slug, name, chapter }) {
   return {
+    metadata: {
+      id: slug,
+      name,
+      chapter,
+    },
     bounds: { min: [-48, -42], max: [48, 42] },
     walls: [
       { id: 'outer-north', center: [0, 41.5], size: [96, 1], height: 3.6 },
@@ -164,247 +169,100 @@ function buildGeometryTemplate() {
       },
     ],
     doors: [
-      { id: 'entry-door', center: [0, -14], size: [4, 0.8], height: 3.3 },
-      { id: 'vault-door', center: [0, 14], size: [4, 0.8], height: 3.3 },
-      { id: 'extraction-door', center: [0, 28], size: [4, 0.8], height: 3.3 },
+      { id: 'entry-door', center: [0, -14], size: [4, 0.8], height: 3.3, axis: 'x', opensWhen: ['access-keycard'], speed: 1.8 },
+      { id: 'vault-door', center: [0, 14], size: [4, 0.8], height: 3.3, axis: 'x', opensWhen: ['security-terminal'], speed: 1.8 },
+      { id: 'extraction-door', center: [0, 28], size: [4, 0.8], height: 3.3, axis: 'x', opensWhen: ['command-codes'], speed: 1.9 },
     ],
     spawns: [{ id: 'player', position: [0, -36] }],
     objectives: [
-      { id: 'access-keycard', position: [-38, -31] },
-      { id: 'security-terminal', position: [34, 0] },
-      { id: 'command-codes', position: [-34, 25] },
+      { id: 'access-keycard', type: 'keycard', label: 'Recover the access keycard', position: [-38, -31], radius: 1.55, required: true, unlocks: ['entry-door'], asset: 'keycard' },
+      { id: 'security-terminal', type: 'terminal', label: 'Breach the security terminal', position: [34, 0], radius: 1.75, required: true, unlocks: ['vault-door'], asset: 'terminal' },
+      { id: 'command-codes', type: 'codes', label: 'Copy the command codes', position: [-34, 25], radius: 1.55, required: true, unlocks: ['extraction-door'], asset: 'codes' },
       { id: 'extraction', position: [0, 36] },
+    ],
+    enemies: [
+      {
+        id: 'sentry-south',
+        label: 'South sentry',
+        start: [16, -32],
+        patrol: [[16, -32], [-12, -28], [12, -18]],
+        speed: 2.0,
+        detectionRadius: 2.4,
+      },
+      {
+        id: 'sentry-mid',
+        label: 'Mid sentry',
+        start: [20, 4],
+        patrol: [[20, 4], [36, 7], [18, -8]],
+        speed: 1.9,
+        detectionRadius: 2.4,
+      },
+      {
+        id: 'sentry-north',
+        label: 'North sentry',
+        start: [18, 31],
+        patrol: [[18, 31], [-18, 30], [12, 22]],
+        speed: 1.95,
+        detectionRadius: 2.35,
+      },
+    ],
+    validationRoute: [
+      [0, -36],
+      [-38, -31],
+      [0, -15],
+      [2, -10],
+      [34, 0],
+      [0, 13],
+      [-34, 25],
+      [0, 27],
+      [0, 36],
+    ],
+    tutorial: [
+      {
+        id: 'hero',
+        title: 'Insertion',
+        target: 'hero',
+        text: 'Cadet, this scaffolded mission is ready for a layout pass. Confirm patrol timing, route language, cover purpose, and objective readability before art polish. Good luck, cadet.',
+        alignmentKeywords: ['cadet', 'mission', 'patrol'],
+      },
+      {
+        id: 'keycard',
+        title: 'First Lock',
+        target: 'access-keycard',
+        text: 'The keycard unlocks the first gate. Use this beat to teach the primary route and the first cover decision. Good luck, cadet.',
+        alignmentKeywords: ['keycard', 'gate', 'cover'],
+      },
+      {
+        id: 'terminal',
+        title: 'Security Stack',
+        target: 'security-terminal',
+        text: 'The terminal unlocks the vault gate. Keep the approach readable and leave room for stealth timing. Good luck, cadet.',
+        alignmentKeywords: ['terminal', 'gate', 'stealth'],
+      },
+      {
+        id: 'codes',
+        title: 'Command Codes',
+        target: 'command-codes',
+        text: 'The command codes unlock extraction. Stage this area with a landmark silhouette and visible escape line. Good luck, cadet.',
+        alignmentKeywords: ['command codes', 'extraction', 'landmark'],
+      },
+      {
+        id: 'extraction',
+        title: 'Extraction',
+        target: 'extraction',
+        text: 'The extraction point should be obvious from the final approach and still leave space for pressure. Good luck, cadet.',
+        alignmentKeywords: ['extraction', 'final approach', 'pressure'],
+      },
     ],
   };
 }
 
-function buildAdapterTemplate({ slug, exportName, name, chapter }) {
+function buildAdapterTemplate({ slug, exportName }) {
   return `import geometry from '../../../data/levels/${slug}.geometry.json';
-import type { DoorDefinition, LevelDefinition, LevelZoneDefinition, ObjectiveDefinition, RectSpec, SetDressingAssetId, SetDressingDefinition, Vec2 } from '../types';
-import { vec } from '../math';
+import type { LevelDefinition } from '../types';
+import { levelFromGeometry, type LevelGeometrySource } from './levelFromGeometry';
 
-type GeometryRect = {
-  id: string;
-  center: readonly number[];
-  size: readonly number[];
-  height?: number;
-  asset?: string;
-};
-
-type GeometryPoint = {
-  id: string;
-  position: readonly number[];
-};
-
-type GeometryZone = {
-  id: string;
-  label: string;
-  bounds: { min: readonly number[]; max: readonly number[] };
-  screenshot?: string;
-  expectedLandmarks: readonly string[];
-};
-
-const objectiveOrder = ['access-keycard', 'security-terminal', 'command-codes'] as const;
-type ObjectiveId = typeof objectiveOrder[number];
-
-const objectiveMetadata = {
-  'access-keycard': {
-    id: 'access-keycard',
-    type: 'keycard',
-    label: 'Recover the access keycard',
-    radius: 1.55,
-    required: true,
-    unlocks: ['entry-door'],
-    asset: 'keycard',
-  },
-  'security-terminal': {
-    id: 'security-terminal',
-    type: 'terminal',
-    label: 'Breach the security terminal',
-    radius: 1.75,
-    required: true,
-    unlocks: ['vault-door'],
-    asset: 'terminal',
-  },
-  'command-codes': {
-    id: 'command-codes',
-    type: 'codes',
-    label: 'Copy the command codes',
-    radius: 1.55,
-    required: true,
-    unlocks: ['extraction-door'],
-    asset: 'codes',
-  },
-} satisfies Record<ObjectiveId, Omit<ObjectiveDefinition, 'position'>>;
-
-const doorMetadata = {
-  'entry-door': {
-    axis: 'x',
-    opensWhen: ['access-keycard'],
-    speed: 1.8,
-  },
-  'vault-door': {
-    axis: 'x',
-    opensWhen: ['security-terminal'],
-    speed: 1.8,
-  },
-  'extraction-door': {
-    axis: 'x',
-    opensWhen: ['command-codes'],
-    speed: 1.9,
-  },
-} satisfies Record<string, Pick<DoorDefinition, 'axis' | 'opensWhen' | 'speed'>>;
-type DoorId = keyof typeof doorMetadata;
-
-export const ${exportName}: LevelDefinition = {
-  id: '${slug}',
-  name: '${escapeTs(name)}',
-  chapter: '${escapeTs(chapter)}',
-  bounds: {
-    min: pointFromArray(geometry.bounds.min),
-    max: pointFromArray(geometry.bounds.max),
-  },
-  start: requiredPoint(geometry.spawns, 'player'),
-  extraction: requiredPoint(geometry.objectives, 'extraction'),
-  walls: geometry.walls.map(rectFromGeometry),
-  blockers: geometry.blockers.map(rectFromGeometry),
-  setDressing: geometry.setDressing.map(setDressingFromGeometry),
-  zones: geometry.zones.map(zoneFromGeometry),
-  doors: geometry.doors.map(doorFromGeometry),
-  objectives: objectiveOrder.map(objectiveFromGeometry),
-  enemies: [
-    {
-      id: 'sentry-south',
-      label: 'South sentry',
-      start: vec(16, -32),
-      patrol: [vec(16, -32), vec(-12, -28), vec(12, -18)],
-      speed: 2.0,
-      detectionRadius: 2.4,
-    },
-    {
-      id: 'sentry-mid',
-      label: 'Mid sentry',
-      start: vec(20, 4),
-      patrol: [vec(20, 4), vec(36, 7), vec(18, -8)],
-      speed: 1.9,
-      detectionRadius: 2.4,
-    },
-  ],
-  validationRoute: [
-    vec(0, -36),
-    vec(-38, -31),
-    vec(0, -15),
-    vec(2, -10),
-    vec(34, 0),
-    vec(0, 13),
-    vec(-34, 25),
-    vec(0, 27),
-    vec(0, 36),
-  ],
-  tutorial: [
-    {
-      id: 'hero',
-      title: 'Insertion',
-      target: 'hero',
-      text: 'Cadet, this scaffolded mission is ready for a layout pass. Confirm patrol timing, route language, cover purpose, and objective readability before art polish. Good luck, cadet.',
-      alignmentKeywords: ['cadet', 'mission', 'patrol'],
-    },
-    {
-      id: 'keycard',
-      title: 'First Lock',
-      target: 'access-keycard',
-      text: 'The keycard unlocks the first gate. Use this beat to teach the primary route and the first cover decision. Good luck, cadet.',
-      alignmentKeywords: ['keycard', 'gate', 'cover'],
-    },
-    {
-      id: 'terminal',
-      title: 'Security Stack',
-      target: 'security-terminal',
-      text: 'The terminal unlocks the vault gate. Keep the approach readable and leave room for stealth timing. Good luck, cadet.',
-      alignmentKeywords: ['terminal', 'gate', 'stealth'],
-    },
-    {
-      id: 'codes',
-      title: 'Command Codes',
-      target: 'command-codes',
-      text: 'The command codes unlock extraction. Stage this area with a landmark silhouette and visible escape line. Good luck, cadet.',
-      alignmentKeywords: ['command codes', 'extraction', 'landmark'],
-    },
-    {
-      id: 'extraction',
-      title: 'Extraction',
-      target: 'extraction',
-      text: 'The extraction point should be obvious from the final approach and still leave space for pressure. Good luck, cadet.',
-      alignmentKeywords: ['extraction', 'final approach', 'pressure'],
-    },
-  ],
-};
-
-function pointFromArray(value: readonly number[]): Vec2 {
-  return vec(Number(value[0] ?? 0), Number((value.length >= 3 ? value[2] : value[1]) ?? 0));
-}
-
-function rectFromGeometry(rect: GeometryRect): RectSpec {
-  return {
-    id: rect.id,
-    center: pointFromArray(rect.center),
-    size: pointFromArray(rect.size),
-    ...(rect.height === undefined ? {} : { height: rect.height }),
-  };
-}
-
-function setDressingFromGeometry(rect: GeometryRect): SetDressingDefinition {
-  if (!isSetDressingAssetId(rect.asset)) {
-    throw new Error(\`Missing set dressing asset for \${rect.id}\`);
-  }
-  return {
-    ...rectFromGeometry(rect),
-    asset: rect.asset,
-  };
-}
-
-function zoneFromGeometry(zone: GeometryZone): LevelZoneDefinition {
-  return {
-    id: zone.id,
-    label: zone.label,
-    bounds: {
-      min: pointFromArray(zone.bounds.min),
-      max: pointFromArray(zone.bounds.max),
-    },
-    ...(zone.screenshot ? { screenshot: zone.screenshot } : {}),
-    expectedLandmarks: zone.expectedLandmarks,
-  };
-}
-
-function isSetDressingAssetId(value: unknown): value is SetDressingAssetId {
-  return value === 'cable-tray' || value === 'wall-machinery' || value === 'extraction-beacon';
-}
-
-function doorFromGeometry(rect: GeometryRect): DoorDefinition {
-  const metadata = isDoorId(rect.id) ? doorMetadata[rect.id] : undefined;
-  if (!metadata) throw new Error(\`Missing door metadata for \${rect.id}\`);
-  return {
-    ...rectFromGeometry(rect),
-    ...metadata,
-  };
-}
-
-function isDoorId(value: string): value is DoorId {
-  return value in doorMetadata;
-}
-
-function objectiveFromGeometry(id: ObjectiveId): ObjectiveDefinition {
-  return {
-    ...objectiveMetadata[id],
-    position: requiredPoint(geometry.objectives, id),
-  };
-}
-
-function requiredPoint(points: readonly GeometryPoint[], id: string): Vec2 {
-  const point = points.find((item) => item.id === id);
-  if (!point) throw new Error(\`Missing geometry point: \${id}\`);
-  return pointFromArray(point.position);
-}
+export const ${exportName}: LevelDefinition = levelFromGeometry(geometry as LevelGeometrySource);
 `;
 }
 
@@ -416,14 +274,10 @@ function titleFromSlug(value) {
   return value.split('-').map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`).join(' ');
 }
 
-function escapeTs(value) {
-  return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-}
-
 function printNextSteps({ slug, moduleName, exportName, registered }) {
   console.info('');
   console.info('Next steps:');
-  console.info(`1. Review data/levels/${slug}.geometry.json and tune rooms, doors, blockers, objectives, patrols, zones, and set dressing.`);
+  console.info(`1. Review data/levels/${slug}.geometry.json and tune metadata, rooms, doors, blockers, objectives, sentries, route, tutorial beats, zones, and set dressing.`);
   console.info(`2. Run: node .codex/skills/threejs-level-geometry-validator/scripts/validate_level_geometry.mjs data/levels/${slug}.geometry.json --min-clearance 1.1`);
   if (registered) {
     console.info(`3. ${exportName} is included in the generated src/game/levels/index.ts registry for the mission selector.`);

@@ -1,4 +1,9 @@
 {
+  "metadata": {
+    "id": "blacksite-threshold",
+    "name": "Blacksite Threshold",
+    "chapter": "Operation Glass Dagger"
+  },
   "bounds": { "min": [-42, -34], "max": [42, 38] },
   "walls": [
     { "id": "outer-north", "center": [0, 37.5], "size": [84, 1], "height": 3.4 },
@@ -92,15 +97,91 @@
     }
   ],
   "doors": [
-    { "id": "lobby-door", "center": [0, -18], "size": [6, 0.8], "height": 3.3 },
-    { "id": "server-door", "center": [14, 5], "size": [6, 0.8], "height": 3.3 },
-    { "id": "extraction-door", "center": [0, 20], "size": [6, 0.8], "height": 3.3 }
+    { "id": "lobby-door", "center": [0, -18], "size": [6, 0.8], "height": 3.3, "axis": "x", "opensWhen": ["access-keycard"], "speed": 1.8 },
+    { "id": "server-door", "center": [14, 5], "size": [6, 0.8], "height": 3.3, "axis": "x", "opensWhen": ["security-terminal"], "speed": 1.8 },
+    { "id": "extraction-door", "center": [0, 20], "size": [6, 0.8], "height": 3.3, "axis": "x", "opensWhen": ["command-codes"], "speed": 1.9 }
   ],
   "spawns": [{ "id": "player", "position": [0, -29] }],
   "objectives": [
-    { "id": "access-keycard", "position": [-31, -25] },
-    { "id": "security-terminal", "position": [30, -3] },
-    { "id": "command-codes", "position": [-32, 14] },
+    { "id": "access-keycard", "type": "keycard", "label": "Recover the lobby keycard", "position": [-31, -25], "radius": 1.55, "required": true, "unlocks": ["lobby-door"], "asset": "keycard" },
+    { "id": "security-terminal", "type": "terminal", "label": "Hack the security terminal", "position": [30, -3], "radius": 1.75, "required": true, "unlocks": ["server-door"], "asset": "terminal" },
+    { "id": "command-codes", "type": "codes", "label": "Copy the command codes", "position": [-32, 14], "radius": 1.55, "required": true, "unlocks": ["extraction-door"], "asset": "codes" },
     { "id": "extraction", "position": [0, 33] }
+  ],
+  "enemies": [
+    {
+      "id": "sentry-lobby",
+      "label": "Lobby sentry",
+      "start": [16, -25],
+      "patrol": [[16, -25], [-8, -23], [10, -13]],
+      "speed": 2.1,
+      "detectionRadius": 2.45
+    },
+    {
+      "id": "sentry-server",
+      "label": "Server sentry",
+      "start": [18, 12],
+      "patrol": [[18, 12], [31, 15], [18, 1]],
+      "speed": 1.9,
+      "detectionRadius": 2.4
+    },
+    {
+      "id": "sentry-command",
+      "label": "Command sentry",
+      "start": [-14, 25],
+      "patrol": [[-14, 25], [12, 25], [-3, 32]],
+      "speed": 2.0,
+      "detectionRadius": 2.35
+    }
+  ],
+  "validationRoute": [
+    [0, -29],
+    [-31, -25],
+    [0, -19],
+    [1, -16],
+    [30, -3],
+    [15, 4],
+    [16, 7],
+    [-32, 14],
+    [0, 19],
+    [0, 24],
+    [0, 33]
+  ],
+  "tutorial": [
+    {
+      "id": "hero",
+      "title": "Insertion",
+      "target": "hero",
+      "text": "Cadet, this is your first Shadow Recruit field operation. Move quietly, keep your suit low, and read the room before you cross open ground. Good luck, cadet.",
+      "alignmentKeywords": ["cadet", "shadow recruit", "move quietly"]
+    },
+    {
+      "id": "keycard",
+      "title": "First Lock",
+      "target": "access-keycard",
+      "text": "Your first objective is the lobby keycard. Secure it to open the first sliding security door. Good luck, cadet.",
+      "alignmentKeywords": ["objective", "keycard", "door"]
+    },
+    {
+      "id": "terminal",
+      "title": "Security Stack",
+      "target": "security-terminal",
+      "text": "The terminal controls the server-wing door. Get close, interact, and let the deck burn through the lock. Good luck, cadet.",
+      "alignmentKeywords": ["terminal", "server-wing door", "interact"]
+    },
+    {
+      "id": "sentry",
+      "title": "Avoid Contact",
+      "target": "sentry-lobby",
+      "text": "Avoid sentries. If one closes in, you are done. Use cover, watch patrol timing, and do not sprint into a sightline. Good luck, cadet.",
+      "alignmentKeywords": ["avoid sentries", "cover", "patrol"]
+    },
+    {
+      "id": "extraction",
+      "title": "Extraction",
+      "target": "extraction",
+      "text": "When the command codes unlock the final door, move to the extraction pad and hold the zone. Good luck, cadet.",
+      "alignmentKeywords": ["command codes", "final door", "extraction"]
+    }
   ]
 }
