@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.24.1 - 2026-06-20
+
+### Patch
+
+- Tightened tester, designer, QA automation, and geometry-validator skills so screenshot-visible wallops require pixel-to-world traces, active-camera first-hit/projection proof, adjacent door-pair ownership rows, and coordinate-backed failure handling.
+- Strengthened title and large-level review rules so back-facing title heroes and large empty active-camera spaces fail unless face/visor/chest identity and near/mid/far AAA production detail are proven.
+
 ## 0.24.0 - 2026-06-20
 
 ### Minor

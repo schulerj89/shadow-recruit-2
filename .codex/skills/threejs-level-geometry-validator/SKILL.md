@@ -46,6 +46,7 @@ Use this workflow when screenshots show wall gaps around sliding doors or the te
 12. Treat screenshot language like "wall gaps between doors" as a request for coordinates. Identify the nearest adjacent door intervals on the same physical wall line, compute the exact span between their edges, and return a pass/fail row naming the owner surface for that span.
 13. Treat "the door opens over the wall" as a priority problem, not permission to omit the wall. The open state still needs an authored wall, portal, back-wall, return, trim, or continuity surface behind/between the doors, and the moving door surface must have an explicit priority relationship over that owner.
 14. Provide a screenshot-to-wall-line resolver when QA points at a visual defect. The resolver should map a screenshot region or projected bounds to the nearest door pair, wall-line ID, candidate owner intervals, depth match, and camera-probe handoff so testers do not have to guess from pixels.
+15. Provide a pixel-to-world handoff for visible wallops. The handoff should accept a screenshot name and screen-region sample, record the active camera pose/NDC point, identify the first-hit object or projected owner coverage, then return the nearest door pair, wall-line span, expected owner, actual owner, depth match, and pass/fail state.
 
 ## Validation Pipeline
 
@@ -88,6 +89,7 @@ For every new or modified level blockout:
 - Keep adjacency ownership explicit. For every pair of neighboring intervals on a suspect wall line, record whether the surfaces touch, overlap, are covered by a priority surface, or leave a void. Local seam checks cannot replace this full-run graph.
 - Require screenshot-to-coordinate parity for wall-run complaints. The validator output should let QA name the screenshot, wall line, door IDs, edge coordinates, owner interval, gap width, and state without reverse-engineering from rendered pixels.
 - Require a camera-probe handoff for screenshot-visible voids. Geometry validation decides whether the surface exists; QA still needs the active-camera probe or projected-depth row that proves what the player sees through the suspect screen region.
+- Require door-pair lookup from the screenshot, not only from authored IDs. When QA flags a visible gap, the validator should be able to map the sampled screen/projection region to candidate wall lines and adjacent door intervals so the tester can prove whether the pixels correspond to a real coordinate span.
 - Require projection or overlay handoff when the coordinates find a wall-run defect that the default camera cannot show. The geometry verdict still comes from the wall-run intervals, but QA needs a player-visible artifact to explain the failure.
 - Keep collision proxies simpler than art. Prefer box/capsule/convex proxies for level kits and reserve triangle meshes for static walkable ground that has passed budget review.
 
@@ -107,6 +109,7 @@ Accept a level blockout only when:
 - Door-to-door ownership tables can name the exact authored surface that covers every span between adjacent doors on the same wall run, including open and closed state priority.
 - The validator can answer a screenshot complaint by returning the matching wall-line ID, adjacent door IDs, min/max edges, span width, graph edge state, owner ID, depth match, camera-probe handoff status, and whether the open door state still leaves a visible wall/portal surface.
 - The validator can answer "what is between these two doors?" with a deterministic row: shared wall-line ID, previous door max edge, next door min edge, span width, expected owner type, actual owner IDs, owner min/max, depth coverage, open/closed priority state, and pass/fail.
+- The validator can answer "what am I seeing in this screenshot region?" with a deterministic pixel-to-world row: screenshot ID, screen region or NDC sample, camera pose, first hit or projected owner, nearest wall-line ID, adjacent door pair, span min/max, owner surface, depth coverage, and finding.
 
 ## Scripted Check
 
