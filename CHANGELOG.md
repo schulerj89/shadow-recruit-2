@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.1 - 2026-06-20
+
+### Patch
+
+- Removed player-facing set-dressing fallback geometry so failed optional GLB loads are omitted and flagged by QA diagnostics instead of being replaced with placeholder props.
+
 ## 0.10.0 - 2026-06-20
 
 ### Minor

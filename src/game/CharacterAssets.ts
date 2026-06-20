@@ -135,7 +135,7 @@ export class AssetLibrary {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         this.staticAssetFailures.set(id, message);
-        console.warn(`[shadow-recruit] Optional set-dressing asset ${id} failed to load; using fallback geometry. ${message}`);
+        console.warn(`[shadow-recruit] Optional set-dressing asset ${id} failed to load; omitting player-facing prop. ${message}`);
       }
     }));
   }
@@ -156,7 +156,14 @@ export class AssetLibrary {
 
   createSetDressing(assetId: SetDressingAssetId, name: string): THREE.Object3D {
     const source = this.staticAssets.get(assetId);
-    if (!source) return createSetDressingFallback(assetId, name);
+    if (!source) {
+      const object = new THREE.Group();
+      object.name = name;
+      object.visible = false;
+      object.userData.assetId = assetId;
+      object.userData.missingAsset = true;
+      return object;
+    }
     return this.createStatic(assetId, name);
   }
 
@@ -258,38 +265,6 @@ function staticAccent(id: StaticAssetId): string {
   if (id === 'wall-machinery') return '#67d7ff';
   if (id === 'extraction-beacon') return '#8eff81';
   return '#72ffd8';
-}
-
-function createSetDressingFallback(assetId: SetDressingAssetId, name: string): THREE.Object3D {
-  const accent = new THREE.Color(staticAccent(assetId));
-  const group = new THREE.Group();
-  group.name = name;
-  group.userData.assetId = assetId;
-  group.userData.fallback = true;
-
-  const baseMaterial = new THREE.MeshStandardMaterial({
-    color: accent,
-    emissive: accent,
-    emissiveIntensity: 0.15,
-    roughness: 0.72,
-    metalness: 0.18,
-  });
-  const trimMaterial = new THREE.MeshStandardMaterial({
-    color: 0x101820,
-    emissive: accent,
-    emissiveIntensity: 0.08,
-    roughness: 0.58,
-    metalness: 0.35,
-  });
-
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1, 0.16, 1), baseMaterial);
-  base.name = `${name}:fallback-base`;
-  base.position.y = 0.08;
-  const trim = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.32, 0.2), trimMaterial);
-  trim.name = `${name}:fallback-trim`;
-  trim.position.y = 0.32;
-  group.add(base, trim);
-  return group;
 }
 
 function setDressingAssetUrl(id: SetDressingAssetId): string {
