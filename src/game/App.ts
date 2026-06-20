@@ -32,6 +32,7 @@ import type {
   RendererMetrics,
   SceneObjectBounds,
   TesterState,
+  TitleComposition,
   TutorialState,
   Vec2,
 } from './types';
@@ -118,6 +119,7 @@ type ShadowRecruitDebugApi = {
   selectedHero: () => HeroId;
   playerPosition: () => Vec2;
   playerVisible: () => boolean;
+  titleComposition: () => TitleComposition;
   enemies: () => readonly { id: string; position: Vec2 }[];
   assetQuality: () => readonly AssetQualityCheck[];
   objectives: () => { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
@@ -382,6 +384,7 @@ export class ShadowRecruitApp {
     this.anchorObjects.set('hero', this.titleHero.object);
     this.camera.position.set(22, 15, -24);
     this.camera.lookAt(this.titleCameraTarget);
+    this.orientTitleHeroTowardCamera();
   }
 
   private async startRun(heroId = this.selectedHero, missionId = this.level.id): Promise<void> {
@@ -896,14 +899,19 @@ export class ShadowRecruitApp {
   private updateTitleCamera(time: number): void {
     const angle = time * 0.18;
     this.camera.position.set(
-      this.titleCameraTarget.x + Math.cos(angle) * 5.4,
-      3.15 + Math.sin(angle * 0.5) * 0.22,
-      this.titleCameraTarget.z + 6.4 + Math.sin(angle) * 2.2,
+      this.titleCameraTarget.x + Math.cos(angle) * 4.5,
+      2.95 + Math.sin(angle * 0.5) * 0.18,
+      this.titleCameraTarget.z + 5.2 + Math.sin(angle) * 1.65,
     );
     this.camera.lookAt(this.titleCameraTarget);
-    if (this.titleHero) {
-      this.titleHero.object.rotation.y = -angle * 0.35 + Math.PI * 0.82;
-    }
+    this.orientTitleHeroTowardCamera(0.14);
+  }
+
+  private orientTitleHeroTowardCamera(threeQuarterOffset = 0): void {
+    if (!this.titleHero) return;
+    const heroPosition = this.titleHero.object.getWorldPosition(new THREE.Vector3());
+    const toCamera = this.camera.position.clone().sub(heroPosition);
+    this.titleHero.object.rotation.y = Math.atan2(toCamera.x, toCamera.z) - threeQuarterOffset;
   }
 
   private updatePlaying(delta: number): void {
@@ -1878,6 +1886,14 @@ export class ShadowRecruitApp {
     };
   }
 
+  private vectorSnapshot(vector: THREE.Vector3): { x: number; y: number; z: number } {
+    return {
+      x: roundMetric(vector.x),
+      y: roundMetric(vector.y),
+      z: roundMetric(vector.z),
+    };
+  }
+
   private minAlong(axis: 'x' | 'z', bounds: Bounds3): number {
     return axis === 'x' ? bounds.min.x : bounds.min.z;
   }
@@ -1995,6 +2011,52 @@ export class ShadowRecruitApp {
       memory: this.memoryMetrics(),
       assetQuality: this.assetQualityChecks(),
       geometry: this.geometryDiagnostics(),
+      titleComposition: this.titleComposition(),
+    };
+  }
+
+  private titleComposition(): TitleComposition {
+    const hero = this.titleHero?.object ?? this.player?.object;
+    const active = this.phase === 'title' || this.phase === 'hero-select' || this.phase === 'settings';
+    const heroPosition = hero?.getWorldPosition(new THREE.Vector3());
+    const cameraPosition = this.camera.position.clone();
+    const cameraTarget = this.titleCameraTarget.clone();
+    let facingDot = 0;
+    let heroYaw = 0;
+    let yawToCamera = 0;
+    let cameraDistance = 0;
+
+    if (hero && heroPosition) {
+      const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hero.quaternion).normalize();
+      const toCamera = cameraPosition.clone().sub(heroPosition);
+      cameraDistance = toCamera.length();
+      const toCameraFlat = new THREE.Vector3(toCamera.x, 0, toCamera.z).normalize();
+      facingDot = forward.dot(toCameraFlat);
+      heroYaw = hero.rotation.y;
+      yawToCamera = Math.atan2(toCamera.x, toCamera.z);
+    }
+
+    const heroVisible = Boolean(hero?.visible);
+    const heroReadable = active && heroVisible && facingDot >= 0.65 && cameraDistance >= 3.2 && cameraDistance <= 8.5;
+    const notes = heroReadable
+      ? ['Title hero faces the camera in a readable front/three-quarter pose.']
+      : [
+        active ? 'Title hero does not meet facing/readability thresholds.' : 'Title composition is not active in the current phase.',
+        `facingDot=${roundMetric(facingDot)}, cameraDistance=${roundMetric(cameraDistance)}.`,
+      ];
+
+    return {
+      active,
+      heroVisible,
+      heroReadable,
+      facingDot: roundMetric(facingDot),
+      heroYaw: roundMetric(heroYaw),
+      yawToCamera: roundMetric(yawToCamera),
+      cameraDistance: roundMetric(cameraDistance),
+      ...(heroPosition ? { heroPosition: this.vectorSnapshot(heroPosition) } : {}),
+      cameraPosition: this.vectorSnapshot(cameraPosition),
+      cameraTarget: this.vectorSnapshot(cameraTarget),
+      notes,
     };
   }
 
@@ -2010,6 +2072,7 @@ export class ShadowRecruitApp {
       selectedHero: () => this.selectedHero,
       playerPosition: () => ({ ...this.playerPosition }),
       playerVisible: () => Boolean(this.player?.object.visible ?? this.titleHero?.object.visible),
+      titleComposition: () => this.titleComposition(),
       enemies: () => this.enemies.map((enemy) => ({ id: enemy.id, position: { ...enemy.position } })),
       assetQuality: () => this.assetQualityChecks(),
       objectives: () => this.getObjectiveProgress(),

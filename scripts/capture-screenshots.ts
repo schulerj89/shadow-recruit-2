@@ -1,10 +1,11 @@
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import packageInfo from '../package.json';
 
 const qaDate = process.env.QA_DATE ?? '2026-06-20';
 const baseUrl = process.env.SCREENSHOT_URL ?? 'http://127.0.0.1:5173/';
-const outputDir = process.env.SCREENSHOT_OUTPUT_DIR ?? `docs/qa/${qaDate}/v${packageInfo.version}/screenshots`;
+const qaDir = process.env.SCREENSHOT_QA_DIR ?? `docs/qa/${qaDate}/v${packageInfo.version}`;
+const outputDir = process.env.SCREENSHOT_OUTPUT_DIR ?? `${qaDir}/screenshots`;
 const headless = process.env.SCREENSHOT_HEADLESS !== 'false';
 
 const browser = await chromium.launch({ headless });
@@ -15,6 +16,11 @@ try {
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
+  const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
+  await writeFile(`${qaDir}/title-composition.json`, JSON.stringify(titleComposition, null, 2));
+  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65) {
+    throw new Error(`Title hero is not readable from camera: ${JSON.stringify(titleComposition)}`);
+  }
   await page.screenshot({ path: `${outputDir}/title.png`, fullPage: true });
   await page.getByRole('button', { name: 'Settings' }).click();
   await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });

@@ -28,6 +28,10 @@ try {
   if (!titleHeroVisible) {
     throw new Error('Expected title hero model to be visible.');
   }
+  const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
+  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65) {
+    throw new Error(`Expected title hero to face the camera in a readable front/three-quarter pose, got ${JSON.stringify(titleComposition)}`);
+  }
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });
 
   await page.getByRole('button', { name: 'Settings' }).click();

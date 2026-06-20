@@ -199,6 +199,20 @@ export type GeometryDiagnostics = {
   levelDensity: LevelDensityCheck;
 };
 
+export type TitleComposition = {
+  active: boolean;
+  heroVisible: boolean;
+  heroReadable: boolean;
+  facingDot: number;
+  heroYaw: number;
+  yawToCamera: number;
+  cameraDistance: number;
+  heroPosition?: { x: number; y: number; z: number };
+  cameraPosition: { x: number; y: number; z: number };
+  cameraTarget: { x: number; y: number; z: number };
+  notes: readonly string[];
+};
+
 export type TutorialState = {
   index: number;
   total: number;
@@ -237,4 +251,5 @@ export type TesterState = {
   memory: MemoryMetrics;
   assetQuality: readonly AssetQualityCheck[];
   geometry: GeometryDiagnostics;
+  titleComposition: TitleComposition;
 };

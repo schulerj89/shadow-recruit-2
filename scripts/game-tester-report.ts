@@ -10,6 +10,7 @@ const fpsMetricsPath = process.env.FPS_METRICS_PATH ?? `artifacts/fps/v${package
 const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
+const titleCompositionPath = `${outputDir}/title-composition.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 const expectedScreenshots = [
   'title.png',
@@ -53,7 +54,22 @@ type Metrics = {
   memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[] };
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
+  titleComposition?: TitleComposition;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
+};
+
+type TitleComposition = {
+  active: boolean;
+  heroVisible: boolean;
+  heroReadable: boolean;
+  facingDot: number;
+  heroYaw: number;
+  yawToCamera: number;
+  cameraDistance: number;
+  heroPosition?: { x: number; y: number; z: number };
+  cameraPosition: { x: number; y: number; z: number };
+  cameraTarget: { x: number; y: number; z: number };
+  notes: readonly string[];
 };
 
 type AssetQualityCheck = {
@@ -122,6 +138,9 @@ const playthroughReport = existsSync(playthroughReportPath)
   ? await readFile(playthroughReportPath, 'utf8')
   : null;
 const playthrough = playthroughReport ? JSON.parse(playthroughReport) : null;
+const titleComposition = existsSync(titleCompositionPath)
+  ? JSON.parse(await readFile(titleCompositionPath, 'utf8')) as TitleComposition
+  : metrics?.titleComposition;
 const completion = playthrough?.finalState?.completion;
 const frame = metrics?.framePacing;
 const baseline = metrics?.browserBaseline;
@@ -134,6 +153,7 @@ const settings = metrics?.settings;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
+const titleFindings = describeTitleFindings(titleComposition);
 const screenshotCoverage = await inspectScreenshotCoverage(screenshotDir);
 const screenshotFindings = describeScreenshotFindings(screenshotCoverage);
 
@@ -163,6 +183,7 @@ Date: ${date}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}` : 'not captured'}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
+- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
@@ -196,6 +217,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - P0: None recorded by generated report.
 ${frameFinding}
 ${assetFindings}
+${titleFindings}
 ${geometryFindings}
 ${screenshotFindings}
 `);
@@ -253,6 +275,12 @@ function describeAssetFindings(checks: readonly AssetQualityCheck[]): string {
   const findings = failed.map((check) => `- P1: Asset ${check.id} failed grading: ${check.notes.join(' ')}`);
   findings.push(...review.map((check) => `- P2: Asset ${check.id} needs art/readability review: ${check.notes.join(' ')}`));
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated asset grading.';
+}
+
+function describeTitleFindings(composition: TitleComposition | undefined): string {
+  if (!composition) return '- P1: Title composition metrics missing.';
+  if (composition.heroReadable) return '- P1: None from generated title composition diagnostics.';
+  return `- P1: Title hero is not readable from the camera: facingDot=${composition.facingDot}; cameraDistance=${composition.cameraDistance}; heroYaw=${composition.heroYaw}; yawToCamera=${composition.yawToCamera}. ${composition.notes.join(' ')}`;
 }
 
 function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): string {

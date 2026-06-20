@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.8.1 - 2026-06-20
+
+### Patch
+
+- Fixed title-screen recruit staging to face the camera in a readable three-quarter pose and added title-composition diagnostics to smoke, screenshots, and tester reports.
+
 ## 0.8.0 - 2026-06-20
 
 ### Minor
