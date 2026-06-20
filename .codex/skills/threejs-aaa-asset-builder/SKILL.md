@@ -54,6 +54,8 @@ Use this section when a large level reads as empty or blockout-quality:
 - Prefer reusable GLB kits and generated texture atlases over unique one-off meshes. Keep repeated props instanced where possible and route budgets to `$threejs-memory`.
 - For screenshots that look empty, produce an asset gap list with coordinates/room IDs, not just art adjectives. The level world builder should know where to place the kit, and the tester should be able to verify it later.
 - Title-screen hero upgrades must show readable recruit identity: face/visor/front torso, gear silhouette, and pose direction. If the model faces away in title screenshots, request a camera/animation/staging change before generating more decoration.
+- Texture upgrades must produce generated image or authored PBR maps that are actually assigned to the wall, floor, door, or prop meshes being reviewed. A strong prompt or source plate does not count if the runtime mesh still renders flat procedural color, stretched panels, missing seams, or obvious repetition at gameplay camera distance.
+- Empty-space fixes should ship as reusable kit pieces with coordinates and budgets: terminals, keycard readers, cable trays, wall machinery, floor decals, overhead lights, vents, crates, extraction beacons, sentry bases, and door trim. Prefer instanced repeats and texture atlases so the 60 FPS path survives.
 
 ## Mesh And Rig Rules
 

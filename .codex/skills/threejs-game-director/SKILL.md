@@ -59,6 +59,8 @@ Use this triage before approving a feature slice:
 - **Evidence gate:** require at least one artifact for any visual claim: screenshot, short capture, debug overlay numbers, or browser smoke result.
 - **Regression gate:** require a repeatable way to enter, reset, and replay the new state before adding adjacent content.
 - **Geometry gate:** ask `$threejs-level-geometry-validator` before accepting new rooms, walls, collision proxies, nav blockers, or generated modular level kits.
+- **Screenshot-coordinate gate:** ask `$shadow-recruit-game-tester` and `$threejs-level-geometry-validator` to pair screenshots with world bounds whenever a door seam, wall gap, object grounding problem, title hero orientation issue, or sparse-room concern appears. Do not approve a visual pass from screenshots alone when coordinates can prove or disprove it.
+- **AAA density gate:** ask `$threejs-level-world-builder` and `$threejs-aaa-asset-builder` before approving a large mission space that lacks measured prop/set-dressing density, landmarks, cover language, generated texture variation, and focal GLB assets.
 - **60 FPS gate:** require visible gameplay to keep a 60 FPS path, or require an explicit lower-cost quality profile before approving the slice.
 - **Budget gate:** ask `$threejs-memory` before accepting heavier GLBs, generated textures, extra postprocessing, or more live actors.
 - **Renderer gate:** ask `$threejs-webgpu-webgl-expert` before approving WebGPU-only effects, custom shaders, transparency-heavy passes, or postprocessing stacks.

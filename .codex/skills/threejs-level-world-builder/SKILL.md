@@ -23,6 +23,7 @@ Start every level slice with:
 - Keep three routes in mind: safe route, fast route, and risky/reward route.
 - Use landmark silhouettes and light/value contrast so players can orient without a minimap.
 - Fill large spaces with purposeful tactical detail. Empty floor area is acceptable only when it creates stealth timing, sightline risk, combat spacing, or cinematic staging; otherwise add cover, machinery, cables, signage, lights, vents, crates, rails, decals, terminals, patrol landmarks, or extraction equipment.
+- For each major room or corridor, keep a coordinate-backed density note: floor area, cover/blocker footprint, visual set-dressing footprint, landmark count, interactable count, enemy/patrol context, and intended screenshot angle. Route sparse zones to asset generation before calling the level AAA-ready.
 - Put objectives where the approach, interaction, and escape are all readable from gameplay camera height.
 - Keep patrol routes explainable: guard intent, blind spots, cover timing, and alert fallback.
 - Design reset paths. A failed stealth attempt should recover into search, chase, combat, or restart without breaking the level.
@@ -35,6 +36,7 @@ Start every level slice with:
 - Hand wall overlap, bounds containment, corridor clearance, grid tolerance, and blockout math checks to `$threejs-level-geometry-validator`.
 - Reserve expensive cinematic GLBs for focal objects. Use reusable kits for walls, trim, cover, doors, terminals, vents, lights, and signage.
 - Track set-dressing density by room or encounter beat. A level can pass geometry validation while still failing AAA presentation if screenshots show mostly bare wall/floor texture and no functional props.
+- Use generated textures as one layer only. Walls and floors still need geometry silhouettes, seams, decals, panels, pipes, vents, lights, terminals, rails, clutter, and objective staging that read from the gameplay camera.
 - Hand memory and streaming budget checks to `$threejs-memory`.
 - Hand GLB kit generation and registry work to `$threejs-aaa-asset-builder`.
 

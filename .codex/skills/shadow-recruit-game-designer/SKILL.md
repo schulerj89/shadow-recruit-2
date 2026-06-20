@@ -27,8 +27,10 @@ Report in this order:
 - Inspect `title.png`, `hero-select.png`, `gameplay-level-one.png`, and at least one door-focus screenshot.
 - Verify title text is native typography or strong UI treatment; do not require the PNG logo if it weakens the screen.
 - Verify title camera distance, field of view, and hero rotation place the hero as a first-viewport subject with readable front/three-quarter identity.
+- Verify the hero is looking into the shot or presented in a deliberate three-quarter stance. If the screenshot shows the hero's back, an unreadable side profile, or a camera target behind the player, route to camera/staging changes before approving menu polish.
 - Verify gameplay camera distance lets the player read the hero body, nearby walls, door seams, and objectives.
 - Verify the large level has enough asset density and tactical landmarks for each major zone. If a screenshot is mostly empty floor and wall texture, route to `$threejs-level-world-builder` and `$threejs-aaa-asset-builder`.
+- Require the game tester to back level-density critiques with room coordinates, floor footprint, set-dressing footprint, landmark/objective counts, and screenshots. Do not accept "large level" as a positive design outcome when the camera view reads as a mostly empty blockout.
 - For door/wall or collision-looking defects, require `$shadow-recruit-game-tester` to pair screenshot notes with coordinates and require `$threejs-level-geometry-validator` when wall endpoints, bounds, or openings do not prove continuity.
 - Route generated wall/door texture issues to `$threejs-aaa-asset-builder`.
 - Route performance or camera jitter issues to `$threejs-webgpu-webgl-expert`.

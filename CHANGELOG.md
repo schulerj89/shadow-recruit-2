@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.7 - 2026-06-20
+
+### Patch
+
+- Tightened tester and design skills with screenshot-plus-coordinate QA gates for wall gaps, multi-door wall runs, title hero facing, and measured AAA level-density findings.
+
 ## 0.7.6 - 2026-06-20
 
 ### Patch
