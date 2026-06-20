@@ -1,4 +1,4 @@
 interface:
   display_name: "Three.js AAA Asset Builder"
-  short_description: "Builds GLB asset pipelines with AI 3D tools"
-  default_prompt: "Use $threejs-aaa-asset-builder to produce a game-ready GLB asset plan."
+  short_description: "Builds GLB assets and AAA set dressing"
+  default_prompt: "Use $threejs-aaa-asset-builder to produce game-ready GLB asset plans, generated prop kits, title hero showcase fixes, and AAA environment set-dressing upgrades."

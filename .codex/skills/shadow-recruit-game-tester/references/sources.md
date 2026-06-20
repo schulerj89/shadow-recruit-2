@@ -1,6 +1,6 @@
 # Source Notes
 
-Research date: 2026-06-19.
+Research date: 2026-06-20.
 
 - Playwright screenshots: https://playwright.dev/docs/screenshots
   - Page and element screenshots support stable visual artifacts for smoke and manual review.
@@ -12,5 +12,13 @@ Research date: 2026-06-19.
   - Animation callbacks generally match display refresh rate; 60 Hz is common.
 - web.dev smoothness: https://web.dev/articles/smoothness
   - Frame rate is useful but incomplete; evaluate visible smoothness and frame timing, not only averages.
+- Three.js Box3: https://threejs.org/docs/pages/Box3.html
+  - Box3 supports object-derived world bounds for rendered meshes; use it to validate object placement and broad-phase continuity before computing exact edge gaps.
+- Three.js Box2: https://threejs.org/docs/pages/Box2.html
+  - Box2 covers 2D axis-aligned bounds on the gameplay plane and is useful for wall/door min/max checks.
+- Unity Cinemachine Position Composer: https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/CinemachinePositionComposer.html
+  - Shot composition should reason about target screen position, dead/soft zones, and framing, not just camera existence.
+- Unreal Engine Level Design Content Examples: https://dev.epicgames.com/documentation/unreal-engine/level-design-content-examples
+  - Level presentation moves through prototype, meshing, lighting, and polish; a large blockout is not finished AAA environment work.
 
-Re-check these sources before changing tester report gates, screenshot expectations, or FPS thresholds.
+Re-check these sources before changing tester report gates, screenshot expectations, coordinate/bounds checks, title framing expectations, AAA level-density expectations, or FPS thresholds.

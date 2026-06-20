@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.4 - 2026-06-20
+
+### Patch
+
+- Equipped tester, designer, geometry, world-building, and AAA asset skills with coordinate-backed door/wall QA, title-hero orientation checks, and large-level asset-density critique.
+
 ## 0.7.3 - 2026-06-20
 
 ### Patch

@@ -28,6 +28,16 @@ Use this workflow before building render meshes or asking asset skills for GLB d
 5. Generate render meshes, collision proxies, navmesh blockers, debug overlays, and minimap data from the validated blockout, not the other way around.
 6. Re-run validation after art replacement, GLB scale changes, physics collider conversion, or procedural generation changes.
 
+## Door And Wall Continuity Proofs
+
+Use this workflow when screenshots show wall gaps around sliding doors or the tester asks whether a door opening actually connects to the surrounding wall:
+
+1. Convert each relevant wall, door, frame, return, and continuity/back-wall rectangle into min/max coordinates from its center/size. For rendered meshes, request or compute world bounds from the runtime scene.
+2. Identify the wall line interrupted by the door. The adjacent wall endpoints, door frame jambs, returns, and continuity/back-wall mesh must touch or intentionally overlap within epsilon. A positive unintended gap is a geometry defect even if the door texture partly hides it.
+3. For an `x`-axis door, validate X edge alignment between the door span and adjacent wall ends, then validate Z depth coverage between the wall, frame, door panel, and back-wall continuity. For a `z`-axis door, swap X/Z.
+4. Report a machine-readable finding with `doorId`, `wallIds`, compared edges, gap width, overlap depth, epsilon, and open/closed door state.
+5. If the runtime lacks bounds for frame or continuity meshes, mark an instrumentation failure and route to `$threejs-qa-automation` or `$threejs-webgpu-webgl-expert` for debug overlays.
+
 ## Validation Pipeline
 
 For every new or modified level blockout:
@@ -61,6 +71,7 @@ For every new or modified level blockout:
 - For rotated rectangles, use oriented-box SAT or physics collider queries; do not approve layouts based only on their world AABB.
 - For polygon rooms, validate winding, self-intersections, duplicate vertices, and near-zero edges before triangulation or navmesh bake.
 - When a wall contains an opening, model the remaining wall pieces as separate rectangles so the validator can prove the opening exists.
+- When a sliding door overlays a wall opening, also model the frame, returns, and continuity/back-wall pieces as named data or debug bounds. The tester must be able to prove that the door takes visual priority over a still-present wall/portal surface.
 - Keep collision proxies simpler than art. Prefer box/capsule/convex proxies for level kits and reserve triangle meshes for static walkable ground that has passed budget review.
 
 ## Acceptance Checklist
@@ -73,6 +84,7 @@ Accept a level blockout only when:
 - Spawns and objectives are inside walkable space and outside inflated blocker clearance.
 - Required objective routes remain connected after every door state: locked, opening, open, alarm, combat, and extraction.
 - Debug views can draw bounds, collision proxies, overlap pairs, narrow gaps, capsule clearance, and nav blockers with stable IDs.
+- Door continuity reports can prove the edge relationship between wall pieces, door panels, frames, returns, and back-wall surfaces for every door state that QA screenshots capture.
 
 ## Scripted Check
 

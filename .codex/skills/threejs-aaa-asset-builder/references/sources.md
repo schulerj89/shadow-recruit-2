@@ -1,6 +1,6 @@
 # Source Notes
 
-Research date: 2026-06-19.
+Research date: 2026-06-20.
 
 ## Meshy
 
@@ -41,4 +41,11 @@ Research date: 2026-06-19.
 - SkeletonUtils: https://threejs.org/docs/pages/module-SkeletonUtils.html
   - Retarget skeleton poses and animation clips when compatible rigs require animation transfer.
 
-Re-check provider docs before spending credits or changing request shapes.
+## Environment Presentation
+
+- Unreal Engine Level Design Content Examples: https://dev.epicgames.com/documentation/unreal-engine/level-design-content-examples
+  - Use the prototype, meshing, lighting, and polish phases to separate playable blockout approval from finished environment presentation.
+- Unreal Engine cinematic cameras: https://dev.epicgames.com/documentation/unreal-engine/cinematic-cameras-in-unreal-engine
+  - Title-screen and hero showcase assets should be staged for intentional focal composition rather than incidental debug-camera views.
+
+Re-check provider docs before spending credits, changing request shapes, or redefining AAA environment-density expectations.

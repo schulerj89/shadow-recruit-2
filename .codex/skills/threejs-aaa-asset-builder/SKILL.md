@@ -44,6 +44,17 @@ Use `$threejs-image-generator` first when a strong source plate, turnaround, or 
 8. Add or update a typed asset registry instead of scattering string URLs through gameplay code.
 9. Validate in the browser with screenshots, animation playback, fallback behavior, renderer metrics, and memory scan.
 
+## AAA Environment Dressing
+
+Use this section when a large level reads as empty or blockout-quality:
+
+- Treat size as neutral. A wide room with repeated wall/floor material and no tactical set dressing is a failed art-direction pass, not an AAA improvement.
+- Build modular dressing kits around gameplay purpose: cover, terminals, security gates, vents, cable trays, light bars, hazard stripes, crates, wall machinery, surveillance fixtures, extraction equipment, signage, floor decals, and patrol landmarks.
+- Require each major zone to have a prop-density and landmark brief before generating assets. Include camera distance, expected silhouette from gameplay view, collision proxy policy, triangle/material budget, and whether the item is interactable or visual dressing.
+- Prefer reusable GLB kits and generated texture atlases over unique one-off meshes. Keep repeated props instanced where possible and route budgets to `$threejs-memory`.
+- For screenshots that look empty, produce an asset gap list with coordinates/room IDs, not just art adjectives. The level world builder should know where to place the kit, and the tester should be able to verify it later.
+- Title-screen hero upgrades must show readable recruit identity: face/visor/front torso, gear silhouette, and pose direction. If the model faces away in title screenshots, request a camera/animation/staging change before generating more decoration.
+
 ## Mesh And Rig Rules
 
 - Keep gameplay collision in authored proxies, not high-detail mesh triangles.
@@ -66,6 +77,7 @@ Accept a generated GLB only when:
 - Required animations loop or transition cleanly and match gameplay root-motion policy.
 - Collision proxies, interaction bounds, and nav blockers are authored outside the render mesh.
 - `$threejs-memory` confirms payload and decoded texture/geometry pressure fit the current scene budget.
+- It improves the relevant gameplay screenshot at the intended camera distance; close-up quality alone is not enough if the asset still reads as clutter or empty space in play.
 
 ## Three.js Integration
 
