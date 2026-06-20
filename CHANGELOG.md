@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.0 - 2026-06-20
+
+### Minor
+
+- Added game-tester asset grading for wall and floor meshes, door panels, objective GLBs, sentries, hero placement, and extraction readability.
+
 ## 0.5.0 - 2026-06-20
 
 ### Minor

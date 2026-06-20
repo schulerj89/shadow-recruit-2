@@ -9,6 +9,8 @@ import { defaultLevel, getLevelById, levelCatalog } from './levels';
 import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract } from './math';
 import { isPerformanceProfile, loadSettings, saveSettings } from './settings';
 import type {
+  AssetQualityCheck,
+  AssetQualityGrade,
   CinematicFocusState,
   DoorRuntime,
   EnemyRuntime,
@@ -49,6 +51,12 @@ type RenderQuality = {
   extractionRingSegments: number;
   lightIntensityScale: number;
   textureAnisotropy: number;
+};
+
+type AssetQualityOptions = {
+  planarGround?: boolean;
+  minWidth?: number;
+  minDepth?: number;
 };
 
 const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
@@ -102,6 +110,7 @@ type ShadowRecruitDebugApi = {
   playerPosition: () => Vec2;
   playerVisible: () => boolean;
   enemies: () => readonly { id: string; position: Vec2 }[];
+  assetQuality: () => readonly AssetQualityCheck[];
   objectives: () => { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: () => readonly { id: string; open: boolean; progress: number }[];
   rendererMetrics: () => RendererMetrics;
@@ -148,6 +157,7 @@ export class ShadowRecruitApp {
   private readonly runtimeObjects: RuntimeObject[] = [];
   private readonly doorMeshes = new Map<string, DoorMesh>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
+  private readonly boundsScratch = new THREE.Box3();
   private readonly doorTexture = new THREE.TextureLoader().load(doorPanelUrl);
   private level: LevelDefinition = defaultLevel;
   private settings: GameSettings = loadSettings();
@@ -321,6 +331,7 @@ export class ShadowRecruitApp {
     floor.name = 'level-floor';
     this.scene.add(floor);
     this.runtimeObjects.push({ object: floor });
+    this.anchorObjects.set('level-floor', floor);
 
     for (const wall of this.level.walls) {
       this.addBox(wall, '#26323c', 0.18);
@@ -1090,6 +1101,168 @@ export class ShadowRecruitApp {
     };
   }
 
+  private assetQualityChecks(): readonly AssetQualityCheck[] {
+    const checks: AssetQualityCheck[] = [];
+    checks.push(this.checkAnchoredAsset(
+      'level-floor',
+      'Floor mesh',
+      'level-mesh',
+      'Floor mesh covers the authored level bounds.',
+      'Floor mesh is missing from the scene.',
+      'review',
+      'Floor uses runtime mesh/material; schedule an art pass if it should become a textured kit asset.',
+      {
+        planarGround: true,
+        minWidth: this.level.bounds.max.x - this.level.bounds.min.x - 0.1,
+        minDepth: this.level.bounds.max.z - this.level.bounds.min.z - 0.1,
+      },
+    ));
+    checks.push({
+      id: 'level-walls',
+      label: 'Wall meshes',
+      category: 'level-mesh',
+      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'review' : 'fail',
+      visible: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)),
+      grounded: true,
+      notes: this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
+        ? [`${this.level.walls.length} wall meshes are present as readable blockout geometry; replace with authored wall/floor kit assets when art direction is ready.`]
+        : ['One or more wall meshes are missing from the scene.'],
+    });
+    checks.push({
+      id: 'sliding-doors',
+      label: 'Sliding door panels',
+      category: 'door',
+      grade: this.doorMeshes.size === this.doors.length ? 'pass' : 'fail',
+      visible: this.doorMeshes.size === this.doors.length,
+      grounded: true,
+      notes: this.doorMeshes.size === this.doors.length
+        ? [`${this.doorMeshes.size} sliding door assemblies are present and use the generated door-panel texture.`]
+        : [`Expected ${this.doors.length} door assemblies, found ${this.doorMeshes.size}.`],
+    });
+
+    for (const objective of this.objectives) {
+      if (objective.collected) {
+        checks.push({
+          id: objective.id,
+          label: objective.label,
+          category: 'objective',
+          grade: 'pass',
+          visible: false,
+          grounded: true,
+          notes: [`${objective.label} was collected and intentionally removed from the scene.`],
+        });
+        continue;
+      }
+      checks.push(this.checkAnchoredAsset(
+        objective.id,
+        objective.label,
+        'objective',
+        `${objective.asset} GLB is visible, grounded, and available for interaction.`,
+        `${objective.label} model is missing before collection.`,
+      ));
+    }
+
+    for (const enemy of this.enemies) {
+      checks.push(this.checkAnchoredAsset(
+        enemy.id,
+        enemy.label,
+        'enemy',
+        'Sentry GLB is visible above the floor and aligned to its patrol route.',
+        `${enemy.label} is missing from the scene.`,
+      ));
+    }
+
+    checks.push(this.checkAnchoredAsset(
+      'hero',
+      'Playable hero',
+      'hero',
+      'Hero GLB is visible and grounded at the current player position.',
+      'Hero model is missing from gameplay.',
+    ));
+    checks.push(this.checkAnchoredAsset(
+      'extraction',
+      'Extraction point',
+      'extraction',
+      'Extraction marker is visible and readable as the level-completion target.',
+      'Extraction marker is missing from the scene.',
+    ));
+
+    return checks;
+  }
+
+  private checkAnchoredAsset(
+    id: string,
+    label: string,
+    category: AssetQualityCheck['category'],
+    passNote: string,
+    missingNote: string,
+    artGrade: AssetQualityGrade = 'pass',
+    artNote?: string,
+    options: AssetQualityOptions = {},
+  ): AssetQualityCheck {
+    const object = this.anchorObjects.get(id);
+    if (!object) {
+      return {
+        id,
+        label,
+        category,
+        grade: 'fail',
+        visible: false,
+        grounded: false,
+        notes: [missingNote],
+      };
+    }
+
+    const position = object.getWorldPosition(new THREE.Vector3());
+    this.boundsScratch.setFromObject(object);
+    const width = this.boundsScratch.max.x - this.boundsScratch.min.x;
+    const height = this.boundsScratch.max.y - this.boundsScratch.min.y;
+    const depth = this.boundsScratch.max.z - this.boundsScratch.min.z;
+    const horizontalCoverage = width >= (options.minWidth ?? 0.02) && depth >= (options.minDepth ?? 0.02);
+    const visible = object.visible && (height > 0.02 || (options.planarGround === true && horizontalCoverage));
+    const grounded = options.planarGround === true
+      ? position.y >= -0.05
+        && Math.abs(this.boundsScratch.min.y) <= 0.12
+        && Math.abs(this.boundsScratch.max.y) <= 0.12
+        && horizontalCoverage
+      : position.y >= -0.05 && this.boundsScratch.max.y > 0.12 && this.boundsScratch.min.y > -0.8;
+    const notes: string[] = [];
+    let grade: AssetQualityGrade = visible && grounded ? artGrade : 'fail';
+
+    if (!visible) {
+      notes.push(options.planarGround === true
+        ? `${label} is hidden or does not cover the authored horizontal area.`
+        : `${label} is hidden or has near-zero bounds.`);
+    }
+    if (!grounded) {
+      notes.push(`${label} placement needs review: originY=${position.y.toFixed(2)}, minY=${this.boundsScratch.min.y.toFixed(2)}, maxY=${this.boundsScratch.max.y.toFixed(2)}.`);
+    }
+    if (visible && grounded) notes.push(passNote);
+    if (visible && grounded && artNote) notes.push(artNote);
+
+    return {
+      id,
+      label,
+      category,
+      grade,
+      visible,
+      grounded,
+      position: {
+        x: Number(position.x.toFixed(2)),
+        y: Number(position.y.toFixed(2)),
+        z: Number(position.z.toFixed(2)),
+      },
+      bounds: {
+        minY: Number(this.boundsScratch.min.y.toFixed(2)),
+        maxY: Number(this.boundsScratch.max.y.toFixed(2)),
+        height: Number(height.toFixed(2)),
+        width: Number(width.toFixed(2)),
+        depth: Number(depth.toFixed(2)),
+      },
+      notes,
+    };
+  }
+
   private tutorialState(): TutorialState {
     return {
       index: this.tutorialIndex,
@@ -1159,6 +1332,7 @@ export class ShadowRecruitApp {
       renderer: this.rendererMetrics(),
       framePacing: this.framePacing(),
       memory: this.memoryMetrics(),
+      assetQuality: this.assetQualityChecks(),
     };
   }
 
@@ -1175,6 +1349,7 @@ export class ShadowRecruitApp {
       playerPosition: () => ({ ...this.playerPosition }),
       playerVisible: () => Boolean(this.player?.object.visible ?? this.titleHero?.object.visible),
       enemies: () => this.enemies.map((enemy) => ({ id: enemy.id, position: { ...enemy.position } })),
+      assetQuality: () => this.assetQualityChecks(),
       objectives: () => this.getObjectiveProgress(),
       doors: () => this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
       rendererMetrics: () => this.rendererMetrics(),

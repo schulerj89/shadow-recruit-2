@@ -35,7 +35,20 @@ type Metrics = {
     textures: number;
   };
   memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[] };
+  assetQuality?: readonly AssetQualityCheck[];
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
+};
+
+type AssetQualityCheck = {
+  id: string;
+  label: string;
+  category: string;
+  grade: 'pass' | 'review' | 'fail';
+  visible: boolean;
+  grounded: boolean;
+  position?: { x: number; y: number; z: number };
+  bounds?: { minY: number; maxY: number; height: number; width?: number; depth?: number };
+  notes: readonly string[];
 };
 
 const metrics = existsSync(fpsMetricsPath)
@@ -49,8 +62,10 @@ const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
 const renderer = metrics?.renderer;
 const memory = metrics?.memory;
+const assetQuality = metrics?.assetQuality ?? [];
 const settings = metrics?.settings;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
+const assetFindings = describeAssetFindings(assetQuality);
 
 await mkdir(outputDir, { recursive: true });
 if (metrics) {
@@ -76,15 +91,21 @@ Date: ${date}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}` : 'not captured'}
+- Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
+
+## Asset Grading
+
+${formatAssetGrades(assetQuality)}
 
 ## Tester Feedback
 
 - Title flow: verify logo, rotating level-one preview, staged hero model, hero-select preview space, Start, Change Hero, and Settings are visible.
 - Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and the final step includes "Good luck, cadet."
-- Level: verify keycard, terminal, command codes, sentries, extraction, the command-codes close-up screenshot, and all three door-focus screenshots are readable.
+- Level: verify keycard, terminal, command codes, sentries, extraction, wall/floor meshes, and all three door-focus screenshots are readable and properly grounded.
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
 - Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the gameplay camera to the current player position.
+- Asset QA: verify objective GLBs, sentry GLBs, floor/wall meshes, door panels, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate)}
 
@@ -92,6 +113,7 @@ Date: ${date}
 
 - P0: None recorded by generated report.
 ${frameFinding}
+${assetFindings}
 - P2: Manual screenshot review remains recommended for player readability and hero framing after imported GLB scale changes.
 - P2: Expand tester notes after the first human play session.
 `);
@@ -123,4 +145,30 @@ function describePerformance(
     return `game pacing matches the ${baseline.fps.toFixed(1)} FPS browser baseline, but this environment cannot prove strict 16.7 ms frame cadence.`;
   }
   return 'game frame pacing failed the configured FPS gate and needs optimization or a lower-quality fallback.';
+}
+
+function describeAssetSummary(checks: readonly AssetQualityCheck[]): string {
+  const pass = checks.filter((check) => check.grade === 'pass').length;
+  const review = checks.filter((check) => check.grade === 'review').length;
+  const fail = checks.filter((check) => check.grade === 'fail').length;
+  return `${pass} pass, ${review} review, ${fail} fail`;
+}
+
+function formatAssetGrades(checks: readonly AssetQualityCheck[]): string {
+  if (checks.length === 0) return '- Asset grading not captured.';
+  return checks.map((check) => {
+    const placement = check.position && check.bounds
+      ? ` pos=(${check.position.x},${check.position.y},${check.position.z}); y=${check.bounds.minY}..${check.bounds.maxY}; h=${check.bounds.height}${check.bounds.width !== undefined && check.bounds.depth !== undefined ? `; xz=${check.bounds.width}x${check.bounds.depth}` : ''}`
+      : '';
+    return `- ${check.grade.toUpperCase()} ${check.category}/${check.id}: ${check.label}; visible=${check.visible}; grounded=${check.grounded}.${placement} ${check.notes.join(' ')}`;
+  }).join('\n');
+}
+
+function describeAssetFindings(checks: readonly AssetQualityCheck[]): string {
+  if (checks.length === 0) return '- P1: Asset grading metrics missing.';
+  const failed = checks.filter((check) => check.grade === 'fail');
+  const review = checks.filter((check) => check.grade === 'review');
+  const findings = failed.map((check) => `- P1: Asset ${check.id} failed grading: ${check.notes.join(' ')}`);
+  findings.push(...review.map((check) => `- P2: Asset ${check.id} needs art/readability review: ${check.notes.join(' ')}`));
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated asset grading.';
 }

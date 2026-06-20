@@ -128,6 +128,20 @@ export type MemoryMetrics = {
   loadedAssetIds: readonly string[];
 };
 
+export type AssetQualityGrade = 'pass' | 'review' | 'fail';
+
+export type AssetQualityCheck = {
+  id: string;
+  label: string;
+  category: 'level-mesh' | 'door' | 'objective' | 'enemy' | 'extraction' | 'hero';
+  grade: AssetQualityGrade;
+  visible: boolean;
+  grounded: boolean;
+  position?: { x: number; y: number; z: number };
+  bounds?: { minY: number; maxY: number; height: number; width?: number; depth?: number };
+  notes: readonly string[];
+};
+
 export type TutorialState = {
   index: number;
   total: number;
@@ -153,4 +167,5 @@ export type TesterState = {
   renderer: RendererMetrics;
   framePacing: FramePacingSample;
   memory: MemoryMetrics;
+  assetQuality: readonly AssetQualityCheck[];
 };
