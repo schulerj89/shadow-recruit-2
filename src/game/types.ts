@@ -71,6 +71,7 @@ export type LevelDefinition = {
   extraction: Vec2;
   walls: readonly RectSpec[];
   blockers: readonly RectSpec[];
+  setDressing: readonly RectSpec[];
   doors: readonly DoorDefinition[];
   objectives: readonly ObjectiveDefinition[];
   enemies: readonly EnemyDefinition[];
@@ -150,7 +151,7 @@ export type Bounds3 = {
 
 export type SceneObjectBounds = {
   id: string;
-  category: 'wall' | 'blocker' | 'door' | 'door-frame' | 'door-continuity' | 'objective' | 'enemy' | 'hero' | 'extraction';
+  category: 'wall' | 'blocker' | 'set-dressing' | 'door' | 'door-frame' | 'door-continuity' | 'objective' | 'enemy' | 'hero' | 'extraction';
   visible: boolean;
   bounds: Bounds3;
 };
@@ -186,6 +187,7 @@ export type LevelDensityCheck = {
   setDressingFootprintArea: number;
   setDressingRatio: number;
   blockerCount: number;
+  setDressingCount: number;
   objectiveCount: number;
   enemyCount: number;
   notes: readonly string[];

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.8.0 - 2026-06-20
+
+### Minor
+
+- Added coordinate-authored Level 1 tactical set dressing and density diagnostics so tester reports can verify AAA environment coverage without turning visual dressing into collision blockers.
+
 ## 0.7.7 - 2026-06-20
 
 ### Patch

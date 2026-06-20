@@ -67,6 +67,7 @@ function validateLevel(level, config) {
   const errors = [];
   const warnings = [];
   const rects = [];
+  const nonSolidRects = [];
   const points = [];
   const ids = new Set();
 
@@ -88,6 +89,19 @@ function validateLevel(level, config) {
     }
   }
 
+  for (const collection of ['setDressing']) {
+    for (const [index, spec] of asArray(level[collection]).entries()) {
+      const rect = rectFromSpec(spec, collection, index, errors, warnings);
+      if (!rect) continue;
+
+      if (ids.has(rect.id)) {
+        errors.push(issue('duplicate-id', `${rect.id} is reused.`));
+      }
+      ids.add(rect.id);
+      nonSolidRects.push(rect);
+    }
+  }
+
   for (const collection of ['spawns', 'objectives', 'exits']) {
     for (const [index, spec] of asArray(level[collection]).entries()) {
       const point = pointFromSpec(spec, collection, index, errors);
@@ -96,7 +110,7 @@ function validateLevel(level, config) {
   }
 
   if (bounds) {
-    for (const rect of rects) {
+    for (const rect of [...rects, ...nonSolidRects]) {
       if (!containsRect(bounds, rect, config.epsilon)) {
         errors.push(issue('out-of-bounds', `${rect.id} extends outside level bounds.`, { rect: rectData(rect) }));
       }
@@ -148,6 +162,7 @@ function validateLevel(level, config) {
     summary: {
       bounds: Boolean(bounds),
       rectangles: rects.length,
+      nonSolidRectangles: nonSolidRects.length,
       points: points.length,
       errors: errors.length,
       warnings: warnings.length,
@@ -340,7 +355,7 @@ function round(value) {
 
 function printHuman(result) {
   console.log(result.ok ? 'Level geometry validation passed.' : 'Level geometry validation failed.');
-  console.log(`rectangles=${result.summary.rectangles} points=${result.summary.points} errors=${result.summary.errors} warnings=${result.summary.warnings}`);
+  console.log(`rectangles=${result.summary.rectangles} nonSolidRectangles=${result.summary.nonSolidRectangles ?? 0} points=${result.summary.points} errors=${result.summary.errors} warnings=${result.summary.warnings}`);
 
   for (const error of result.errors) {
     console.error(`ERROR ${error.code}: ${error.message}`);
@@ -372,5 +387,6 @@ Input schema:
   ]
 }
 
-Coordinates use the X/Z ground plane. Arrays of length 3 are read as [x, y, z].`);
+Coordinates use the X/Z ground plane. Arrays of length 3 are read as [x, y, z].
+The optional setDressing collection is bounds-checked as non-solid visual geometry and excluded from overlap/clearance blocking.`);
 }

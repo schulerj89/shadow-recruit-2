@@ -112,6 +112,9 @@ try {
   if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {
     throw new Error(`Expected coordinate geometry diagnostics for doors and scene objects, got ${JSON.stringify(state.geometry)}`);
   }
+  if (state.geometry.levelDensity.grade === 'fail' || state.geometry.levelDensity.setDressingCount < 10) {
+    throw new Error(`Expected coordinate-backed level set dressing to clear the density gate, got ${JSON.stringify(state.geometry.levelDensity)}`);
+  }
   if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {
     throw new Error(`Expected persisted settings in tester state, got ${JSON.stringify(state.settings)}`);
   }

@@ -108,6 +108,7 @@ type GeometryDiagnostics = {
     setDressingFootprintArea: number;
     setDressingRatio: number;
     blockerCount: number;
+    setDressingCount: number;
     objectiveCount: number;
     enemyCount: number;
     notes: readonly string[];
@@ -180,7 +181,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 
 ## Tester Feedback
 
-- Title flow: verify logo, rotating level-one preview, staged hero model, hero-select preview space, Start, Change Hero, and Settings are visible.
+- Title flow: verify the native title treatment, cinematic scene, staged hero model, hero-select preview space, Start, Change Hero, and Settings are visible.
 - Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and every step ends with "Good luck, cadet."
 - Level: verify keycard, terminal, command codes, sentries, extraction, wall/floor meshes, wall/floor texture quality, and all three door-focus screenshots are readable and properly grounded.
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
@@ -265,7 +266,7 @@ function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): s
   const density = geometry.levelDensity;
   return [
     ...doors,
-    `- ${density.grade.toUpperCase()} level-density: floor=${density.floorArea}m2; dressing=${density.setDressingFootprintArea}m2; ratio=${(density.setDressingRatio * 100).toFixed(1)}%; blockers=${density.blockerCount}; objectives=${density.objectiveCount}; enemies=${density.enemyCount}. ${density.notes.join(' ')}`,
+    `- ${density.grade.toUpperCase()} level-density: floor=${density.floorArea}m2; dressing=${density.setDressingFootprintArea}m2; ratio=${(density.setDressingRatio * 100).toFixed(1)}%; blockers=${density.blockerCount}; setDressing=${density.setDressingCount}; objectives=${density.objectiveCount}; enemies=${density.enemyCount}. ${density.notes.join(' ')}`,
   ].join('\n');
 }
 

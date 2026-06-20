@@ -96,7 +96,7 @@ Use the bundled validator for early JSON blockouts with axis-aligned rectangles:
 node .codex\skills\threejs-level-geometry-validator\scripts\validate_level_geometry.mjs data\levels\mission-01.json --min-clearance 1.2
 ```
 
-Supported rectangle fields include `bounds`, `walls`, `doors`, `blockers`, and `colliders`. Supported point fields include `spawns`, `objectives`, and `exits`. Prefer `center` plus `size` for rectangles and `position` for points.
+Supported solid rectangle fields include `bounds`, `walls`, `doors`, `blockers`, and `colliders`; `setDressing` is bounds-checked as non-solid visual geometry and excluded from overlap/clearance blocking. Supported point fields include `spawns`, `objectives`, and `exits`. Prefer `center` plus `size` for rectangles and `position` for points.
 
 The script is an early gate, not the final physics proof. If it reports rotated geometry, complex polygons, or clearance ambiguity, route to `$threejs-physics-navigation` for collider queries or navmesh validation.
 

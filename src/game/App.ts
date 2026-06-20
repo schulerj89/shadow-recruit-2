@@ -471,6 +471,10 @@ export class ShadowRecruitApp {
       this.addBox(blocker, 'blocker', 0.1);
     }
 
+    this.level.setDressing.forEach((dressing, index) => {
+      this.addSetDressing(dressing, index);
+    });
+
     if (includeDoors) {
       for (const door of this.doors) {
         this.addDoorWallContinuity(door);
@@ -499,6 +503,15 @@ export class ShadowRecruitApp {
     this.scene.add(mesh);
     this.runtimeObjects.push({ object: mesh });
     this.anchorObjects.set(rect.id, mesh);
+    return mesh;
+  }
+
+  private addSetDressing(rect: RectSpec, index: number): THREE.Mesh {
+    const lowProfile = rect.height !== undefined && rect.height < 0.35;
+    const utility = /cable|pipe|spine|trench/i.test(rect.id);
+    const materialKind: ShellTextureKind = utility || index % 3 === 0 ? 'trim' : 'blocker';
+    const mesh = this.addBox(rect, materialKind, utility ? 0.3 : 0.14);
+    if (lowProfile) mesh.position.y = (rect.height ?? 0.2) / 2 + 0.02;
     return mesh;
   }
 
@@ -1494,6 +1507,17 @@ export class ShadowRecruitApp {
         ? [`${this.doors.length} sliding-door openings have door frames plus wall/portal continuity meshes behind the door layer, so the door panels visually take priority without reading as missing wall gaps.`]
         : ['Door seam review cannot pass because one or more door, frame, wall-continuity, or wall meshes are missing.'],
     });
+    checks.push({
+      id: 'level-set-dressing',
+      label: 'Tactical set dressing',
+      category: 'level-mesh',
+      grade: this.level.setDressing.every((item) => this.anchorObjects.has(item.id)) ? 'pass' : 'fail',
+      visible: this.level.setDressing.every((item) => this.anchorObjects.has(item.id)),
+      grounded: true,
+      notes: this.level.setDressing.every((item) => this.anchorObjects.has(item.id))
+        ? [`${this.level.setDressing.length} coordinate-authored non-colliding dressing meshes add cables, wall machinery, racks, consoles, and extraction equipment without blocking the validation route.`]
+        : ['One or more authored set-dressing meshes are missing from the scene.'],
+    });
 
     for (const objective of this.objectives) {
       if (objective.collected) {
@@ -1630,6 +1654,7 @@ export class ShadowRecruitApp {
     const bounds: SceneObjectBounds[] = [];
     for (const wall of this.level.walls) this.addBoundsRecord(bounds, wall.id, 'wall', this.anchorObjects.get(wall.id));
     for (const blocker of this.level.blockers) this.addBoundsRecord(bounds, blocker.id, 'blocker', this.anchorObjects.get(blocker.id));
+    for (const dressing of this.level.setDressing) this.addBoundsRecord(bounds, dressing.id, 'set-dressing', this.anchorObjects.get(dressing.id));
     for (const door of this.doors) {
       this.addBoundsRecord(bounds, door.id, 'door', this.anchorObjects.get(door.id));
       this.addBoundsRecord(bounds, `${door.id}:frame`, 'door-frame', this.doorFrameMeshes.get(door.id));
@@ -1781,9 +1806,10 @@ export class ShadowRecruitApp {
   private levelDensityCheck(): LevelDensityCheck {
     const floorArea = (this.level.bounds.max.x - this.level.bounds.min.x) * (this.level.bounds.max.z - this.level.bounds.min.z);
     const blockerArea = this.level.blockers.reduce((sum, blocker) => sum + blocker.size.x * blocker.size.z, 0);
+    const authoredSetDressingArea = this.level.setDressing.reduce((sum, dressing) => sum + dressing.size.x * dressing.size.z, 0);
     const objectiveArea = this.objectives.reduce((sum, objective) => sum + Math.PI * objective.radius * objective.radius, 0);
     const enemyArea = this.enemies.reduce((sum, enemy) => sum + Math.PI * enemy.detectionRadius * enemy.detectionRadius, 0);
-    const setDressingFootprintArea = blockerArea + objectiveArea + enemyArea;
+    const setDressingFootprintArea = blockerArea + authoredSetDressingArea + objectiveArea + enemyArea;
     const setDressingRatio = floorArea > 0 ? setDressingFootprintArea / floorArea : 0;
     const grade: LevelDensityCheck['grade'] = setDressingRatio < 0.06 ? 'fail' : setDressingRatio < 0.1 ? 'review' : 'pass';
     const notes = grade === 'pass'
@@ -1799,6 +1825,7 @@ export class ShadowRecruitApp {
       setDressingFootprintArea: roundMetric(setDressingFootprintArea),
       setDressingRatio: roundMetric(setDressingRatio),
       blockerCount: this.level.blockers.length,
+      setDressingCount: this.level.setDressing.length,
       objectiveCount: this.objectives.length,
       enemyCount: this.enemies.length,
       notes,

@@ -78,6 +78,7 @@ export const levelOne: LevelDefinition = {
   extraction: requiredPoint(geometry.objectives, 'extraction'),
   walls: geometry.walls.map(rectFromGeometry),
   blockers: geometry.blockers.map(rectFromGeometry),
+  setDressing: geometry.setDressing.map(rectFromGeometry),
   doors: geometry.doors.map(doorFromGeometry),
   objectives: objectiveOrder.map(objectiveFromGeometry),
   enemies: [
