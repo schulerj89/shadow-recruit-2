@@ -133,6 +133,7 @@ export type MemoryMetrics = {
   characterAssets: number;
   staticAssets: number;
   loadedAssetIds: readonly string[];
+  failedAssetIds: readonly string[];
 };
 
 export type AssetQualityGrade = 'pass' | 'review' | 'fail';
@@ -160,6 +161,19 @@ export type SceneObjectBounds = {
   category: 'wall' | 'blocker' | 'set-dressing' | 'door' | 'door-frame' | 'door-continuity' | 'objective' | 'enemy' | 'hero' | 'extraction';
   visible: boolean;
   bounds: Bounds3;
+};
+
+export type SetDressingVisibilityCheck = {
+  id: string;
+  asset: SetDressingAssetId;
+  grade: AssetQualityGrade;
+  loaded: boolean;
+  visible: boolean;
+  grounded: boolean;
+  authoredBounds: Bounds3;
+  renderedBounds?: Bounds3;
+  footprintCoverage: number;
+  notes: readonly string[];
 };
 
 export type DoorCoordinateGap = {
@@ -201,6 +215,7 @@ export type LevelDensityCheck = {
 
 export type GeometryDiagnostics = {
   objectBounds: readonly SceneObjectBounds[];
+  setDressingVisibility: readonly SetDressingVisibilityCheck[];
   doorContinuity: readonly DoorCoordinateCheck[];
   levelDensity: LevelDensityCheck;
 };
@@ -229,6 +244,8 @@ export type CinematicFocusState = {
   active: boolean;
   target: string | null;
   remainingMs: number;
+  focusPoint: Vec2 | null;
+  cameraPosition: { x: number; y: number; z: number };
 };
 
 export type CompletionStats = {

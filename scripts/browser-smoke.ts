@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { chromium, type ConsoleMessage } from 'playwright';
 import { PNG } from 'pngjs';
 import packageInfo from '../package.json';
+import { defaultLevel } from '../src/game/levels';
 
 const baseUrl = process.env.SMOKE_URL ?? 'http://127.0.0.1:5173/';
 const screenshotDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
@@ -112,6 +113,7 @@ try {
   }
   if (
     state.memory.loadedAssets < 8 ||
+    state.memory.failedAssetIds.length > 0 ||
     !state.memory.loadedAssetIds.includes('sentry') ||
     !state.memory.loadedAssetIds.includes('codes') ||
     !state.memory.loadedAssetIds.includes('cable-tray') ||
@@ -122,6 +124,13 @@ try {
   }
   if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {
     throw new Error(`Expected coordinate geometry diagnostics for doors and scene objects, got ${JSON.stringify(state.geometry)}`);
+  }
+  const setDressingVisibility = state.geometry.setDressingVisibility;
+  if (
+    setDressingVisibility.length !== state.geometry.levelDensity.setDressingCount ||
+    setDressingVisibility.some((check) => check.grade !== 'pass' || !check.loaded || !check.visible || !check.grounded || check.footprintCoverage < 0.35)
+  ) {
+    throw new Error(`Expected every authored set-dressing GLB placement to be loaded, visible, grounded, and coordinate-covered, got ${JSON.stringify(setDressingVisibility)}`);
   }
   if (state.geometry.levelDensity.grade === 'fail' || state.geometry.levelDensity.setDressingCount < 10) {
     throw new Error(`Expected coordinate-backed level set dressing to clear the density gate, got ${JSON.stringify(state.geometry.levelDensity)}`);
@@ -158,6 +167,10 @@ async function collectObjectiveAndExpectFocus(objectiveId: string, doorId: strin
   const focus = await page.evaluate(() => window.__shadowRecruitDebug?.cinematicFocus());
   if (!focus?.active || focus.target !== doorId || focus.remainingMs <= 0) {
     throw new Error(`Expected ${doorId} cinematic focus after ${objectiveId}, got ${JSON.stringify(focus)}`);
+  }
+  const door = defaultLevel.doors.find((candidate) => candidate.id === doorId);
+  if (!door || !focus.focusPoint || Math.hypot(focus.focusPoint.x - door.center.x, focus.focusPoint.z - door.center.z) > 0.1) {
+    throw new Error(`Expected ${doorId} focus point to match authored door center, got ${JSON.stringify({ focus, door })}`);
   }
   const doors = await page.evaluate(() => window.__shadowRecruitDebug?.doors());
   if (!doors?.find((door) => door.id === doorId && door.open)) {

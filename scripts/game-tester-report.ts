@@ -51,7 +51,7 @@ type Metrics = {
     geometries: number;
     textures: number;
   };
-  memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[] };
+  memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[]; failedAssetIds?: readonly string[] };
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
   titleComposition?: TitleComposition;
@@ -115,8 +115,22 @@ type DoorCoordinateCheck = {
   notes: readonly string[];
 };
 
+type SetDressingVisibilityCheck = {
+  id: string;
+  asset: string;
+  grade: 'pass' | 'review' | 'fail';
+  loaded: boolean;
+  visible: boolean;
+  grounded: boolean;
+  authoredBounds: Bounds3;
+  renderedBounds?: Bounds3;
+  footprintCoverage: number;
+  notes: readonly string[];
+};
+
 type GeometryDiagnostics = {
   objectBounds: readonly { id: string; category: string; visible: boolean; bounds: Bounds3 }[];
+  setDressingVisibility?: readonly SetDressingVisibilityCheck[];
   doorContinuity: readonly DoorCoordinateCheck[];
   levelDensity: {
     grade: 'pass' | 'review' | 'fail';
@@ -181,7 +195,7 @@ Date: ${date}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
-- Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}` : 'not captured'}
+- Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
@@ -291,9 +305,13 @@ function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): s
       : `no gaps above ${formatMeters(check.epsilon)}`;
     return `- ${check.grade.toUpperCase()} door/${check.id}: axis=${check.axis}; walls=${check.wallIds.join(', ') || 'none'}; opening=${formatBounds(check.openingBounds)}; frame=${check.frameBounds ? formatBounds(check.frameBounds) : 'missing'}; continuity=${check.continuityBounds ? formatBounds(check.continuityBounds) : 'missing'}; ${gapSummary}`;
   });
+  const dressing = (geometry.setDressingVisibility ?? []).map((check) => {
+    return `- ${check.grade.toUpperCase()} set-dressing/${check.id}: asset=${check.asset}; loaded=${check.loaded}; visible=${check.visible}; grounded=${check.grounded}; coverage=${(check.footprintCoverage * 100).toFixed(1)}%; authored=${formatBounds(check.authoredBounds)}; rendered=${check.renderedBounds ? formatBounds(check.renderedBounds) : 'missing'}; ${check.notes.join(' ')}`;
+  });
   const density = geometry.levelDensity;
   return [
     ...doors,
+    ...dressing,
     `- ${density.grade.toUpperCase()} level-density: floor=${density.floorArea}m2; dressing=${density.setDressingFootprintArea}m2; ratio=${(density.setDressingRatio * 100).toFixed(1)}%; blockers=${density.blockerCount}; setDressing=${density.setDressingCount}; objectives=${density.objectiveCount}; enemies=${density.enemyCount}. ${density.notes.join(' ')}`,
   ].join('\n');
 }
@@ -306,6 +324,11 @@ function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): st
       findings.push(`- P1: Door-wall coordinate gaps for ${check.id}: ${check.gaps.map((gap) => `${gap.fromId}->${gap.toId} ${formatMeters(gap.gap)} on ${gap.axis}`).join('; ')}.`);
     } else if (check.grade === 'review') {
       findings.push(`- P2: Door-wall coordinate review for ${check.id}: ${check.notes.join(' ')}`);
+    }
+  }
+  for (const check of geometry.setDressingVisibility ?? []) {
+    if (check.grade !== 'pass') {
+      findings.push(`- P1: Set-dressing placement ${check.id} failed coordinate/asset QA: ${check.notes.join(' ')}`);
     }
   }
   if (geometry.levelDensity.grade === 'fail') {

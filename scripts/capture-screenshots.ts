@@ -16,6 +16,7 @@ try {
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
+  await page.evaluate(() => window.__shadowRecruitDebug?.setPerformanceProfile('performance'));
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
   await writeFile(`${qaDir}/title-composition.json`, JSON.stringify(titleComposition, null, 2));
   if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65) {

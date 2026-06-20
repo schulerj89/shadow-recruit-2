@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.9.1 - 2026-06-20
+
+### Patch
+
+- Hardened runtime QA by making decorative set-dressing GLBs fail soft with visible fallbacks while tester diagnostics now verify every authored dressing placement has loaded assets, rendered bounds, floor contact, and coordinate footprint coverage.
+- Fixed sliding-door cinematic focus to use authored door-center coordinates, aligned screenshot capture with the performance profile, and added browser smoke to the release verify gate.
+
 ## 0.9.0 - 2026-06-20
 
 ### Minor

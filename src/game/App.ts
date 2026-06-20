@@ -32,6 +32,7 @@ import type {
   RendererMetrics,
   SceneObjectBounds,
   SetDressingDefinition,
+  SetDressingVisibilityCheck,
   TesterState,
   TitleComposition,
   TutorialState,
@@ -310,6 +311,7 @@ export class ShadowRecruitApp {
   private activePrompt = '';
   private focusUntil = 0;
   private focusTargetId: string | null = null;
+  private focusPoint: Vec2 | null = null;
 
   constructor(private readonly host: HTMLDivElement) {
     this.shell = document.createElement('div');
@@ -401,8 +403,9 @@ export class ShadowRecruitApp {
       this.assets.preloadHero(this.selectedHero),
       this.assets.preloadSentry(),
       this.assets.preloadObjectives(),
-      this.assets.preloadSetDressing(this.level.setDressing.map((item) => item.asset)),
     ]);
+    this.setLoading('preloading tactical dressing', 0.42);
+    await this.assets.preloadSetDressing(this.level.setDressing.map((item) => item.asset));
     this.setLoading(`building ${this.level.name.toLowerCase()}`, 0.68);
     this.buildPlayableLevel();
     this.setLoading('starting cinematic tutorial', 1);
@@ -1093,14 +1096,18 @@ export class ShadowRecruitApp {
   private focusTarget(targetId: string): void {
     this.focusTargetId = targetId;
     const object = this.anchorObjects.get(targetId);
+    const door = this.doors.find((candidate) => candidate.id === targetId);
     const position = new THREE.Vector3();
-    if (object) {
+    if (door) {
+      position.set(door.center.x, 0, door.center.z);
+    } else if (object) {
       object.getWorldPosition(position);
     } else if (targetId === 'extraction') {
       position.set(this.level.extraction.x, 0, this.level.extraction.z);
     } else {
       position.set(this.playerPosition.x, 0, this.playerPosition.z);
     }
+    this.focusPoint = { x: roundMetric(position.x), z: roundMetric(position.z) };
 
     const angle = targetId === 'hero' ? -0.8 : 0.78;
     this.camera.position.set(position.x + Math.cos(angle) * 8, 6.4, position.z + Math.sin(angle) * 8);
@@ -1494,6 +1501,8 @@ export class ShadowRecruitApp {
 
   private assetQualityChecks(): readonly AssetQualityCheck[] {
     const checks: AssetQualityCheck[] = [];
+    const setDressingChecks = this.setDressingVisibilityChecks();
+    const setDressingFailures = setDressingChecks.filter((check) => check.grade !== 'pass');
     checks.push(this.checkAnchoredAsset(
       'level-floor',
       'Floor mesh',
@@ -1545,12 +1554,12 @@ export class ShadowRecruitApp {
       id: 'level-set-dressing',
       label: 'Tactical set dressing',
       category: 'set-dressing',
-      grade: this.level.setDressing.every((item) => this.anchorObjects.has(item.id)) ? 'pass' : 'fail',
-      visible: this.level.setDressing.every((item) => this.anchorObjects.has(item.id)),
+      grade: setDressingFailures.length === 0 ? 'pass' : 'fail',
+      visible: setDressingChecks.every((item) => item.visible),
       grounded: true,
-      notes: this.level.setDressing.every((item) => this.anchorObjects.has(item.id))
-        ? [`${this.level.setDressing.length} coordinate-authored non-colliding dressing placements use ${new Set(this.level.setDressing.map((item) => item.asset)).size} generated GLB kit assets for cables, wall machinery, racks, consoles, and extraction equipment without blocking the validation route.`]
-        : ['One or more authored set-dressing GLB placements are missing from the scene.'],
+      notes: setDressingFailures.length === 0
+        ? [`${this.level.setDressing.length} coordinate-authored non-colliding dressing placements have loaded GLB assets, visible runtime bounds, floor contact, and coordinate footprint coverage without blocking the validation route.`]
+        : [`Set-dressing QA failed for ${setDressingFailures.map((item) => `${item.id}:${item.notes.join(' ')}`).join('; ')}`],
     });
 
     for (const objective of this.objectives) {
@@ -1679,6 +1688,7 @@ export class ShadowRecruitApp {
   private geometryDiagnostics(): GeometryDiagnostics {
     return {
       objectBounds: this.sceneObjectBounds(),
+      setDressingVisibility: this.setDressingVisibilityChecks(),
       doorContinuity: this.doorContinuityChecks(),
       levelDensity: this.levelDensityCheck(),
     };
@@ -1715,6 +1725,44 @@ export class ShadowRecruitApp {
       category,
       visible: object.visible,
       bounds: this.boundsSnapshot(this.boundsScratch),
+    });
+  }
+
+  private setDressingVisibilityChecks(): readonly SetDressingVisibilityCheck[] {
+    return this.level.setDressing.map((dressing) => {
+      const object = this.anchorObjects.get(dressing.id);
+      const authoredBounds = this.rectBounds(dressing);
+      const renderedBounds = object ? this.objectBounds(object) : undefined;
+      const loaded = this.assets.isStaticLoaded(dressing.asset);
+      const visible = Boolean(object?.visible && renderedBounds && renderedBounds.size.x > 0.02 && renderedBounds.size.y > 0.02 && renderedBounds.size.z > 0.02);
+      const grounded = Boolean(renderedBounds && renderedBounds.min.y >= -0.05 && renderedBounds.max.y > 0.12);
+      const footprintCoverage = renderedBounds ? this.footprintCoverageRatio(authoredBounds, renderedBounds) : 0;
+      const notes: string[] = [];
+
+      if (!loaded) {
+        const failure = this.assets.staticFailure(dressing.asset);
+        notes.push(failure ? `${dressing.asset} GLB failed to load: ${failure}` : `${dressing.asset} GLB is not loaded.`);
+      }
+      if (!object) notes.push('No runtime object exists for this authored placement.');
+      if (!visible) notes.push('Rendered bounds are missing, hidden, or too small to inspect.');
+      if (!grounded) notes.push('Rendered bounds do not sit on or above the floor plane.');
+      if (footprintCoverage < 0.35) notes.push(`Rendered footprint covers only ${(footprintCoverage * 100).toFixed(1)}% of the authored rectangle.`);
+      if (notes.length === 0) {
+        notes.push(`${dressing.asset} GLB loaded and occupies ${(footprintCoverage * 100).toFixed(1)}% of authored footprint ${dressing.id}.`);
+      }
+
+      return {
+        id: dressing.id,
+        asset: dressing.asset,
+        grade: loaded && visible && grounded && footprintCoverage >= 0.35 ? 'pass' : 'fail',
+        loaded,
+        visible,
+        grounded,
+        authoredBounds,
+        ...(renderedBounds ? { renderedBounds } : {}),
+        footprintCoverage,
+        notes,
+      };
     });
   }
 
@@ -1871,6 +1919,13 @@ export class ShadowRecruitApp {
     return this.boundsScratch.isEmpty() ? undefined : this.boundsSnapshot(this.boundsScratch);
   }
 
+  private footprintCoverageRatio(authored: Bounds3, rendered: Bounds3): number {
+    const overlapX = Math.max(0, Math.min(authored.max.x, rendered.max.x) - Math.max(authored.min.x, rendered.min.x));
+    const overlapZ = Math.max(0, Math.min(authored.max.z, rendered.max.z) - Math.max(authored.min.z, rendered.min.z));
+    const authoredArea = Math.max(0.001, authored.size.x * authored.size.z);
+    return roundMetric(Math.min(1, (overlapX * overlapZ) / authoredArea));
+  }
+
   private rectBounds(rect: RectSpec): Bounds3 {
     const height = rect.height ?? 0;
     return {
@@ -1978,6 +2033,8 @@ export class ShadowRecruitApp {
       active: this.phase === 'cinematic-focus',
       target: this.focusTargetId,
       remainingMs: this.phase === 'cinematic-focus' ? Math.max(0, Math.round(this.focusUntil - performance.now())) : 0,
+      focusPoint: this.focusPoint ? { ...this.focusPoint } : null,
+      cameraPosition: this.vectorSnapshot(this.camera.position),
     };
   }
 

@@ -88,6 +88,7 @@ export class CharacterAnimator {
 export class AssetLibrary {
   private readonly characterAssets = new Map<string, CharacterAsset>();
   private readonly staticAssets = new Map<string, THREE.Group>();
+  private readonly staticAssetFailures = new Map<StaticAssetId, string>();
   private loaderPromise: Promise<RuntimeGltfLoader> | null = null;
 
   async preloadHero(heroId: HeroId): Promise<void> {
@@ -128,7 +129,15 @@ export class AssetLibrary {
 
   async preloadSetDressing(assetIds: readonly SetDressingAssetId[]): Promise<void> {
     const uniqueIds = [...new Set(assetIds)];
-    await Promise.all(uniqueIds.map((id) => this.loadStatic(id, setDressingAssetUrl(id), 1.0)));
+    await Promise.all(uniqueIds.map(async (id) => {
+      try {
+        await this.loadStatic(id, setDressingAssetUrl(id), 1.0);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.staticAssetFailures.set(id, message);
+        console.warn(`[shadow-recruit] Optional set-dressing asset ${id} failed to load; using fallback geometry. ${message}`);
+      }
+    }));
   }
 
   createHero(heroId: HeroId, name: string): CharacterInstance {
@@ -146,6 +155,8 @@ export class AssetLibrary {
   }
 
   createSetDressing(assetId: SetDressingAssetId, name: string): THREE.Object3D {
+    const source = this.staticAssets.get(assetId);
+    if (!source) return createSetDressingFallback(assetId, name);
     return this.createStatic(assetId, name);
   }
 
@@ -177,12 +188,22 @@ export class AssetLibrary {
   metrics(): Omit<MemoryMetrics, 'runtimeObjects'> {
     const characterAssetIds = [...this.characterAssets.keys()].sort();
     const staticAssetIds = [...this.staticAssets.keys()].sort();
+    const failedAssetIds = [...this.staticAssetFailures.keys()].sort();
     return {
       loadedAssets: characterAssetIds.length + staticAssetIds.length,
       characterAssets: characterAssetIds.length,
       staticAssets: staticAssetIds.length,
       loadedAssetIds: [...characterAssetIds, ...staticAssetIds],
+      failedAssetIds,
     };
+  }
+
+  isStaticLoaded(assetId: StaticAssetId): boolean {
+    return this.staticAssets.has(assetId);
+  }
+
+  staticFailure(assetId: StaticAssetId): string | undefined {
+    return this.staticAssetFailures.get(assetId);
   }
 
   private async loadStatic(id: StaticAssetId, url: string, targetHeight: number): Promise<void> {
@@ -192,6 +213,7 @@ export class AssetLibrary {
     normalizeStaticScene(gltf.scene, targetHeight);
     prepareMaterials(gltf.scene, staticAccent(id));
     this.staticAssets.set(id, gltf.scene);
+    this.staticAssetFailures.delete(id);
   }
 
   private cloneCharacter(asset: CharacterAsset, name: string): CharacterInstance {
@@ -236,6 +258,38 @@ function staticAccent(id: StaticAssetId): string {
   if (id === 'wall-machinery') return '#67d7ff';
   if (id === 'extraction-beacon') return '#8eff81';
   return '#72ffd8';
+}
+
+function createSetDressingFallback(assetId: SetDressingAssetId, name: string): THREE.Object3D {
+  const accent = new THREE.Color(staticAccent(assetId));
+  const group = new THREE.Group();
+  group.name = name;
+  group.userData.assetId = assetId;
+  group.userData.fallback = true;
+
+  const baseMaterial = new THREE.MeshStandardMaterial({
+    color: accent,
+    emissive: accent,
+    emissiveIntensity: 0.15,
+    roughness: 0.72,
+    metalness: 0.18,
+  });
+  const trimMaterial = new THREE.MeshStandardMaterial({
+    color: 0x101820,
+    emissive: accent,
+    emissiveIntensity: 0.08,
+    roughness: 0.58,
+    metalness: 0.35,
+  });
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1, 0.16, 1), baseMaterial);
+  base.name = `${name}:fallback-base`;
+  base.position.y = 0.08;
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.32, 0.2), trimMaterial);
+  trim.name = `${name}:fallback-trim`;
+  trim.position.y = 0.32;
+  group.add(base, trim);
+  return group;
 }
 
 function setDressingAssetUrl(id: SetDressingAssetId): string {
