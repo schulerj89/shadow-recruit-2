@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.2 - 2026-06-20
+
+### Patch
+
+- Tightened tester, designer, director, world-builder, and geometry skills with screenshot-to-coordinate wall-run ledgers, title hero facing/screen-occupancy evidence, and AAA level-density scorecards.
+
 ## 0.12.1 - 2026-06-20
 
 ### Patch

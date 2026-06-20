@@ -36,7 +36,7 @@ Use this workflow when screenshots show wall gaps around sliding doors or the te
 2. Identify the wall line interrupted by the door. The adjacent wall endpoints, door frame jambs, returns, and continuity/back-wall mesh must touch or intentionally overlap within epsilon. A positive unintended gap is a geometry defect even if the door texture partly hides it.
 3. For an `x`-axis door, validate X edge alignment between the door span and adjacent wall ends, then validate Z depth coverage between the wall, frame, door panel, and back-wall continuity. For a `z`-axis door, swap X/Z.
 4. When several doors, frame pieces, or wall pieces share a wall line, sort their intervals and inspect every adjacent span. A missing wall segment between two doors is still a defect even if each individual door has a local frame.
-5. Produce a wall-run interval ledger for each interrupted wall line. Include every wall, door opening, frame, return, and continuity/back-wall interval sorted along the interrupted axis, plus each adjacent gap or overlap.
+5. Produce a wall-run interval ledger for each interrupted wall line. Include every wall, door opening, closed-door surface, open-door swept/priority surface when applicable, frame, return, trim, and continuity/back-wall interval sorted along the interrupted axis, plus each adjacent gap or overlap.
 6. Report a machine-readable finding with `doorId`, `wallIds`, compared edges, interval neighbors, gap width, overlap depth, epsilon, and open/closed door state.
 7. If the runtime lacks bounds for frame, continuity meshes, or wall-run ledgers, mark an instrumentation failure and route to `$threejs-qa-automation` or `$threejs-webgpu-webgl-expert` for debug overlays.
 
@@ -74,6 +74,8 @@ For every new or modified level blockout:
 - For polygon rooms, validate winding, self-intersections, duplicate vertices, and near-zero edges before triangulation or navmesh bake.
 - When a wall contains an opening, model the remaining wall pieces as separate rectangles so the validator can prove the opening exists.
 - When a sliding door overlays a wall opening, also model the frame, returns, and continuity/back-wall pieces as named data or debug bounds. The tester must be able to prove that the door takes visual priority over a still-present wall/portal surface.
+- When multiple door openings share one wall run, validate the entire run as a single sorted interval set. Do not approve each door in isolation; the span between two doors must be explicitly owned by wall, frame, return, trim, continuity/back-wall, or a deliberate door-priority surface.
+- Keep door state ownership explicit. `closed` intervals should name the visible door surface; `open` intervals should name the wall/portal/continuity surface that remains visible, plus the sliding door's priority surface if it overlaps the wall plane.
 - Keep collision proxies simpler than art. Prefer box/capsule/convex proxies for level kits and reserve triangle meshes for static walkable ground that has passed budget review.
 
 ## Acceptance Checklist
@@ -87,7 +89,7 @@ Accept a level blockout only when:
 - Required objective routes remain connected after every door state: locked, opening, open, alarm, combat, and extraction.
 - Debug views can draw bounds, collision proxies, overlap pairs, narrow gaps, capsule clearance, and nav blockers with stable IDs.
 - Door continuity reports can prove the edge relationship between wall pieces, door panels, frames, returns, and back-wall surfaces for every door state that QA screenshots capture.
-- Multi-door wall-run interval ledgers can prove there is no unowned positive gap between nearby doors, adjacent wall segments, returns, or continuity pieces.
+- Multi-door wall-run interval ledgers can prove there is no unowned positive gap between nearby doors, adjacent wall segments, returns, trim, open-door priority surfaces, or continuity pieces.
 
 ## Scripted Check
 
