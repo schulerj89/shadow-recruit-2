@@ -1,6 +1,6 @@
 {
   "name": "shadow-recruit-2",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "assets:command-codes": "node scripts/generate-command-codes-asset.mjs",
     "assets:environment-kit": "node scripts/generate-environment-dressing-assets.mjs",
+    "level:doctor": "node scripts/level-authoring-doctor.mjs",
+    "level:scaffold": "node scripts/scaffold-level.mjs",
     "test:geometry": "node .codex/skills/threejs-level-geometry-validator/scripts/validate_level_geometry.mjs data/levels/level-one.geometry.json --min-clearance 1.1 --json",
     "test:playthrough": "tsx scripts/scripted-playthrough.ts",
     "playthrough:browser": "tsx scripts/browser-playthrough.ts",
@@ -16,7 +18,7 @@
     "test:fps": "tsx scripts/fps-gate.ts",
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "tester:report": "tsx scripts/game-tester-report.ts",
-    "verify": "npm run test:geometry && npm run test:playthrough && npm run build && npm run test:browser"
+    "verify": "npm run level:doctor && npm run test:geometry && npm run test:playthrough && npm run build && npm run test:browser"
   },
   "dependencies": {
     "@types/three": "^0.176.0",

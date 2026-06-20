@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.0 - 2026-06-20
+
+### Minor
+
+- Added level authoring scaffold and doctor commands so future large missions can start from validated JSON geometry, matching TypeScript adapters, registry checks, route validation, and release-gated drift detection.
+
 ## 0.9.1 - 2026-06-20
 
 ### Patch
