@@ -1,5 +1,5 @@
 import geometry from '../../../data/levels/level-one.geometry.json';
-import type { DoorDefinition, LevelDefinition, ObjectiveDefinition, RectSpec, SetDressingAssetId, SetDressingDefinition, Vec2 } from '../types';
+import type { DoorDefinition, LevelDefinition, LevelZoneDefinition, ObjectiveDefinition, RectSpec, SetDressingAssetId, SetDressingDefinition, Vec2 } from '../types';
 import { vec } from '../math';
 
 type GeometryRect = {
@@ -13,6 +13,14 @@ type GeometryRect = {
 type GeometryPoint = {
   id: string;
   position: readonly number[];
+};
+
+type GeometryZone = {
+  id: string;
+  label: string;
+  bounds: { min: readonly number[]; max: readonly number[] };
+  screenshot?: string;
+  expectedLandmarks: readonly string[];
 };
 
 const objectiveOrder = ['access-keycard', 'security-terminal', 'command-codes'] as const;
@@ -80,6 +88,7 @@ export const levelOne: LevelDefinition = {
   walls: geometry.walls.map(rectFromGeometry),
   blockers: geometry.blockers.map(rectFromGeometry),
   setDressing: geometry.setDressing.map(setDressingFromGeometry),
+  zones: geometry.zones.map(zoneFromGeometry),
   doors: geometry.doors.map(doorFromGeometry),
   objectives: objectiveOrder.map(objectiveFromGeometry),
   enemies: [
@@ -175,6 +184,19 @@ function setDressingFromGeometry(rect: GeometryRect): SetDressingDefinition {
   return {
     ...rectFromGeometry(rect),
     asset: rect.asset,
+  };
+}
+
+function zoneFromGeometry(zone: GeometryZone): LevelZoneDefinition {
+  return {
+    id: zone.id,
+    label: zone.label,
+    bounds: {
+      min: pointFromArray(zone.bounds.min),
+      max: pointFromArray(zone.bounds.max),
+    },
+    ...(zone.screenshot ? { screenshot: zone.screenshot } : {}),
+    expectedLandmarks: zone.expectedLandmarks,
   };
 }
 

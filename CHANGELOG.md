@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.13.0 - 2026-06-20
+
+### Minor
+
+- Added named level-density zones with per-zone tactical footprint, landmark, interactable, screenshot, and tester-report diagnostics for large-level QA.
+- Added security-stack set dressing and scaffold/geometry-validator support for zone metadata so future large levels start with room-level density gates.
+
 ## 0.12.4 - 2026-06-20
 
 ### Patch

@@ -202,8 +202,31 @@ type GeometryDiagnostics = {
     setDressingCount: number;
     objectiveCount: number;
     enemyCount: number;
+    zones: readonly LevelZoneDensityCheck[];
     notes: readonly string[];
   };
+};
+
+type LevelZoneDensityCheck = {
+  id: string;
+  label: string;
+  grade: 'pass' | 'review' | 'fail';
+  bounds: { min: { x: number; z: number }; max: { x: number; z: number } };
+  screenshot?: string;
+  floorArea: number;
+  coverFootprintArea: number;
+  setDressingFootprintArea: number;
+  gameplayFootprintArea: number;
+  totalFootprintArea: number;
+  totalFootprintRatio: number;
+  blockerCount: number;
+  setDressingCount: number;
+  objectiveCount: number;
+  enemyCount: number;
+  landmarkCount: number;
+  interactableCount: number;
+  expectedLandmarks: readonly string[];
+  notes: readonly string[];
 };
 
 const metrics = existsSync(fpsMetricsPath)
@@ -266,7 +289,7 @@ Date: ${date}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
-- Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
+- Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
 
@@ -461,9 +484,13 @@ function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): s
     return `- ${check.grade.toUpperCase()} set-dressing/${check.id}: asset=${check.asset}; loaded=${check.loaded}; visible=${check.visible}; grounded=${check.grounded}; coverage=${(check.footprintCoverage * 100).toFixed(1)}%; authored=${formatBounds(check.authoredBounds)}; rendered=${check.renderedBounds ? formatBounds(check.renderedBounds) : 'missing'}; ${check.notes.join(' ')}`;
   });
   const density = geometry.levelDensity;
+  const zones = (density.zones ?? []).map((zone) => {
+    return `- ${zone.grade.toUpperCase()} zone/${zone.id}: ${zone.label}; bounds=x=${zone.bounds.min.x}..${zone.bounds.max.x}, z=${zone.bounds.min.z}..${zone.bounds.max.z}; screenshot=${zone.screenshot ?? 'not mapped'}; floor=${zone.floorArea}m2; cover=${zone.coverFootprintArea}m2; dressing=${zone.setDressingFootprintArea}m2; gameplay=${zone.gameplayFootprintArea}m2; total=${zone.totalFootprintArea}m2 (${(zone.totalFootprintRatio * 100).toFixed(1)}%); blockers=${zone.blockerCount}; setDressing=${zone.setDressingCount}; objectives=${zone.objectiveCount}; enemies=${zone.enemyCount}; interactables=${zone.interactableCount}; landmarks=${zone.landmarkCount}/${zone.expectedLandmarks.length} (${zone.expectedLandmarks.join(', ')}). ${zone.notes.join(' ')}`;
+  });
   return [
     ...doors,
     ...dressing,
+    ...zones,
     `- ${density.grade.toUpperCase()} level-density: floor=${density.floorArea}m2; dressing=${density.setDressingFootprintArea}m2; ratio=${(density.setDressingRatio * 100).toFixed(1)}%; blockers=${density.blockerCount}; setDressing=${density.setDressingCount}; objectives=${density.objectiveCount}; enemies=${density.enemyCount}. ${density.notes.join(' ')}`,
   ].join('\n');
 }
@@ -504,6 +531,23 @@ function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): st
   for (const check of geometry.setDressingVisibility ?? []) {
     if (check.grade !== 'pass') {
       findings.push(`- P1: Set-dressing placement ${check.id} failed coordinate/asset QA: ${check.notes.join(' ')}`);
+    }
+  }
+  if (!geometry.levelDensity.zones?.length) {
+    findings.push('- P1: Per-zone level density diagnostics missing; tester cannot prove large-level room density from the active camera.');
+  } else {
+    for (const zone of geometry.levelDensity.zones) {
+      if (zone.grade === 'fail') {
+        findings.push(`- P1: Zone ${zone.id} is below AAA density target: ${(zone.totalFootprintRatio * 100).toFixed(1)}% total footprint, landmarks ${zone.landmarkCount}/${zone.expectedLandmarks.length}. ${zone.notes.join(' ')}`);
+      } else if (zone.grade === 'review') {
+        findings.push(`- P2: Zone ${zone.id} needs density review: ${(zone.totalFootprintRatio * 100).toFixed(1)}% total footprint, landmarks ${zone.landmarkCount}/${zone.expectedLandmarks.length}. ${zone.notes.join(' ')}`);
+      }
+      if (zone.landmarkCount < zone.expectedLandmarks.length) {
+        findings.push(`- P1: Zone ${zone.id} is missing expected landmarks: ${zone.expectedLandmarks.join(', ')}.`);
+      }
+      if (zone.interactableCount < 1) {
+        findings.push(`- P1: Zone ${zone.id} has no interactable or door milestone in its authored bounds.`);
+      }
     }
   }
   if (geometry.levelDensity.grade === 'fail') {

@@ -25,6 +25,8 @@ import type {
   LevelCatalogEntry,
   LevelDefinition,
   LevelDensityCheck,
+  LevelZoneDensityCheck,
+  LevelZoneDefinition,
   LoadingState,
   LoadingStep,
   MemoryMetrics,
@@ -2128,12 +2130,18 @@ export class ShadowRecruitApp {
     const enemyArea = this.enemies.reduce((sum, enemy) => sum + Math.PI * enemy.detectionRadius * enemy.detectionRadius, 0);
     const setDressingFootprintArea = blockerArea + authoredSetDressingArea + objectiveArea + enemyArea;
     const setDressingRatio = floorArea > 0 ? setDressingFootprintArea / floorArea : 0;
-    const grade: LevelDensityCheck['grade'] = setDressingRatio < 0.06 ? 'fail' : setDressingRatio < 0.1 ? 'review' : 'pass';
+    const zones = this.zoneDensityChecks();
+    const grade: LevelDensityCheck['grade'] = zones.some((zone) => zone.grade === 'fail')
+      ? 'fail'
+      : zones.some((zone) => zone.grade === 'review')
+        ? 'review'
+        : this.densityGrade(setDressingRatio);
     const notes = grade === 'pass'
-      ? [`Set-dressing and gameplay footprints cover ${(setDressingRatio * 100).toFixed(1)}% of the level floor.`]
+      ? [`Set-dressing and gameplay footprints cover ${(setDressingRatio * 100).toFixed(1)}% of the level floor across ${zones.length} named zone(s).`]
       : [
         `Set-dressing and gameplay footprints cover only ${(setDressingRatio * 100).toFixed(1)}% of the ${roundMetric(floorArea)}m2 floor.`,
-        'Add tactical cover, security props, cables, signage, light fixtures, patrol landmarks, and extraction dressing before grading this as AAA-quality level presentation.',
+        `Zone grades: ${zones.map((zone) => `${zone.id}=${zone.grade}`).join(', ') || 'none'}.`,
+        'Add tactical cover, security props, cables, signage, light fixtures, patrol landmarks, and extraction dressing before grading sparse zones as AAA-quality level presentation.',
       ];
 
     return {
@@ -2145,8 +2153,88 @@ export class ShadowRecruitApp {
       setDressingCount: this.level.setDressing.length,
       objectiveCount: this.objectives.length,
       enemyCount: this.enemies.length,
+      zones,
       notes,
     };
+  }
+
+  private zoneDensityChecks(): readonly LevelZoneDensityCheck[] {
+    return this.level.zones.map((zone) => {
+      const floorArea = this.zoneArea(zone);
+      const coverFootprintArea = this.level.blockers.reduce((sum, blocker) => sum + this.rectZoneOverlapArea(blocker, zone), 0);
+      const setDressingFootprintArea = this.level.setDressing.reduce((sum, dressing) => sum + this.rectZoneOverlapArea(dressing, zone), 0);
+      const zoneObjectives = this.objectives.filter((objective) => pointInBounds(objective.position, zone.bounds));
+      const zoneEnemies = this.enemies.filter((enemy) => pointInBounds(enemy.start, zone.bounds));
+      const zoneDoors = this.doors.filter((door) => pointInBounds(door.center, zone.bounds));
+      const extractionInZone = pointInBounds(this.level.extraction, zone.bounds);
+      const objectiveArea = zoneObjectives.reduce((sum, objective) => sum + Math.PI * objective.radius * objective.radius, 0);
+      const enemyArea = zoneEnemies.reduce((sum, enemy) => sum + Math.PI * enemy.detectionRadius * enemy.detectionRadius, 0);
+      const extractionArea = extractionInZone ? Math.PI * 2.5 * 2.5 : 0;
+      const gameplayFootprintArea = objectiveArea + enemyArea + extractionArea;
+      const totalFootprintArea = coverFootprintArea + setDressingFootprintArea + gameplayFootprintArea;
+      const totalFootprintRatio = floorArea > 0 ? totalFootprintArea / floorArea : 0;
+      const landmarkCount = zone.expectedLandmarks.filter((id) => this.zoneLandmarkPresent(id, zone)).length;
+      const interactableCount = zoneObjectives.length + zoneDoors.length + (extractionInZone ? 1 : 0);
+      const grade = this.densityGrade(totalFootprintRatio);
+      const notes = grade === 'pass'
+        ? [
+          `${zone.label} has ${(totalFootprintRatio * 100).toFixed(1)}% tactical footprint coverage with ${landmarkCount}/${zone.expectedLandmarks.length} expected landmark(s) present.`,
+        ]
+        : [
+          `${zone.label} has only ${(totalFootprintRatio * 100).toFixed(1)}% tactical footprint coverage.`,
+          `Expected landmarks present: ${landmarkCount}/${zone.expectedLandmarks.length}.`,
+          'Add camera-readable foreground, midground, and background tactical dressing for this zone.',
+        ];
+
+      return {
+        id: zone.id,
+        label: zone.label,
+        grade,
+        bounds: {
+          min: { ...zone.bounds.min },
+          max: { ...zone.bounds.max },
+        },
+        ...(zone.screenshot ? { screenshot: zone.screenshot } : {}),
+        floorArea: roundMetric(floorArea),
+        coverFootprintArea: roundMetric(coverFootprintArea),
+        setDressingFootprintArea: roundMetric(setDressingFootprintArea),
+        gameplayFootprintArea: roundMetric(gameplayFootprintArea),
+        totalFootprintArea: roundMetric(totalFootprintArea),
+        totalFootprintRatio: roundMetric(totalFootprintRatio),
+        blockerCount: this.level.blockers.filter((blocker) => this.rectZoneOverlapArea(blocker, zone) > 0).length,
+        setDressingCount: this.level.setDressing.filter((dressing) => this.rectZoneOverlapArea(dressing, zone) > 0).length,
+        objectiveCount: zoneObjectives.length,
+        enemyCount: zoneEnemies.length,
+        landmarkCount,
+        interactableCount,
+        expectedLandmarks: zone.expectedLandmarks,
+        notes,
+      };
+    });
+  }
+
+  private densityGrade(ratio: number): AssetQualityGrade {
+    return ratio < 0.06 ? 'fail' : ratio < 0.1 ? 'review' : 'pass';
+  }
+
+  private zoneArea(zone: LevelZoneDefinition): number {
+    return Math.max(0, zone.bounds.max.x - zone.bounds.min.x) * Math.max(0, zone.bounds.max.z - zone.bounds.min.z);
+  }
+
+  private rectZoneOverlapArea(rect: RectSpec, zone: LevelZoneDefinition): number {
+    const bounds = this.rectBounds(rect);
+    const overlapX = Math.max(0, Math.min(bounds.max.x, zone.bounds.max.x) - Math.max(bounds.min.x, zone.bounds.min.x));
+    const overlapZ = Math.max(0, Math.min(bounds.max.z, zone.bounds.max.z) - Math.max(bounds.min.z, zone.bounds.min.z));
+    return overlapX * overlapZ;
+  }
+
+  private zoneLandmarkPresent(id: string, zone: LevelZoneDefinition): boolean {
+    return this.level.blockers.some((blocker) => blocker.id === id && this.rectZoneOverlapArea(blocker, zone) > 0) ||
+      this.level.setDressing.some((dressing) => dressing.id === id && this.rectZoneOverlapArea(dressing, zone) > 0) ||
+      (id === 'extraction' && pointInBounds(this.level.extraction, zone.bounds)) ||
+      this.objectives.some((objective) => objective.id === id && pointInBounds(objective.position, zone.bounds)) ||
+      this.enemies.some((enemy) => enemy.id === id && pointInBounds(enemy.start, zone.bounds)) ||
+      this.doors.some((door) => door.id === id && pointInBounds(door.center, zone.bounds));
   }
 
   private objectBounds(object: THREE.Object3D): Bounds3 | undefined {

@@ -103,6 +103,29 @@ function buildGeometryTemplate() {
       { id: 'north-extraction-machinery-west', asset: 'extraction-beacon', center: [-28, 36], size: [20, 2], height: 0.85 },
       { id: 'north-extraction-machinery-east', asset: 'extraction-beacon', center: [28, 36], size: [20, 2], height: 0.85 },
     ],
+    zones: [
+      {
+        id: 'south-entry',
+        label: 'South Entry',
+        bounds: { min: [-48, -42], max: [48, -14] },
+        screenshot: 'gameplay-level-one.png',
+        expectedLandmarks: ['access-keycard', 'entry-door', 'south-cover-west', 'south-cover-east'],
+      },
+      {
+        id: 'mid-security',
+        label: 'Mid Security',
+        bounds: { min: [-48, -14], max: [48, 14] },
+        screenshot: 'tutorial-03-terminal.png',
+        expectedLandmarks: ['security-terminal', 'vault-door', 'mid-security-bank-west', 'mid-security-bank-east'],
+      },
+      {
+        id: 'north-command',
+        label: 'North Command And Extraction',
+        bounds: { min: [-48, 14], max: [48, 42] },
+        screenshot: 'complete.png',
+        expectedLandmarks: ['command-codes', 'extraction', 'command-table', 'north-extraction-machinery-west', 'north-extraction-machinery-east'],
+      },
+    ],
     doors: [
       { id: 'entry-door', center: [0, -14], size: [4, 0.8], height: 3.3 },
       { id: 'vault-door', center: [0, 14], size: [4, 0.8], height: 3.3 },
@@ -120,7 +143,7 @@ function buildGeometryTemplate() {
 
 function buildAdapterTemplate({ slug, exportName, name, chapter }) {
   return `import geometry from '../../../data/levels/${slug}.geometry.json';
-import type { DoorDefinition, LevelDefinition, ObjectiveDefinition, RectSpec, SetDressingAssetId, SetDressingDefinition, Vec2 } from '../types';
+import type { DoorDefinition, LevelDefinition, LevelZoneDefinition, ObjectiveDefinition, RectSpec, SetDressingAssetId, SetDressingDefinition, Vec2 } from '../types';
 import { vec } from '../math';
 
 type GeometryRect = {
@@ -134,6 +157,14 @@ type GeometryRect = {
 type GeometryPoint = {
   id: string;
   position: readonly number[];
+};
+
+type GeometryZone = {
+  id: string;
+  label: string;
+  bounds: { min: readonly number[]; max: readonly number[] };
+  screenshot?: string;
+  expectedLandmarks: readonly string[];
 };
 
 const objectiveOrder = ['access-keycard', 'security-terminal', 'command-codes'] as const;
@@ -201,6 +232,7 @@ export const ${exportName}: LevelDefinition = {
   walls: geometry.walls.map(rectFromGeometry),
   blockers: geometry.blockers.map(rectFromGeometry),
   setDressing: geometry.setDressing.map(setDressingFromGeometry),
+  zones: geometry.zones.map(zoneFromGeometry),
   doors: geometry.doors.map(doorFromGeometry),
   objectives: objectiveOrder.map(objectiveFromGeometry),
   enemies: [
@@ -289,6 +321,19 @@ function setDressingFromGeometry(rect: GeometryRect): SetDressingDefinition {
   };
 }
 
+function zoneFromGeometry(zone: GeometryZone): LevelZoneDefinition {
+  return {
+    id: zone.id,
+    label: zone.label,
+    bounds: {
+      min: pointFromArray(zone.bounds.min),
+      max: pointFromArray(zone.bounds.max),
+    },
+    ...(zone.screenshot ? { screenshot: zone.screenshot } : {}),
+    expectedLandmarks: zone.expectedLandmarks,
+  };
+}
+
 function isSetDressingAssetId(value: unknown): value is SetDressingAssetId {
   return value === 'cable-tray' || value === 'wall-machinery' || value === 'extraction-beacon';
 }
@@ -336,7 +381,7 @@ function escapeTs(value) {
 function printNextSteps({ slug, moduleName, exportName }) {
   console.info('');
   console.info('Next steps:');
-  console.info(`1. Review data/levels/${slug}.geometry.json and tune rooms, doors, blockers, objectives, patrols, and set dressing.`);
+  console.info(`1. Review data/levels/${slug}.geometry.json and tune rooms, doors, blockers, objectives, patrols, zones, and set dressing.`);
   console.info(`2. Run: node .codex/skills/threejs-level-geometry-validator/scripts/validate_level_geometry.mjs data/levels/${slug}.geometry.json --min-clearance 1.1`);
   console.info(`3. Register in src/game/levels/index.ts with: import { ${exportName} } from './${moduleName}';`);
   console.info(`4. Add ${exportName} to the exported levels array, then run npm run level:doctor and npm run test:playthrough.`);
@@ -352,5 +397,5 @@ Creates:
 - data/levels/<level-slug>.geometry.json
 - src/game/levels/<camelLevelSlug>.ts
 
-The generated level is a large coordinate-backed Shadow Recruit mission template with outer walls, split divider walls, three sliding doors, objectives, validation route, set dressing, and sentry patrol metadata. It is not added to src/game/levels/index.ts automatically.`);
+The generated level is a large coordinate-backed Shadow Recruit mission template with outer walls, split divider walls, three sliding doors, objectives, validation route, density zones, set dressing, and sentry patrol metadata. It is not added to src/game/levels/index.ts automatically.`);
 }

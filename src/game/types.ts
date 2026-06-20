@@ -60,6 +60,14 @@ export type SetDressingDefinition = RectSpec & {
   asset: SetDressingAssetId;
 };
 
+export type LevelZoneDefinition = {
+  id: string;
+  label: string;
+  bounds: { min: Vec2; max: Vec2 };
+  screenshot?: string;
+  expectedLandmarks: readonly string[];
+};
+
 export type EnemyDefinition = {
   id: string;
   label: string;
@@ -86,6 +94,7 @@ export type LevelDefinition = {
   walls: readonly RectSpec[];
   blockers: readonly RectSpec[];
   setDressing: readonly SetDressingDefinition[];
+  zones: readonly LevelZoneDefinition[];
   doors: readonly DoorDefinition[];
   objectives: readonly ObjectiveDefinition[];
   enemies: readonly EnemyDefinition[];
@@ -248,6 +257,29 @@ export type LevelDensityCheck = {
   setDressingCount: number;
   objectiveCount: number;
   enemyCount: number;
+  zones: readonly LevelZoneDensityCheck[];
+  notes: readonly string[];
+};
+
+export type LevelZoneDensityCheck = {
+  id: string;
+  label: string;
+  grade: AssetQualityGrade;
+  bounds: { min: Vec2; max: Vec2 };
+  screenshot?: string;
+  floorArea: number;
+  coverFootprintArea: number;
+  setDressingFootprintArea: number;
+  gameplayFootprintArea: number;
+  totalFootprintArea: number;
+  totalFootprintRatio: number;
+  blockerCount: number;
+  setDressingCount: number;
+  objectiveCount: number;
+  enemyCount: number;
+  landmarkCount: number;
+  interactableCount: number;
+  expectedLandmarks: readonly string[];
   notes: readonly string[];
 };
 

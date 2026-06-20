@@ -68,6 +68,7 @@ function validateLevel(level, config) {
   const warnings = [];
   const rects = [];
   const nonSolidRects = [];
+  const zoneRects = [];
   const points = [];
   const ids = new Set();
 
@@ -102,6 +103,17 @@ function validateLevel(level, config) {
     }
   }
 
+  for (const [index, spec] of asArray(level.zones).entries()) {
+    const rect = rectFromSpec(spec, 'zones', index, errors, warnings);
+    if (!rect) continue;
+
+    if (ids.has(rect.id)) {
+      errors.push(issue('duplicate-id', `${rect.id} is reused.`));
+    }
+    ids.add(rect.id);
+    zoneRects.push(rect);
+  }
+
   for (const collection of ['spawns', 'objectives', 'exits']) {
     for (const [index, spec] of asArray(level[collection]).entries()) {
       const point = pointFromSpec(spec, collection, index, errors);
@@ -110,7 +122,7 @@ function validateLevel(level, config) {
   }
 
   if (bounds) {
-    for (const rect of [...rects, ...nonSolidRects]) {
+    for (const rect of [...rects, ...nonSolidRects, ...zoneRects]) {
       if (!containsRect(bounds, rect, config.epsilon)) {
         errors.push(issue('out-of-bounds', `${rect.id} extends outside level bounds.`, { rect: rectData(rect) }));
       }
@@ -163,6 +175,7 @@ function validateLevel(level, config) {
       bounds: Boolean(bounds),
       rectangles: rects.length,
       nonSolidRectangles: nonSolidRects.length,
+      zones: zoneRects.length,
       points: points.length,
       errors: errors.length,
       warnings: warnings.length,
@@ -184,7 +197,10 @@ function rectFromSpec(spec, collection, index, errors, warnings) {
   let min;
   let max;
 
-  if (spec.min && spec.max) {
+  if (spec.bounds?.min && spec.bounds?.max) {
+    min = vec2(spec.bounds.min);
+    max = vec2(spec.bounds.max);
+  } else if (spec.min && spec.max) {
     min = vec2(spec.min);
     max = vec2(spec.max);
   } else if (spec.center && spec.size) {
@@ -355,7 +371,7 @@ function round(value) {
 
 function printHuman(result) {
   console.log(result.ok ? 'Level geometry validation passed.' : 'Level geometry validation failed.');
-  console.log(`rectangles=${result.summary.rectangles} nonSolidRectangles=${result.summary.nonSolidRectangles ?? 0} points=${result.summary.points} errors=${result.summary.errors} warnings=${result.summary.warnings}`);
+  console.log(`rectangles=${result.summary.rectangles} nonSolidRectangles=${result.summary.nonSolidRectangles ?? 0} zones=${result.summary.zones ?? 0} points=${result.summary.points} errors=${result.summary.errors} warnings=${result.summary.warnings}`);
 
   for (const error of result.errors) {
     console.error(`ERROR ${error.code}: ${error.message}`);
@@ -384,9 +400,18 @@ Input schema:
   ],
   "objectives": [
     { "id": "terminal", "position": [5, 0] }
+  ],
+  "zones": [
+    {
+      "id": "entry",
+      "label": "Entry",
+      "bounds": { "min": [-20, -20], "max": [20, 0] },
+      "expectedLandmarks": ["terminal"]
+    }
   ]
 }
 
 Coordinates use the X/Z ground plane. Arrays of length 3 are read as [x, y, z].
-The optional setDressing collection is bounds-checked as non-solid visual geometry and excluded from overlap/clearance blocking.`);
+The optional setDressing collection is bounds-checked as non-solid visual geometry and excluded from overlap/clearance blocking.
+The optional zones collection is bounds-checked as QA metadata and excluded from overlap/clearance blocking.`);
 }

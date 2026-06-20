@@ -180,6 +180,17 @@ try {
   if (state.geometry.levelDensity.grade === 'fail' || state.geometry.levelDensity.setDressingCount < 10) {
     throw new Error(`Expected coordinate-backed level set dressing to clear the density gate, got ${JSON.stringify(state.geometry.levelDensity)}`);
   }
+  if (
+    state.geometry.levelDensity.zones.length < 4 ||
+    state.geometry.levelDensity.zones.some((zone) =>
+      zone.grade !== 'pass' ||
+      zone.landmarkCount < zone.expectedLandmarks.length ||
+      zone.totalFootprintRatio < 0.1 ||
+      zone.interactableCount < 1
+    )
+  ) {
+    throw new Error(`Expected every named density zone to pass with landmarks and interactables, got ${JSON.stringify(state.geometry.levelDensity.zones)}`);
+  }
   if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {
     throw new Error(`Expected persisted settings in tester state, got ${JSON.stringify(state.settings)}`);
   }

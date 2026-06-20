@@ -29,6 +29,7 @@
     { "id": "lobby-wall-machinery-east", "asset": "wall-machinery", "center": [24, -16.35], "size": [28, 1.25], "height": 1.15 },
     { "id": "west-utility-pipe-run", "asset": "cable-tray", "center": [-39, -10], "size": [1.4, 36], "height": 0.42 },
     { "id": "east-utility-pipe-run", "asset": "cable-tray", "center": [39, -8], "size": [1.4, 36], "height": 0.42 },
+    { "id": "security-floor-cable-spine", "asset": "cable-tray", "center": [0, -2], "size": [34, 1.1], "height": 0.18 },
     { "id": "server-cable-run-west", "asset": "cable-tray", "center": [-27, 6.35], "size": [24, 1.15], "height": 0.2 },
     { "id": "server-cable-run-east", "asset": "cable-tray", "center": [28, 6.35], "size": [20, 1.15], "height": 0.2 },
     { "id": "server-overhead-rack-west", "asset": "wall-machinery", "center": [-29, 17.4], "size": [20, 1.3], "height": 0.75 },
@@ -38,6 +39,36 @@
     { "id": "extraction-machinery-west", "asset": "extraction-beacon", "center": [-24, 35], "size": [24, 2], "height": 0.85 },
     { "id": "extraction-machinery-east", "asset": "extraction-beacon", "center": [24, 35], "size": [24, 2], "height": 0.85 },
     { "id": "north-cable-spine", "asset": "cable-tray", "center": [0, 36.2], "size": [30, 1], "height": 0.22 }
+  ],
+  "zones": [
+    {
+      "id": "entry-lobby",
+      "label": "Entry Lobby",
+      "bounds": { "min": [-42, -34], "max": [42, -18] },
+      "screenshot": "gameplay-level-one.png",
+      "expectedLandmarks": ["access-keycard", "lobby-door", "cargo-stack-a", "cargo-stack-b", "sentry-lobby"]
+    },
+    {
+      "id": "security-stack",
+      "label": "Security Stack",
+      "bounds": { "min": [-42, -18], "max": [42, 5] },
+      "screenshot": "tutorial-03-terminal.png",
+      "expectedLandmarks": ["security-terminal", "antenna-bank", "security-floor-cable-spine", "server-door"]
+    },
+    {
+      "id": "server-wing",
+      "label": "Server Wing",
+      "bounds": { "min": [-42, 5], "max": [42, 20] },
+      "screenshot": "gameplay-command-codes.png",
+      "expectedLandmarks": ["command-codes", "server-bank-a", "server-bank-b", "sentry-server"]
+    },
+    {
+      "id": "command-extraction",
+      "label": "Command And Extraction",
+      "bounds": { "min": [-42, 20], "max": [42, 38] },
+      "screenshot": "complete.png",
+      "expectedLandmarks": ["extraction", "briefing-table", "extraction-machinery-west", "extraction-machinery-east", "sentry-command"]
+    }
   ],
   "doors": [
     { "id": "lobby-door", "center": [0, -18], "size": [6, 0.8], "height": 3.3 },
