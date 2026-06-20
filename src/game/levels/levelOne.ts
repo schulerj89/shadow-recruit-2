@@ -43,7 +43,7 @@ const objectiveMetadata = {
     radius: 1.55,
     required: true,
     unlocks: ['extraction-door'],
-    asset: 'keycard',
+    asset: 'codes',
   },
 } satisfies Record<ObjectiveId, Omit<ObjectiveDefinition, 'position'>>;
 

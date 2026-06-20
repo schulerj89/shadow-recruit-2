@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import sentryUrl from '../assets/characters/sentry/enemy_sentry.glb?url';
+import commandCodesUrl from '../assets/objectives/command-codes-cinematic.glb?url';
 import keycardUrl from '../assets/objectives/keycard-cinematic.glb?url';
 import terminalUrl from '../assets/objectives/terminal-cinematic.glb?url';
 import { heroOptionById, type HeroId } from './heroes';
@@ -20,6 +21,8 @@ type CharacterAsset = {
   scene: THREE.Group;
   clips: CharacterAnimationClips;
 };
+
+type StaticAssetId = 'keycard' | 'terminal' | 'codes';
 
 export type CharacterInstance = {
   object: THREE.Object3D;
@@ -116,6 +119,7 @@ export class AssetLibrary {
     await Promise.all([
       this.loadStatic('keycard', keycardUrl, 0.9),
       this.loadStatic('terminal', terminalUrl, 1.55),
+      this.loadStatic('codes', commandCodesUrl, 1.0),
     ]);
   }
 
@@ -129,7 +133,7 @@ export class AssetLibrary {
     return this.cloneCharacter(asset, name);
   }
 
-  createObjective(assetId: 'keycard' | 'terminal', name: string): THREE.Object3D {
+  createObjective(assetId: StaticAssetId, name: string): THREE.Object3D {
     const source = this.staticAssets.get(assetId);
     if (!source) throw new Error(`Objective asset not loaded: ${assetId}`);
 
@@ -162,12 +166,12 @@ export class AssetLibrary {
     };
   }
 
-  private async loadStatic(id: 'keycard' | 'terminal', url: string, targetHeight: number): Promise<void> {
+  private async loadStatic(id: StaticAssetId, url: string, targetHeight: number): Promise<void> {
     if (this.staticAssets.has(id)) return;
     const loader = await this.loader();
     const gltf = await loader.loadAsync(url);
     normalizeStaticScene(gltf.scene, targetHeight);
-    prepareMaterials(gltf.scene, id === 'keycard' ? '#ffd45a' : '#67d7ff');
+    prepareMaterials(gltf.scene, staticAccent(id));
     this.staticAssets.set(id, gltf.scene);
   }
 
@@ -201,6 +205,12 @@ export class AssetLibrary {
 
 function heroKey(heroId: HeroId): string {
   return `hero:${heroId}`;
+}
+
+function staticAccent(id: StaticAssetId): string {
+  if (id === 'keycard') return '#ffd45a';
+  if (id === 'terminal') return '#67d7ff';
+  return '#72ffd8';
 }
 
 function normalizeCharacterScene(scene: THREE.Group, targetHeight: number, bottomOffset: number): void {

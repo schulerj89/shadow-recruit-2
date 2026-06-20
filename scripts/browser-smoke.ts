@@ -87,7 +87,7 @@ try {
   if (state.renderer.drawCalls <= 0 || state.renderer.triangles <= 0) {
     throw new Error(`Expected live renderer metrics, got ${JSON.stringify(state.renderer)}`);
   }
-  if (state.memory.loadedAssets < 5 || !state.memory.loadedAssetIds.includes('sentry')) {
+  if (state.memory.loadedAssets < 6 || !state.memory.loadedAssetIds.includes('sentry') || !state.memory.loadedAssetIds.includes('codes')) {
     throw new Error(`Expected loaded GLB asset metrics, got ${JSON.stringify(state.memory)}`);
   }
   if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {

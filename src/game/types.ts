@@ -43,7 +43,7 @@ export type ObjectiveDefinition = {
   radius: number;
   required: boolean;
   unlocks: readonly string[];
-  asset: 'keycard' | 'terminal';
+  asset: 'keycard' | 'terminal' | 'codes';
 };
 
 export type EnemyDefinition = {

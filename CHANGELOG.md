@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-06-20
+
+### Minor
+
+- Added a distinct command-codes GLB objective asset with a reproducible generator and browser QA assertions.
+
 ## 0.2.0 - 2026-06-20
 
 ### Minor

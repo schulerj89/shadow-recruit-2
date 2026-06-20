@@ -70,7 +70,7 @@ try {
   if (finalState.objectives.collectedRequired !== finalState.objectives.totalRequired || !finalState.objectives.exitUnlocked) {
     throw new Error(`Playthrough did not complete all objectives: ${JSON.stringify(finalState.objectives)}`);
   }
-  if (finalState.memory.loadedAssets < 4 || !finalState.memory.loadedAssetIds.includes('sentry')) {
+  if (finalState.memory.loadedAssets < 5 || !finalState.memory.loadedAssetIds.includes('sentry') || !finalState.memory.loadedAssetIds.includes('codes')) {
     throw new Error(`Expected loaded gameplay assets, got ${JSON.stringify(finalState.memory)}`);
   }
 

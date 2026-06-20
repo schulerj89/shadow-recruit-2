@@ -36,6 +36,8 @@ try {
   await page.screenshot({ path: `${outputDir}/gameplay-level-one.png`, fullPage: true });
   await captureDoorFocus('access-keycard', 'lobby-door');
   await captureDoorFocus('security-terminal', 'server-door');
+  await page.evaluate(() => window.__shadowRecruitDebug?.teleportPlayerTo({ x: -33, z: 13 }));
+  await page.screenshot({ path: `${outputDir}/gameplay-command-codes.png`, fullPage: true });
   await captureDoorFocus('command-codes', 'extraction-door');
   await page.evaluate(() => window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 }));
   await page.screenshot({ path: `${outputDir}/complete.png`, fullPage: true });
