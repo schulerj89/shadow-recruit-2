@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.1 - 2026-06-20
+
+### Patch
+
+- Replaced procedural level floor and wall materials with generated sci-fi panel textures and added door wall-continuity meshes so door openings no longer grade as wall gaps.
+
 ## 0.7.0 - 2026-06-20
 
 ### Minor

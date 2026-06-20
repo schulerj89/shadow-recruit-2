@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import generalUrl from '../assets/generated/general-caldwell.png?url';
 import doorPanelUrl from '../assets/generated/sliding-door-panel.png?url';
+import floorPanelUrl from '../assets/generated/tactical-floor-panel.png?url';
+import wallPanelUrl from '../assets/generated/blacksite-wall-panel.png?url';
 import { AssetLibrary, type CharacterInstance, disposeObject } from './CharacterAssets';
 import { AudioDirector } from './AudioDirector';
 import { defaultHeroId, heroOptionById, heroOptions, isHeroId, type HeroId } from './heroes';
@@ -268,10 +270,13 @@ export class ShadowRecruitApp {
   private readonly runtimeObjects: RuntimeObject[] = [];
   private readonly doorMeshes = new Map<string, DoorMesh>();
   private readonly doorFrameMeshes = new Map<string, THREE.Object3D>();
+  private readonly doorContinuityMeshes = new Map<string, THREE.Object3D>();
   private readonly enemyDetectionCones = new Map<string, THREE.Object3D>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
   private readonly boundsScratch = new THREE.Box3();
   private readonly doorTexture = new THREE.TextureLoader().load(doorPanelUrl);
+  private readonly floorTexture = new THREE.TextureLoader().load(floorPanelUrl);
+  private readonly wallTexture = new THREE.TextureLoader().load(wallPanelUrl);
   private level: LevelDefinition = defaultLevel;
   private settings: GameSettings = loadSettings();
   private readonly audio = new AudioDirector(this.settings);
@@ -326,8 +331,9 @@ export class ShadowRecruitApp {
     this.renderer.shadowMap.enabled = this.quality().shadowsEnabled;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop((time) => this.frame(time));
-    this.doorTexture.colorSpace = THREE.SRGBColorSpace;
-    this.doorTexture.anisotropy = this.quality().textureAnisotropy;
+    this.configureRuntimeTexture(this.doorTexture);
+    this.configureRuntimeTexture(this.floorTexture);
+    this.configureRuntimeTexture(this.wallTexture);
 
     this.installEvents();
     this.installDebugApi();
@@ -457,6 +463,7 @@ export class ShadowRecruitApp {
 
     if (includeDoors) {
       for (const door of this.doors) {
+        this.addDoorWallContinuity(door);
         this.addDoorFrame(door);
         this.addDoor(door);
       }
@@ -524,6 +531,46 @@ export class ShadowRecruitApp {
     this.doorFrameMeshes.set(door.id, frame);
   }
 
+  private addDoorWallContinuity(door: DoorRuntime): void {
+    const quality = this.quality();
+    const height = door.height ?? 3.2;
+    const group = new THREE.Group();
+    group.name = `${door.id}:wall-continuity`;
+
+    const portalMaterial = this.createShellMaterial('wall', door.axis === 'x' ? door.size.x / 3 : door.size.z / 3, 1.25, 0.08);
+    portalMaterial.name = `${door.id}:portal-wall-material`;
+    portalMaterial.color = new THREE.Color('#a8bcc2');
+
+    const makeRevealMaterial = (): THREE.MeshStandardMaterial => (
+      this.createShellMaterial('trim', door.axis === 'x' ? door.size.x / 4 : door.size.z / 4, 1.2, 0.18)
+    );
+
+    const addPart = (name: string, size: THREE.Vector3, position: THREE.Vector3, material: THREE.Material): void => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size.x, size.y, size.z), material);
+      mesh.name = `${door.id}:wall-continuity:${name}`;
+      mesh.position.copy(position);
+      mesh.castShadow = quality.shadowsEnabled;
+      mesh.receiveShadow = quality.shadowsEnabled;
+      group.add(mesh);
+    };
+
+    if (door.axis === 'x') {
+      const backZ = door.center.z - door.size.z / 2 - 0.12;
+      addPart('back-wall', new THREE.Vector3(door.size.x + 0.42, height, 0.1), new THREE.Vector3(door.center.x, height / 2, backZ), portalMaterial);
+      addPart('left-return', new THREE.Vector3(0.22, height, door.size.z + 0.52), new THREE.Vector3(door.center.x - door.size.x / 2 - 0.18, height / 2, door.center.z), makeRevealMaterial());
+      addPart('right-return', new THREE.Vector3(0.22, height, door.size.z + 0.52), new THREE.Vector3(door.center.x + door.size.x / 2 + 0.18, height / 2, door.center.z), makeRevealMaterial());
+    } else {
+      const backX = door.center.x - door.size.x / 2 - 0.12;
+      addPart('back-wall', new THREE.Vector3(0.1, height, door.size.z + 0.42), new THREE.Vector3(backX, height / 2, door.center.z), portalMaterial);
+      addPart('near-return', new THREE.Vector3(door.size.x + 0.52, height, 0.22), new THREE.Vector3(door.center.x, height / 2, door.center.z - door.size.z / 2 - 0.18), makeRevealMaterial());
+      addPart('far-return', new THREE.Vector3(door.size.x + 0.52, height, 0.22), new THREE.Vector3(door.center.x, height / 2, door.center.z + door.size.z / 2 + 0.18), makeRevealMaterial());
+    }
+
+    this.scene.add(group);
+    this.runtimeObjects.push({ object: group });
+    this.doorContinuityMeshes.set(door.id, group);
+  }
+
   private addDoor(door: DoorRuntime): void {
     const quality = this.quality();
     const material = new THREE.MeshStandardMaterial({
@@ -574,12 +621,10 @@ export class ShadowRecruitApp {
 
   private createShellMaterial(kind: ShellTextureKind, repeatX = 1, repeatY = 1, emissive = 0): THREE.MeshStandardMaterial {
     const palette = shellTexturePalette(kind);
-    const texture = createShellTexture(kind, palette.base, palette.panel, palette.line);
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(Math.max(1, repeatX), Math.max(1, repeatY));
-    texture.anisotropy = this.quality().textureAnisotropy;
-    texture.colorSpace = THREE.SRGBColorSpace;
+    const texture = kind === 'floor' || kind === 'wall'
+      ? this.cloneGeneratedSurfaceTexture(kind, repeatX, repeatY)
+      : createShellTexture(kind, palette.base, palette.panel, palette.line);
+    this.configureRuntimeTexture(texture, repeatX, repeatY);
 
     const material = new THREE.MeshStandardMaterial({
       map: texture,
@@ -591,6 +636,22 @@ export class ShadowRecruitApp {
     });
     material.name = `sr2-${kind}-material`;
     return material;
+  }
+
+  private cloneGeneratedSurfaceTexture(kind: 'floor' | 'wall', repeatX: number, repeatY: number): THREE.Texture {
+    const texture = (kind === 'floor' ? this.floorTexture : this.wallTexture).clone();
+    texture.name = kind === 'floor' ? 'generated-tactical-floor-panel' : 'generated-blacksite-wall-panel';
+    this.configureRuntimeTexture(texture, repeatX, repeatY);
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  private configureRuntimeTexture(texture: THREE.Texture, repeatX = 1, repeatY = 1): void {
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(Math.max(1, repeatX), Math.max(1, repeatY));
+    texture.anisotropy = this.quality().textureAnisotropy;
+    texture.colorSpace = THREE.SRGBColorSpace;
   }
 
   private addLightStrip(x: number, z: number, color: string): void {
@@ -1290,6 +1351,8 @@ export class ShadowRecruitApp {
     this.renderer.shadowMap.enabled = quality.shadowsEnabled;
     this.renderer.shadowMap.autoUpdate = quality.shadowsEnabled;
     this.doorTexture.anisotropy = quality.textureAnisotropy;
+    this.floorTexture.anisotropy = quality.textureAnisotropy;
+    this.wallTexture.anisotropy = quality.textureAnisotropy;
     this.applyObjectQuality(this.scene);
     this.resize();
   }
@@ -1335,6 +1398,7 @@ export class ShadowRecruitApp {
     this.runtimeObjects.length = 0;
     this.doorMeshes.clear();
     this.doorFrameMeshes.clear();
+    this.doorContinuityMeshes.clear();
     this.enemyDetectionCones.clear();
     this.anchorObjects.clear();
     this.objectives = [];
@@ -1378,10 +1442,10 @@ export class ShadowRecruitApp {
       'level-floor',
       'Floor mesh',
       'level-mesh',
-      'Floor mesh covers the authored level bounds with repeated tactical panel texture detail.',
+      'Floor mesh covers the authored level bounds with a generated tactical floor-panel image texture.',
       'Floor mesh is missing from the scene.',
-      'review',
-      'Floor still uses a procedural canvas texture; replace with a generated image texture attached to the floor mesh before grading it as AAA-quality art.',
+      'pass',
+      'Floor uses src/assets/generated/tactical-floor-panel.png as a repeated runtime texture.',
       {
         planarGround: true,
         minWidth: this.level.bounds.max.x - this.level.bounds.min.x - 0.1,
@@ -1392,11 +1456,11 @@ export class ShadowRecruitApp {
       id: 'level-walls',
       label: 'Wall meshes',
       category: 'level-mesh',
-      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'review' : 'fail',
+      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'pass' : 'fail',
       visible: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)),
       grounded: true,
       notes: this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.level.walls.length} wall meshes are present, but they use procedural panel texture instead of a generated AAA wall image attached to each wall material.`]
+        ? [`${this.level.walls.length} wall meshes are present and use src/assets/generated/blacksite-wall-panel.png as the repeated generated wall texture.`]
         : ['One or more wall meshes are missing from the scene.'],
     });
     checks.push({
@@ -1414,12 +1478,12 @@ export class ShadowRecruitApp {
       id: 'door-wall-seams',
       label: 'Door-wall seams',
       category: 'door',
-      grade: 'fail',
-      visible: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length,
+      grade: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.doorContinuityMeshes.size === this.doors.length ? 'pass' : 'fail',
+      visible: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.doorContinuityMeshes.size === this.doors.length,
       grounded: true,
-      notes: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.doors.length} sliding-door openings have trim, but still need wall/portal continuity behind the door so the opening does not read as a missing wall gap; the opening door should visually take priority over that wall surface.`]
-        : ['Door seam review cannot pass because one or more door, frame, or wall meshes are missing.'],
+      notes: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.doorContinuityMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
+        ? [`${this.doors.length} sliding-door openings have door frames plus wall/portal continuity meshes behind the door layer, so the door panels visually take priority without reading as missing wall gaps.`]
+        : ['Door seam review cannot pass because one or more door, frame, wall-continuity, or wall meshes are missing.'],
     });
 
     for (const objective of this.objectives) {
