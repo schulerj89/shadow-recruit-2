@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.6.4 - 2026-06-20
+
+### Patch
+
+- Added generated screenshot coverage checks to the game tester report so QA feedback records missing title, tutorial, door-focus, gameplay, settings, and completion captures explicitly.
+- Updated game-tester asset grading to flag procedural wall/floor textures as below AAA/generated-image quality and to fail door openings that lack wall/portal continuity behind the door.
+
 ## 0.6.3 - 2026-06-20
 
 ### Patch

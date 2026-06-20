@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import packageInfo from '../package.json';
 
@@ -11,6 +11,22 @@ const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const screenshotDir = `${outputDir}/screenshots`;
+const expectedScreenshots = [
+  'title.png',
+  'settings.png',
+  'hero-select.png',
+  'tutorial-01-insertion.png',
+  'tutorial-02-keycard.png',
+  'tutorial-03-terminal.png',
+  'tutorial-04-sentry.png',
+  'tutorial-05-extraction.png',
+  'gameplay-level-one.png',
+  'focus-lobby-door.png',
+  'focus-server-door.png',
+  'gameplay-command-codes.png',
+  'focus-extraction-door.png',
+  'complete.png',
+] as const;
 
 type Metrics = {
   framePacing?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
@@ -66,6 +82,8 @@ const assetQuality = metrics?.assetQuality ?? [];
 const settings = metrics?.settings;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 const assetFindings = describeAssetFindings(assetQuality);
+const screenshotCoverage = await inspectScreenshotCoverage(screenshotDir);
+const screenshotFindings = describeScreenshotFindings(screenshotCoverage);
 
 await mkdir(outputDir, { recursive: true });
 if (metrics) {
@@ -85,6 +103,7 @@ Date: ${date}
 - Browser playthrough: \`${committedPlaythroughPath}\` (${playthroughReport ? 'captured' : 'not captured'})
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
+- Screenshot coverage: ${screenshotCoverage.present.length}/${expectedScreenshots.length} expected captures present (${formatKb(screenshotCoverage.totalBytes)})
 - Metrics available: ${metrics ? 'yes' : 'no'}
 - Game frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms median, ${(frame.latestFrameMs ?? frame.frameMs).toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
@@ -97,6 +116,10 @@ Date: ${date}
 ## Asset Grading
 
 ${formatAssetGrades(assetQuality)}
+
+## Screenshot Coverage
+
+${formatScreenshotCoverage(screenshotCoverage)}
 
 ## Tester Feedback
 
@@ -114,8 +137,7 @@ ${formatAssetGrades(assetQuality)}
 - P0: None recorded by generated report.
 ${frameFinding}
 ${assetFindings}
-- P2: Manual screenshot review remains recommended for player readability and hero framing after imported GLB scale changes.
-- P2: Expand tester notes after the first human play session.
+${screenshotFindings}
 `);
 
 console.info(`[tester-report] wrote ${reportPath}`);
@@ -171,4 +193,55 @@ function describeAssetFindings(checks: readonly AssetQualityCheck[]): string {
   const findings = failed.map((check) => `- P1: Asset ${check.id} failed grading: ${check.notes.join(' ')}`);
   findings.push(...review.map((check) => `- P2: Asset ${check.id} needs art/readability review: ${check.notes.join(' ')}`));
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated asset grading.';
+}
+
+type ScreenshotCoverage = {
+  present: readonly { file: string; bytes: number }[];
+  missing: readonly string[];
+  unexpected: readonly string[];
+  totalBytes: number;
+};
+
+async function inspectScreenshotCoverage(dir: string): Promise<ScreenshotCoverage> {
+  if (!existsSync(dir)) {
+    return {
+      present: [],
+      missing: [...expectedScreenshots],
+      unexpected: [],
+      totalBytes: 0,
+    };
+  }
+
+  const files = (await readdir(dir)).filter((file) => file.endsWith('.png')).sort();
+  const expected = new Set<string>(expectedScreenshots);
+  const present = await Promise.all(
+    expectedScreenshots
+      .filter((file) => files.includes(file))
+      .map(async (file) => ({ file, bytes: (await stat(`${dir}/${file}`)).size })),
+  );
+  const missing = expectedScreenshots.filter((file) => !files.includes(file));
+  const unexpected = files.filter((file) => !expected.has(file));
+  return {
+    present,
+    missing,
+    unexpected,
+    totalBytes: present.reduce((sum, screenshot) => sum + screenshot.bytes, 0),
+  };
+}
+
+function formatScreenshotCoverage(coverage: ScreenshotCoverage): string {
+  const present = coverage.present.map((screenshot) => `- PASS screenshot/${screenshot.file}: captured (${formatKb(screenshot.bytes)})`);
+  const missing = coverage.missing.map((file) => `- FAIL screenshot/${file}: expected capture missing.`);
+  const unexpected = coverage.unexpected.map((file) => `- REVIEW screenshot/${file}: extra screenshot exists outside the expected QA set.`);
+  return [...present, ...missing, ...unexpected].join('\n') || '- Screenshot coverage not captured.';
+}
+
+function describeScreenshotFindings(coverage: ScreenshotCoverage): string {
+  const findings = coverage.missing.map((file) => `- P1: Expected QA screenshot missing: ${file}.`);
+  findings.push(...coverage.unexpected.map((file) => `- P2: Unexpected QA screenshot was generated and should be reviewed or added to the expected set: ${file}.`));
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated screenshot coverage.';
+}
+
+function formatKb(bytes: number): string {
+  return `${(bytes / 1024).toFixed(1)} KB`;
 }

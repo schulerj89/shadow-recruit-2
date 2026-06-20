@@ -1286,8 +1286,8 @@ export class ShadowRecruitApp {
       'level-mesh',
       'Floor mesh covers the authored level bounds with repeated tactical panel texture detail.',
       'Floor mesh is missing from the scene.',
-      'pass',
-      'Floor material now includes panel variation, linework, and small-scale texture detail for gameplay readability.',
+      'review',
+      'Floor still uses a procedural canvas texture; replace with a generated image texture attached to the floor mesh before grading it as AAA-quality art.',
       {
         planarGround: true,
         minWidth: this.level.bounds.max.x - this.level.bounds.min.x - 0.1,
@@ -1298,11 +1298,11 @@ export class ShadowRecruitApp {
       id: 'level-walls',
       label: 'Wall meshes',
       category: 'level-mesh',
-      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'pass' : 'fail',
+      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'review' : 'fail',
       visible: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)),
       grounded: true,
       notes: this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.level.walls.length} wall meshes use tactical panel textures with bolts, linework, and material variation for clearer facility walls.`]
+        ? [`${this.level.walls.length} wall meshes are present, but they use procedural panel texture instead of a generated AAA wall image attached to each wall material.`]
         : ['One or more wall meshes are missing from the scene.'],
     });
     checks.push({
@@ -1320,11 +1320,11 @@ export class ShadowRecruitApp {
       id: 'door-wall-seams',
       label: 'Door-wall seams',
       category: 'door',
-      grade: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'pass' : 'fail',
+      grade: 'fail',
       visible: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length,
       grounded: true,
       notes: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.doors.length} sliding-door openings include jamb, header, and threshold trim to cover wall-door gaps.`]
+        ? [`${this.doors.length} sliding-door openings have trim, but still need wall/portal continuity behind the door so the opening does not read as a missing wall gap; the opening door should visually take priority over that wall surface.`]
         : ['Door seam review cannot pass because one or more door, frame, or wall meshes are missing.'],
     });
 
