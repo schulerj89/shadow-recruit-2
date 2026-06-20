@@ -39,7 +39,7 @@ Every browser smoke should define:
 - Assert coordinate-backed QA state through exposed debug APIs when screenshots cover walls, doors, title hero staging, object grounding, or level density. The captured state should include stable object IDs, world-space bounds, wall-run interval ledgers, door open/closed priority surfaces, title camera/hero facing metrics, projected hero bounds, and per-zone density data.
 - Assert screenshot-to-coordinate fusion data for defect-prone captures. Door screenshots should include door-to-door wall ownership tables, title screenshots should include hero facing/projection and UI occlusion metrics, and gameplay screenshots should include near/mid/far density-band metrics for the active camera.
 - Assert runtime asset provenance and quality categories for visible gameplay cover/blockers. Smoke should fail when a required cover/blocker visual is a primitive fallback, missing GLB, unloaded generated asset, buried mesh, or mismatched to its authored collision proxy.
-- Assert frame pacing or an explicit performance profile for gameplay scenes.
+- Assert frame pacing or an explicit performance profile for gameplay scenes. For player-facing releases, capture a multi-scene FPS matrix for title, active gameplay, completion, and failure/caught states rather than relying on one gameplay sample.
 - Exercise reset/retry/load transitions for any feature that allocates resources.
 - Use headed visible-browser runs for frame pacing when needed; use headless for deterministic functional smoke.
 
@@ -55,6 +55,8 @@ Every browser smoke should define:
 - Pair wall-gap screenshots with projected bounds or debug overlays when possible. QA should prove whether wall, door, frame, return, trim, or continuity objects actually own the visible space between doors instead of relying on pixel impressions alone.
 - Pair title screenshots with projected hero body regions. QA should prove the face/visor/chest silhouette is visible, facing the camera enough to read, and not hidden behind title/menu UI.
 - Add targeted debug-overlay captures when the normal camera cannot make a coordinate defect visible. The overlay should make bounds, intervals, floor-contact planes, and sparse zones readable without replacing the normal gameplay screenshot.
+- Treat screenshot review and numeric QA as one artifact. A visual complaint must link to object IDs, world bounds, projected screen bounds, density-zone metrics, or FPS scene rows; otherwise the automation should fail as missing instrumentation instead of passing by opinion.
+- Include scene-state screenshots beside FPS matrix rows. A title FPS row should point to a title screenshot, a gameplay row to the active camera, a completion row to the complete panel, and a caught row to the operation-failed state so performance issues can be tied to visible content.
 
 ## Accessibility And Input QA
 

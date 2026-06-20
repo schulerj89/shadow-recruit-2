@@ -1,5 +1,6 @@
-import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { basename } from 'node:path';
 import packageInfo from '../package.json';
 
 const date = process.env.QA_DATE ?? '2026-06-20';
@@ -16,6 +17,7 @@ const titleCompositionPath = `${outputDir}/title-composition.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
 const screenshotDir = `${outputDir}/screenshots`;
+const fpsSceneDir = `${outputDir}/fps`;
 const aaaReadyZoneFootprintRatio = 0.2;
 const aaaReadyLevelFootprintRatio = 0.18;
 const expectedScreenshots = [
@@ -40,27 +42,33 @@ const expectedScreenshots = [
   'retry-tutorial-reset.png',
 ] as const;
 
+type FpsGateMetric = {
+  targetFrameMs: number;
+  toleranceMs: number;
+  maxP95FrameMs: number;
+  baselineOverheadBudgetMs?: number;
+  baselineP95OverheadBudgetMs?: number;
+  frameOverheadMs?: number;
+  p95OverheadMs?: number;
+  browserBaselineHeadroomMs?: number;
+  gameHeadroomMs?: number;
+  strictTargetMet: boolean;
+  browserCanProve60: boolean;
+  tracksBaseline: boolean;
+  status: 'pass' | 'environment-limited' | 'fail';
+  performanceProfile?: string;
+  sceneCount?: number;
+  failingScenes?: readonly string[];
+  environmentLimitedScenes?: readonly string[];
+};
+
 type Metrics = {
   levelId?: string;
   missionCatalog?: readonly LevelCatalogEntry[];
   framePacing?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
   browserBaseline?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
-  fpsGate?: {
-    targetFrameMs: number;
-    toleranceMs: number;
-    maxP95FrameMs: number;
-    baselineOverheadBudgetMs?: number;
-    baselineP95OverheadBudgetMs?: number;
-    frameOverheadMs?: number;
-    p95OverheadMs?: number;
-    browserBaselineHeadroomMs?: number;
-    gameHeadroomMs?: number;
-    strictTargetMet: boolean;
-    browserCanProve60: boolean;
-    tracksBaseline: boolean;
-    status: 'pass' | 'environment-limited' | 'fail';
-    performanceProfile?: string;
-  };
+  fpsGate?: FpsGateMetric;
+  fpsScenes?: readonly FpsSceneMetric[];
   renderer?: {
     performanceProfile?: string;
     shadowsEnabled?: boolean;
@@ -86,6 +94,27 @@ type Metrics = {
   tutorialAlignment?: readonly TutorialAlignmentCheck[];
   loading?: LoadingState;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
+};
+
+type FpsSceneMetric = {
+  id: string;
+  label: string;
+  phase: string;
+  screenshot: string;
+  framePacing: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
+  renderer: {
+    performanceProfile?: string;
+    shadowsEnabled?: boolean;
+    shadowMapSize?: number;
+    drawCalls: number;
+    triangles: number;
+    geometries: number;
+    textures: number;
+    pixelRatio?: number;
+  };
+  audioTrack?: AudioState['activeTrack'];
+  titleComposition?: TitleComposition;
+  fpsGate: FpsGateMetric;
 };
 
 type LoadingStep = {
@@ -368,6 +397,7 @@ const completion = playthrough?.finalState?.completion;
 const frame = metrics?.framePacing;
 const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
+const fpsScenes = metrics?.fpsScenes ?? [];
 const renderer = metrics?.renderer;
 const memory = metrics?.memory;
 const assetAudit = memory?.assetAudit ?? [];
@@ -381,7 +411,7 @@ const playthroughSettings = playthrough?.finalState?.settings as { debug: boolea
 const missionCatalog = missionCatalogArtifact?.missions ?? metrics?.missionCatalog ?? playthrough?.finalState?.missionCatalog ?? [];
 const selectedMissionId = missionCatalogArtifact?.selectedMissionId ?? metrics?.levelId ?? playthrough?.finalState?.levelId;
 const missionBrief = missionCatalogArtifact?.missionBrief;
-const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
+const frameFinding = describeFrameFinding(frame, baseline, fpsGate, fpsScenes);
 const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
@@ -394,6 +424,7 @@ const screenshotCoverage = await inspectScreenshotCoverage(screenshotDir);
 const screenshotFindings = describeScreenshotFindings(screenshotCoverage);
 
 await mkdir(outputDir, { recursive: true });
+await copyFpsSceneScreenshots(fpsScenes, fpsSceneDir);
 if (metrics) {
   await writeFile(committedMetricsPath, JSON.stringify(metrics, null, 2));
 }
@@ -422,6 +453,7 @@ Date: ${date}
 - Game frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms median, ${(frame.latestFrameMs ?? frame.frameMs).toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}; overhead=${formatMs(fpsGate.frameOverheadMs)} median/${formatMs(fpsGate.p95OverheadMs)} p95; headroom=${formatMs(fpsGate.gameHeadroomMs)} game/${formatMs(fpsGate.browserBaselineHeadroomMs)} browser` : 'not captured'}
+- FPS scene matrix: ${formatFpsSceneSummary(fpsScenes)}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, pixelRatio=${renderer.pixelRatio ?? 'unknown'}, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Runtime asset audit: ${assetAudit.length > 0 ? describeAssetAuditSummary(assetAudit) : 'not captured'}
@@ -439,6 +471,10 @@ Date: ${date}
 ## Coordinate QA
 
 ${formatGeometryDiagnostics(geometry)}
+
+## FPS Scene Matrix
+
+${formatFpsSceneMatrix(fpsScenes, baseline)}
 
 ## Tutorial Alignment QA
 
@@ -480,7 +516,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the gameplay camera to the current player position.
 - Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
-- Performance: ${describePerformance(frame, baseline, fpsGate)}
+- Performance: ${describePerformance(frame, baseline, fpsGate, fpsScenes)}
 
 ## Required Fixes
 
@@ -552,13 +588,21 @@ function describeMissionCatalogFindings(
 function describeFrameFinding(
   frame: Metrics['framePacing'] | undefined,
   baseline: Metrics['browserBaseline'] | undefined,
-  fpsGate: Metrics['fpsGate'] | undefined
+  fpsGate: Metrics['fpsGate'] | undefined,
+  fpsScenes: readonly FpsSceneMetric[],
 ): string {
   if (!frame) return '- P1: FPS metrics missing.';
+  const sceneFailures = fpsScenes.filter((scene) => scene.fpsGate.status === 'fail');
   if (fpsGate?.status === 'pass') return '- P1: None from generated FPS metrics.';
   if (fpsGate?.status === 'environment-limited' && baseline) {
     const profile = fpsGate.performanceProfile ? ` on the ${fpsGate.performanceProfile} profile` : '';
-    return `- P1: Current headed browser baseline measured ${baseline.fps.toFixed(1)} FPS / ${baseline.frameMs.toFixed(1)} ms median and cannot prove strict 16.7 ms${profile}. The game tracks that baseline within the calibrated overhead budget (${formatMs(fpsGate.frameOverheadMs)} median / ${formatMs(fpsGate.p95OverheadMs)} p95), so rerun on a true 60 Hz visible browser before marking the 60 FPS gate fully proven.`;
+    const sceneSummary = fpsScenes.length > 0
+      ? ` across ${fpsScenes.length} scene sample(s): ${fpsScenes.map((scene) => `${scene.id}=${scene.fpsGate.status}`).join(', ')}`
+      : '';
+    return `- P1: Current headed browser baseline measured ${baseline.fps.toFixed(1)} FPS / ${baseline.frameMs.toFixed(1)} ms median and cannot prove strict 16.7 ms${profile}. The game tracks that baseline within the calibrated overhead budget${sceneSummary} (${formatMs(fpsGate.frameOverheadMs)} median / ${formatMs(fpsGate.p95OverheadMs)} p95), so rerun on a true 60 Hz visible browser before marking the 60 FPS gate fully proven.`;
+  }
+  if (sceneFailures.length > 0) {
+    return `- P1: FPS gate failed in scene(s): ${sceneFailures.map((scene) => `${scene.id} ${scene.framePacing.fps.toFixed(1)} FPS / ${scene.framePacing.frameMs.toFixed(1)} ms median / ${scene.framePacing.p95FrameMs.toFixed(1)} ms p95`).join('; ')}.`;
   }
   return `- P1: Game FPS gate failed at ${frame.fps.toFixed(1)} FPS / ${frame.frameMs.toFixed(1)} ms median / ${frame.p95FrameMs.toFixed(1)} ms p95 against the configured frame budget.`;
 }
@@ -566,14 +610,57 @@ function describeFrameFinding(
 function describePerformance(
   frame: Metrics['framePacing'] | undefined,
   baseline: Metrics['browserBaseline'] | undefined,
-  fpsGate: Metrics['fpsGate'] | undefined
+  fpsGate: Metrics['fpsGate'] | undefined,
+  fpsScenes: readonly FpsSceneMetric[],
 ): string {
   if (!frame) return 'FPS metrics were not captured.';
-  if (fpsGate?.status === 'pass') return 'game frame pacing passed the configured 60 FPS gate.';
+  const sceneCount = fpsScenes.length > 0 ? `${fpsScenes.length} scene samples` : 'the gameplay sample';
+  if (fpsGate?.status === 'pass') return `${sceneCount} passed the configured 60 FPS gate.`;
   if (fpsGate?.status === 'environment-limited' && baseline) {
-    return `game pacing matches the ${baseline.fps.toFixed(1)} FPS browser baseline with ${formatMs(fpsGate.frameOverheadMs)} median / ${formatMs(fpsGate.p95OverheadMs)} p95 overhead, but this environment cannot prove strict 16.7 ms frame cadence.`;
+    return `${sceneCount} match the ${baseline.fps.toFixed(1)} FPS browser baseline with ${formatMs(fpsGate.frameOverheadMs)} median / ${formatMs(fpsGate.p95OverheadMs)} p95 overhead, but this environment cannot prove strict 16.7 ms frame cadence.`;
   }
-  return 'game frame pacing failed the configured FPS gate and needs optimization or a lower-quality fallback.';
+  return `${sceneCount} failed the configured FPS gate and needs optimization or a lower-quality fallback.`;
+}
+
+function formatFpsSceneSummary(scenes: readonly FpsSceneMetric[]): string {
+  if (scenes.length === 0) return 'not captured';
+  return scenes
+    .map((scene) => `${scene.id}=${scene.fpsGate.status} (${scene.framePacing.fps.toFixed(1)} FPS, ${scene.framePacing.frameMs.toFixed(1)} ms median, ${scene.framePacing.p95FrameMs.toFixed(1)} ms p95, overhead=${formatMs(scene.fpsGate.frameOverheadMs)}/${formatMs(scene.fpsGate.p95OverheadMs)})`)
+    .join('; ');
+}
+
+function formatFpsSceneMatrix(
+  scenes: readonly FpsSceneMetric[],
+  baseline: Metrics['browserBaseline'] | undefined,
+): string {
+  if (scenes.length === 0) return '- FPS scene matrix not captured.';
+  const baselineLine = baseline
+    ? `- BASELINE browser: ${baseline.fps.toFixed(1)} FPS; median=${baseline.frameMs.toFixed(1)} ms; p95=${baseline.p95FrameMs.toFixed(1)} ms; samples=${baseline.samples}`
+    : '- BASELINE browser: not captured';
+  const rows = scenes.map((scene) => {
+    const renderer = scene.renderer
+      ? `renderer=${scene.renderer.drawCalls} calls/${scene.renderer.triangles} tris/${scene.renderer.textures} textures/pixelRatio=${scene.renderer.pixelRatio ?? 'unknown'}`
+      : 'renderer=not captured';
+    const title = scene.titleComposition
+      ? ` titleHero=facingDot=${scene.titleComposition.facingDot}; screenHeight=${formatRatio(scene.titleComposition.heroScreenHeightRatio)}; occupancy=${formatRatio(scene.titleComposition.heroScreenOccupancy)}`
+      : '';
+    return `- ${scene.fpsGate.status.toUpperCase()} fps/${scene.id}: label="${scene.label}"; phase=${scene.phase}; screenshot=${scene.screenshot}; frame=${scene.framePacing.fps.toFixed(1)} FPS / ${scene.framePacing.frameMs.toFixed(1)} ms median / ${scene.framePacing.p95FrameMs.toFixed(1)} ms p95; strict=${scene.fpsGate.strictTargetMet}; tracksBaseline=${scene.fpsGate.tracksBaseline}; overhead=${formatMs(scene.fpsGate.frameOverheadMs)} median/${formatMs(scene.fpsGate.p95OverheadMs)} p95; audio=${scene.audioTrack ?? 'none'}; ${renderer}.${title}`;
+  });
+  return [baselineLine, ...rows].join('\n');
+}
+
+async function copyFpsSceneScreenshots(
+  scenes: readonly FpsSceneMetric[],
+  targetDir: string,
+): Promise<void> {
+  if (scenes.length === 0) return;
+  await mkdir(targetDir, { recursive: true });
+  for (const scene of scenes) {
+    if (!scene.screenshot || !existsSync(scene.screenshot)) continue;
+    const target = `${targetDir}/${basename(scene.screenshot)}`;
+    await copyFile(scene.screenshot, target);
+    scene.screenshot = target;
+  }
 }
 
 function describeAssetSummary(checks: readonly AssetQualityCheck[]): string {

@@ -6,7 +6,7 @@ Date: 2026-06-20
 
 Keep the strict 16.7 ms visible-browser target, but calibrate local QA against the measured browser `requestAnimationFrame` baseline when the browser itself cannot prove 60 Hz.
 
-`npm run test:fps` now records median and p95 overhead between the Shadow Recruit gameplay loop and the blank-page browser baseline. The gate still passes strict 60 when the browser can prove it. When the browser baseline is slower than 16.7 ms, the gate is only allowed to return `environment-limited` if the game remains inside the configured overhead budget.
+`npm run test:fps` now records median and p95 overhead between Shadow Recruit player-facing scenes and the blank-page browser baseline. The gate samples title, active gameplay, completion, and sentry-failure/caught states so the tester can catch menu or overlay regressions instead of relying on a single gameplay sample. The gate still passes strict 60 when the browser can prove it. When the browser baseline is slower than 16.7 ms, the gate is only allowed to return `environment-limited` if every sampled scene remains inside the configured overhead budget.
 
 ## Rationale
 
@@ -18,4 +18,5 @@ The calibrated overhead budget prevents regressions on this machine while preser
 
 - A true 60 Hz browser still fails the gate if gameplay exceeds the strict frame budget.
 - A sub-60 local browser can only pass as `environment-limited` when game overhead remains within budget.
-- Tester reports must show both strict target status and baseline-overhead evidence.
+- Tester reports must show both strict target status and baseline-overhead evidence for each sampled scene.
+- Title, gameplay, completion, and failure/caught scenes should each have a screenshot row beside their frame-pacing data so performance evidence is tied to visible content.

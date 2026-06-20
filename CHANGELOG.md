@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.16.3 - 2026-06-20
+
+### Patch
+
+- Added a multi-scene FPS gate and tester-report matrix for title, gameplay, completion, and sentry-failure states so performance evidence cannot pass from one gameplay sample alone.
+- Tightened tester, designer, QA automation, and geometry skills around screenshot-to-coordinate proof, door-to-door wall ownership, title hero identity reads, active-camera AAA density, and FPS scene evidence.
+
 ## 0.16.2 - 2026-06-20
 
 ### Patch

@@ -1,0 +1,196 @@
+# Shadow Recruit 2 Game Tester Report
+
+Build: v0.16.3
+Date: 2026-06-20
+
+## Evidence
+
+- Smoke screenshots: `artifacts/smoke/v0.16.3`
+- Browser playthrough: `docs/qa/2026-06-20/v0.16.3/playthrough-report.json` (captured)
+- Failure/retry route: `docs/qa/2026-06-20/v0.16.3/failure-retry-report.json` (captured)
+- Committed screenshots: `docs/qa/2026-06-20/v0.16.3/screenshots`
+- FPS metrics: `docs/qa/2026-06-20/v0.16.3/metrics.json`
+- Mission catalog evidence: `docs/qa/2026-06-20/v0.16.3/mission-catalog.json` (captured)
+- Screenshot coverage: 19/19 expected captures present (12453.6 KB)
+- Metrics available: yes
+- Mission catalog: selected=Blacksite Threshold; missions=1; blacksite-threshold(3 objectives, 3 enemies); hero-select brief captured
+- Game frame pacing: 55.9 FPS, 17.9 ms median, 18.0 ms latest, 18.2 ms p95, 240 samples
+- Browser baseline: 55.9 FPS, 17.9 ms median, 18.1 ms p95, 240 samples
+- FPS gate: environment-limited; profile=performance; strictTarget=false; browserCanProve60=false; tracksBaseline=true; overhead=0.0 ms median/0.1 ms p95; headroom=-0.8 ms game/-0.8 ms browser
+- FPS scene matrix: title=environment-limited (56.2 FPS, 17.8 ms median, 18.2 ms p95, overhead=-0.1 ms/0.1 ms); gameplay=environment-limited (55.9 FPS, 17.9 ms median, 18.2 ms p95, overhead=0.0 ms/0.1 ms); complete=environment-limited (55.9 FPS, 17.9 ms median, 18.2 ms p95, overhead=0.0 ms/0.1 ms); caught=environment-limited (55.9 FPS, 17.9 ms median, 18.2 ms p95, overhead=0.0 ms/0.1 ms)
+- Renderer metrics: 72 draw calls, 96803 triangles, 73 geometries, 16 textures, pixelRatio=0.75, profile=performance, shadows=false, shadowMap=0
+- Loaded assets: 9 total (2 character, 7 static): hero:shadow-operative, sentry, cable-tray, codes, cover-barricade, extraction-beacon, keycard, terminal, wall-machinery
+- Runtime asset audit: 9 pass, 0 review, 0 fail; visibleFallbacks=0; sources=repo-generated-glb, sneak-game-seed
+- Audio state: gameplay metrics=active=gameplay; muted=false; unlocked=true; completion playthrough=active=complete; muted=false; unlocked=true
+- Asset grades: 20 pass, 0 review, 0 fail
+- Loading state: 4 steps; latest="starting cinematic tutorial" 100%; captured=preloading hero, sentry, objectives, cover:18% -> preloading tactical dressing:42% -> building blacksite threshold:68% -> starting cinematic tutorial:100%
+- Tutorial alignment: 5/5 pass; allCadet=true; targets=hero->hero, keycard->access-keycard, terminal->security-terminal, sentry->sentry-lobby, extraction->extraction
+- Title composition: heroReadable=true; levelPreview=true; facingDot=0.99; cameraDistance=6.14; screenHeight=44.0%; screenOccupancy=11.0%; screenBounds=x=550.97..921.64, y=289.78..688.63, viewport=1440x900, width=26.0%, height=44.0%, area=11.0%; orbitAngle=0.3; orbitRadius=5.31; heroYaw=1.13; yawToCamera=1.27
+- Title treatment: wordmarkReadable=true; text="SHADOW RECRUIT 2"; kicker="OPERATION BLACKGLASS"; bounds=x=160..671.75, y=405.42..661.75, viewport=1440x900, width=36.0%, height=28.0%, area=10.0%; panelOverlap=0.0%; heroOverlap=24.0%
+- Geometry diagnostics: 67 object bounds; 3 door checks; 3 wall-run checks; levelDensity=pass (22.0%); aaaReady=yes; level=22.0%; minZone>=20.0%; zones=entry-lobby:pass:22.0%, security-stack:pass:22.0%, server-wing:pass:23.0%, command-extraction:pass:22.0%
+- Completion stats: active=true; objectives=3/3; alerts=0; cue=triumphant; elapsed=15s
+- Failure/retry evidence: level=blacksite-threshold; contactEnemy=sentry-lobby; caughtPhase=caught; caughtAlerts=1; retryPhase=tutorial; retryAlerts=0; retryObjectives=0/3; screenshots=3
+- Settings state: debug=false; muted=false; performance=performance
+
+## Coordinate QA
+
+- PASS door/lobby-door: axis=x; walls=lobby-divider-west, lobby-divider-east; opening=x=-3..3, y=0..3.3, z=-18.4..-17.6; frame=x=-3.32..3.32, y=0..3.66, z=-18.69..-17.31; continuity=x=-3.29..3.29, y=0..3.3, z=-18.66..-17.34; no gaps above 0.08m
+- PASS door/server-door: axis=x; walls=server-divider-west, server-divider-east; opening=x=11..17, y=0..3.3, z=4.6..5.4; frame=x=10.68..17.32, y=0..3.66, z=4.31..5.69; continuity=x=10.71..17.29, y=0..3.3, z=4.34..5.66; no gaps above 0.08m
+- PASS door/extraction-door: axis=x; walls=command-divider-west, command-divider-east; opening=x=-3..3, y=0..3.3, z=19.6..20.4; frame=x=-3.32..3.32, y=0..3.66, z=19.31..20.69; continuity=x=-3.29..3.29, y=0..3.3, z=19.34..20.66; no gaps above 0.08m
+- PASS set-dressing/south-cable-trench-west: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-36..-8, y=0..0.16, z=-31.6..-30.4; rendered=x=-36..-8, y=0..0.16, z=-31.6..-30.4; cable-tray GLB loaded and occupies 100.0% of authored footprint south-cable-trench-west.
+- PASS set-dressing/south-cable-trench-east: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=8..36, y=0..0.16, z=-31.6..-30.4; rendered=x=8..36, y=0..0.16, z=-31.6..-30.4; cable-tray GLB loaded and occupies 100.0% of authored footprint south-cable-trench-east.
+- PASS set-dressing/entry-south-machinery-west: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-27..-3, y=0..0.9, z=-32.85..-31.85; rendered=x=-27..-3, y=0..0.9, z=-32.85..-31.85; wall-machinery GLB loaded and occupies 100.0% of authored footprint entry-south-machinery-west.
+- PASS set-dressing/entry-south-machinery-east: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=3..27, y=0..0.9, z=-32.85..-31.85; rendered=x=3..27, y=0..0.9, z=-32.85..-31.85; wall-machinery GLB loaded and occupies 100.0% of authored footprint entry-south-machinery-east.
+- PASS set-dressing/entry-floor-light-spine: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-21..21, y=0..0.18, z=-21.55..-20.45; rendered=x=-21..21, y=0..0.18, z=-21.55..-20.45; cable-tray GLB loaded and occupies 100.0% of authored footprint entry-floor-light-spine.
+- PASS set-dressing/entry-foreground-decal-west: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-25..-7, y=0..0.16, z=-28.6..-27.4; rendered=x=-25..-7, y=0..0.16, z=-28.6..-27.4; cable-tray GLB loaded and occupies 100.0% of authored footprint entry-foreground-decal-west.
+- PASS set-dressing/entry-foreground-decal-east: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=7..25, y=0..0.16, z=-28.6..-27.4; rendered=x=7..25, y=0..0.16, z=-28.6..-27.4; cable-tray GLB loaded and occupies 100.0% of authored footprint entry-foreground-decal-east.
+- PASS set-dressing/lobby-wall-machinery-west: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-38..-10, y=0..1.15, z=-16.98..-15.73; rendered=x=-38..-10, y=0..1.15, z=-16.98..-15.73; wall-machinery GLB loaded and occupies 100.0% of authored footprint lobby-wall-machinery-west.
+- PASS set-dressing/lobby-wall-machinery-east: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=10..38, y=0..1.15, z=-16.98..-15.73; rendered=x=10..38, y=0..1.15, z=-16.98..-15.73; wall-machinery GLB loaded and occupies 100.0% of authored footprint lobby-wall-machinery-east.
+- PASS set-dressing/west-utility-pipe-run: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-39.7..-38.3, y=0..0.42, z=-28..8; rendered=x=-39.7..-38.3, y=0..0.42, z=-28..8; cable-tray GLB loaded and occupies 100.0% of authored footprint west-utility-pipe-run.
+- PASS set-dressing/east-utility-pipe-run: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=38.3..39.7, y=0..0.42, z=-26..10; rendered=x=38.3..39.7, y=0..0.42, z=-26..10; cable-tray GLB loaded and occupies 100.0% of authored footprint east-utility-pipe-run.
+- PASS set-dressing/security-floor-cable-spine: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-17..17, y=0..0.18, z=-2.55..-1.45; rendered=x=-17..17, y=0..0.18, z=-2.55..-1.45; cable-tray GLB loaded and occupies 100.0% of authored footprint security-floor-cable-spine.
+- PASS set-dressing/security-west-service-stack: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-39.8..-38.6, y=0..1.05, z=-17..1; rendered=x=-39.8..-38.6, y=0..1.05, z=-17..1; wall-machinery GLB loaded and occupies 100.0% of authored footprint security-west-service-stack.
+- PASS set-dressing/security-east-service-stack: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=38.6..39.8, y=0..1.05, z=-17..1; rendered=x=38.6..39.8, y=0..1.05, z=-17..1; wall-machinery GLB loaded and occupies 100.0% of authored footprint security-east-service-stack.
+- PASS set-dressing/security-warning-floor-stripe: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-20..20, y=0..0.16, z=-15.7..-14.7; rendered=x=-20..20, y=0..0.16, z=-15.7..-14.7; cable-tray GLB loaded and occupies 100.0% of authored footprint security-warning-floor-stripe.
+- PASS set-dressing/security-ceiling-cable-west: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-35..-5, y=0..0.2, z=-12.6..-11.4; rendered=x=-35..-5, y=0..0.2, z=-12.6..-11.4; cable-tray GLB loaded and occupies 100.0% of authored footprint security-ceiling-cable-west.
+- PASS set-dressing/security-ceiling-cable-east: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=5..35, y=0..0.2, z=-12.6..-11.4; rendered=x=5..35, y=0..0.2, z=-12.6..-11.4; cable-tray GLB loaded and occupies 100.0% of authored footprint security-ceiling-cable-east.
+- PASS set-dressing/security-center-server-run: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-17..17, y=0..0.95, z=1.25..2.75; rendered=x=-17..17, y=0..0.95, z=1.25..2.75; wall-machinery GLB loaded and occupies 100.0% of authored footprint security-center-server-run.
+- PASS set-dressing/security-terminal-power-bus: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=21..33, y=0..0.18, z=-8.6..-7.4; rendered=x=21..33, y=0..0.18, z=-8.6..-7.4; cable-tray GLB loaded and occupies 100.0% of authored footprint security-terminal-power-bus.
+- PASS set-dressing/server-cable-run-west: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-39..-15, y=0..0.2, z=5.77..6.92; rendered=x=-39..-15, y=0..0.2, z=5.77..6.92; cable-tray GLB loaded and occupies 100.0% of authored footprint server-cable-run-west.
+- PASS set-dressing/server-cable-run-east: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=18..38, y=0..0.2, z=5.77..6.92; rendered=x=18..38, y=0..0.2, z=5.77..6.92; cable-tray GLB loaded and occupies 100.0% of authored footprint server-cable-run-east.
+- PASS set-dressing/server-midfloor-power-tray: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-15..15, y=0..0.18, z=10.4..11.6; rendered=x=-15..15, y=0..0.18, z=10.4..11.6; cable-tray GLB loaded and occupies 100.0% of authored footprint server-midfloor-power-tray.
+- PASS set-dressing/server-north-hazard-strip: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-15..15, y=0..0.16, z=18.3..19.3; rendered=x=-15..15, y=0..0.16, z=18.3..19.3; cable-tray GLB loaded and occupies 100.0% of authored footprint server-north-hazard-strip.
+- PASS set-dressing/server-overhead-rack-west: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-39..-19, y=0..0.75, z=16.75..18.05; rendered=x=-39..-19, y=0..0.75, z=16.75..18.05; wall-machinery GLB loaded and occupies 100.0% of authored footprint server-overhead-rack-west.
+- PASS set-dressing/server-overhead-rack-east: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=19..39, y=0..0.75, z=16.75..18.05; rendered=x=19..39, y=0..0.75, z=16.75..18.05; wall-machinery GLB loaded and occupies 100.0% of authored footprint server-overhead-rack-east.
+- PASS set-dressing/command-console-west: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-35..-11, y=0..0.95, z=21.05..22.55; rendered=x=-35..-11, y=0..0.95, z=21.05..22.55; wall-machinery GLB loaded and occupies 100.0% of authored footprint command-console-west.
+- PASS set-dressing/command-console-east: asset=wall-machinery; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=11..35, y=0..0.95, z=21.05..22.55; rendered=x=11..35, y=0..0.95, z=21.05..22.55; wall-machinery GLB loaded and occupies 100.0% of authored footprint command-console-east.
+- PASS set-dressing/command-floor-guidance-west: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-30..-6, y=0..0.16, z=27.4..28.6; rendered=x=-30..-6, y=0..0.16, z=27.4..28.6; cable-tray GLB loaded and occupies 100.0% of authored footprint command-floor-guidance-west.
+- PASS set-dressing/command-floor-guidance-east: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=6..30, y=0..0.16, z=27.4..28.6; rendered=x=6..30, y=0..0.16, z=27.4..28.6; cable-tray GLB loaded and occupies 100.0% of authored footprint command-floor-guidance-east.
+- PASS set-dressing/extraction-machinery-west: asset=extraction-beacon; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-36..-12, y=0..0.85, z=34..36; rendered=x=-36..-12, y=0..0.85, z=34..36; extraction-beacon GLB loaded and occupies 100.0% of authored footprint extraction-machinery-west.
+- PASS set-dressing/extraction-machinery-east: asset=extraction-beacon; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=12..36, y=0..0.85, z=34..36; rendered=x=12..36, y=0..0.85, z=34..36; extraction-beacon GLB loaded and occupies 100.0% of authored footprint extraction-machinery-east.
+- PASS set-dressing/north-cable-spine: asset=cable-tray; loaded=true; visible=true; grounded=true; coverage=100.0%; authored=x=-15..15, y=0..0.22, z=35.7..36.7; rendered=x=-15..15, y=0..0.22, z=35.7..36.7; cable-tray GLB loaded and occupies 100.0% of authored footprint north-cable-spine.
+- PASS zone/entry-lobby: Entry Lobby; bounds=x=-42..42, z=-34..-18; screenshot=gameplay-level-one.png; floor=1344m2; cover=40m2; dressing=229.8m2; gameplay=26.41m2; total=296.21m2 (22.0%); blockers=2; setDressing=9; objectives=1; enemies=1; interactables=2; landmarks=8/8 (access-keycard, lobby-door, cargo-stack-a, cargo-stack-b, sentry-lobby, entry-floor-light-spine, entry-south-machinery-west, entry-south-machinery-east). Entry Lobby has 22.0% tactical footprint coverage with 8/8 expected landmark(s) present.
+- PASS zone/security-stack: Security Stack; bounds=x=-42..42, z=-18..5; screenshot=tutorial-03-terminal.png; floor=1932m2; cover=18m2; dressing=392.4m2; gameplay=9.62m2; total=420.02m2 (22.0%); blockers=1; setDressing=12; objectives=1; enemies=0; interactables=3; landmarks=7/7 (security-terminal, antenna-bank, security-floor-cable-spine, server-door, security-west-service-stack, security-east-service-stack, security-warning-floor-stripe). Security Stack has 21.7% tactical footprint coverage with 7/7 expected landmark(s) present.
+- PASS zone/server-wing: Server Wing; bounds=x=-42..42, z=5..20; screenshot=gameplay-command-codes.png; floor=1260m2; cover=80m2; dressing=179.8m2; gameplay=25.64m2; total=285.44m2 (23.0%); blockers=2; setDressing=8; objectives=1; enemies=1; interactables=3; landmarks=6/6 (command-codes, server-bank-a, server-bank-b, sentry-server, server-midfloor-power-tray, server-north-hazard-strip). Server Wing has 22.7% tactical footprint coverage with 6/6 expected landmark(s) present.
+- PASS zone/command-extraction: Command And Extraction; bounds=x=-42..42, z=20..38; screenshot=complete.png; floor=1512m2; cover=33m2; dressing=255.6m2; gameplay=36.98m2; total=325.58m2 (22.0%); blockers=1; setDressing=7; objectives=0; enemies=1; interactables=2; landmarks=7/7 (extraction, briefing-table, extraction-machinery-west, extraction-machinery-east, sentry-command, command-floor-guidance-west, command-floor-guidance-east). Command And Extraction has 21.5% tactical footprint coverage with 7/7 expected landmark(s) present.
+- PASS level-density: floor=6048m2; dressing=1307.62m2; ratio=22.0%; blockers=6; setDressing=32; objectives=3; enemies=3. Set-dressing and gameplay footprints cover 21.6% of the level floor across 4 named zone(s).
+
+## FPS Scene Matrix
+
+- BASELINE browser: 55.9 FPS; median=17.9 ms; p95=18.1 ms; samples=240
+- ENVIRONMENT-LIMITED fps/title: label="Title hero and menu"; phase=title; screenshot=docs/qa/2026-06-20/v0.16.3/fps/fps-title.png; frame=56.2 FPS / 17.8 ms median / 18.2 ms p95; strict=false; tracksBaseline=true; overhead=-0.1 ms median/0.1 ms p95; audio=title; renderer=38 calls/98773 tris/7 textures/pixelRatio=0.75. titleHero=facingDot=0.99; screenHeight=44.0%; occupancy=10.0%
+- ENVIRONMENT-LIMITED fps/gameplay: label="Active gameplay camera"; phase=playing; screenshot=docs/qa/2026-06-20/v0.16.3/fps/fps-gameplay.png; frame=55.9 FPS / 17.9 ms median / 18.2 ms p95; strict=false; tracksBaseline=true; overhead=0.0 ms median/0.1 ms p95; audio=gameplay; renderer=72 calls/96803 tris/16 textures/pixelRatio=0.75.
+- ENVIRONMENT-LIMITED fps/complete: label="Mission complete screen"; phase=complete; screenshot=docs/qa/2026-06-20/v0.16.3/fps/fps-complete.png; frame=55.9 FPS / 17.9 ms median / 18.2 ms p95; strict=false; tracksBaseline=true; overhead=0.0 ms median/0.1 ms p95; audio=complete; renderer=146 calls/97691 tris/17 textures/pixelRatio=0.75.
+- ENVIRONMENT-LIMITED fps/caught: label="Sentry caught failure screen"; phase=caught; screenshot=docs/qa/2026-06-20/v0.16.3/fps/fps-caught.png; frame=55.9 FPS / 17.9 ms median / 18.2 ms p95; strict=false; tracksBaseline=true; overhead=0.0 ms median/0.1 ms p95; audio=gameplay; renderer=103 calls/185721 tris/22 textures/pixelRatio=0.75.
+
+## Tutorial Alignment QA
+
+- PASS tutorial/hero: screenshot=tutorial-01-insertion.png; title="Insertion"; target=hero (hero); targetPoint=0,-29; focusPoint=0,-29; focusDistance=0; cameraDistance=10.24; cadet=true; keywords=cadet, shadow recruit, move quietly. Tutorial step hero targets hero, uses required callout terms, and ends with Good luck, cadet.
+- PASS tutorial/keycard: screenshot=tutorial-02-keycard.png; title="First Lock"; target=access-keycard (objective); targetPoint=-31,-25; focusPoint=-31,-25; focusDistance=0; cameraDistance=10.24; cadet=true; keywords=objective, keycard, door. Tutorial step keycard targets access-keycard, uses required callout terms, and ends with Good luck, cadet.
+- PASS tutorial/terminal: screenshot=tutorial-03-terminal.png; title="Security Stack"; target=security-terminal (objective); targetPoint=30,-3; focusPoint=30,-3; focusDistance=0; cameraDistance=10.24; cadet=true; keywords=terminal, server-wing door, interact. Tutorial step terminal targets security-terminal, uses required callout terms, and ends with Good luck, cadet.
+- PASS tutorial/sentry: screenshot=tutorial-04-sentry.png; title="Avoid Contact"; target=sentry-lobby (enemy); targetPoint=16,-25; focusPoint=16,-25; focusDistance=0; cameraDistance=10.24; cadet=true; keywords=avoid sentries, cover, patrol. Tutorial step sentry targets sentry-lobby, uses required callout terms, and ends with Good luck, cadet.
+- PASS tutorial/extraction: screenshot=tutorial-05-extraction.png; title="Extraction"; target=extraction (extraction); targetPoint=0,33; focusPoint=0,33; focusDistance=0; cameraDistance=10.2; cadet=true; keywords=command codes, final door, extraction. Tutorial step extraction targets extraction, uses required callout terms, and ends with Good luck, cadet.
+
+## Mission Catalog QA
+
+- PASS mission-selected: selected=blacksite-threshold; label=Blacksite Threshold; brief="OPERATION GLASS DAGGER\nBlacksite Threshold\n3 required objectives, 3 sentries, 3 sliding doors, 4 density zones."
+- PASS mission/blacksite-threshold: Operation Glass Dagger / Blacksite Threshold; objectives=3; enemies=3
+
+## Wall-Run Interval QA
+
+- PASS wall-run/x:-18: axis=x; line=-18; intervals=lobby-divider-west[wall] -41m..-3m; lobby-door:frame[door-frame] -3.32m..3.32m; lobby-door:wall-continuity[door-continuity] -3.29m..3.29m; lobby-door[door-opening] -3m..3m; lobby-divider-east[wall] 3m..41m; gaps=no unowned spans above 0.08m
+- PASS wall-run/x:5: axis=x; line=5; intervals=server-divider-west[wall] -41m..11m; server-door:frame[door-frame] 10.68m..17.32m; server-door:wall-continuity[door-continuity] 10.71m..17.29m; server-door[door-opening] 11m..17m; server-divider-east[wall] 17m..30m; gaps=no unowned spans above 0.08m
+- PASS wall-run/x:20: axis=x; line=20; intervals=command-divider-west[wall] -41m..-3m; extraction-door:frame[door-frame] -3.32m..3.32m; extraction-door:wall-continuity[door-continuity] -3.29m..3.29m; extraction-door[door-opening] -3m..3m; command-divider-east[wall] 3m..41m; gaps=no unowned spans above 0.08m
+
+## Asset Grading
+
+- PASS level-mesh/level-floor: Floor mesh; visible=true; grounded=true. pos=(0,0,0); y=0..0; h=0; xz=84x72 Floor mesh covers the authored level bounds with a generated tactical floor-panel image texture. Floor uses src/assets/generated/tactical-floor-panel.png as a repeated runtime texture.
+- PASS level-mesh/level-walls: Wall meshes; visible=true; grounded=true. 12 wall meshes are present and use src/assets/generated/blacksite-wall-panel.png as the repeated generated wall texture.
+- PASS door/sliding-doors: Sliding door panels; visible=true; grounded=true. 3 sliding door assemblies are present and use the generated door-panel texture.
+- PASS door/door-wall-seams: Door-wall seams; visible=true; grounded=true. 3 sliding-door openings have door frames plus wall/portal continuity meshes behind the door layer, so the door panels visually take priority without reading as missing wall gaps.
+- PASS blocker/level-blocker-cover: Blocker cover GLB visuals; visible=true; grounded=true. 6 authored blocker collision proxies are represented by fitted cover-barricade GLB visuals with no primitive stand-ins.
+- PASS blocker/cargo-stack-a: cargo-stack-a cover module; visible=true; grounded=true. pos=(-27,0,-25); y=0..1.35; h=1.35; xz=5x4 Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy. Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.
+- PASS blocker/cargo-stack-b: cargo-stack-b cover module; visible=true; grounded=true. pos=(27,0,-25); y=0..1.35; h=1.35; xz=5x4 Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy. Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.
+- PASS blocker/antenna-bank: antenna-bank cover module; visible=true; grounded=true. pos=(-26,0,-4); y=0..1.75; h=1.75; xz=6x3 Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy. Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.
+- PASS blocker/server-bank-a: server-bank-a cover module; visible=true; grounded=true. pos=(25,0,11); y=0..1.9; h=1.9; xz=5x8 Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy. Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.
+- PASS blocker/server-bank-b: server-bank-b cover module; visible=true; grounded=true. pos=(-25,0,12); y=0..1.9; h=1.9; xz=5x8 Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy. Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.
+- PASS blocker/briefing-table: briefing-table cover module; visible=true; grounded=true. pos=(0,0,26); y=0..1; h=1; xz=11x3 Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy. Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.
+- PASS set-dressing/level-set-dressing: Tactical set dressing; visible=true; grounded=true. 32 coordinate-authored non-colliding dressing placements have loaded GLB assets, visible runtime bounds, floor contact, and coordinate footprint coverage without blocking the validation route.
+- PASS objective/access-keycard: Recover the lobby keycard; visible=true; grounded=true. pos=(-31,0,-25); y=0..0.9; h=0.9; xz=1.49x0.02 keycard GLB is visible, grounded, and available for interaction.
+- PASS objective/security-terminal: Hack the security terminal; visible=true; grounded=true. pos=(30,0,-3); y=0..1.55; h=1.55; xz=1.16x2.45 terminal GLB is visible, grounded, and available for interaction.
+- PASS objective/command-codes: Copy the command codes; visible=true; grounded=true. pos=(-32,0,14); y=0..1; h=1; xz=1.81x1.28 codes GLB is visible, grounded, and available for interaction.
+- PASS enemy/sentry-lobby: Lobby sentry; visible=true; grounded=true. pos=(5.78,0,-24.15); y=0.02..1.57; h=1.55; xz=1.58x1.58 Sentry GLB is visible above the floor and aligned to its patrol route.
+- PASS enemy/sentry-server: Server sentry; visible=true; grounded=true. pos=(27.04,0,14.09); y=0.02..1.57; h=1.55; xz=1.75x1.75 Sentry GLB is visible above the floor and aligned to its patrol route.
+- PASS enemy/sentry-command: Command sentry; visible=true; grounded=true. pos=(-4.24,0,25); y=0.02..1.57; h=1.55; xz=1.46x1.46 Sentry GLB is visible above the floor and aligned to its patrol route.
+- PASS hero/hero: Playable hero; visible=true; grounded=true. pos=(0,0,-29); y=0.02..1.47; h=1.45; xz=1.17x0.79 Hero GLB is visible and grounded at the current player position.
+- PASS extraction/extraction: Extraction point; visible=true; grounded=true. pos=(0,0.08,33); y=0..0.16; h=0.15; xz=4.96x4.96 Extraction marker is visible and readable as the level-completion target.
+
+## Runtime Asset Provenance
+
+- PASS hero/hero:shadow-operative: Shadow Operative; requirement=required; source=sneak-game-seed; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=required-error; path=src/assets/hero/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb; src/assets/hero/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb. Hash-matched against the local Shadow Circuit seed asset during the v0.13.4 provenance audit. Shadow Operative uses separate idle and run GLBs with runtime clip mapping through AnimationMixer. Required playable character model; QA must fail missing or unreadable runtime geometry. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS enemy/sentry: Enemy sentry; requirement=required; source=sneak-game-seed; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=required-error; path=src/assets/characters/sentry/enemy_sentry.glb. Hash-matched against the local Shadow Circuit sentry seed asset during the v0.13.4 provenance audit. Required enemy model; QA must fail load or grounding issues instead of accepting primitive stand-ins. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS objective/keycard: Access keycard objective; requirement=required; source=sneak-game-seed; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=required-error; path=src/assets/objectives/keycard-cinematic.glb. Hash-matched against the local Shadow Circuit keycard seed asset during the v0.13.4 provenance audit. Required objective model; QA must fail missing or unreadable runtime geometry. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS objective/terminal: Security terminal objective; requirement=required; source=sneak-game-seed; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=required-error; path=src/assets/objectives/terminal-cinematic.glb. Hash-matched against the local Shadow Circuit terminal seed asset during the v0.13.4 provenance audit. Required objective model; QA must fail missing or unreadable runtime geometry. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS objective/codes: Command codes objective; requirement=required; source=repo-generated-glb; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=required-error; path=src/assets/objectives/command-codes-cinematic.glb. Repo-generated cinematic command-codes GLB. Required objective model; QA must fail missing or unreadable runtime geometry. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS cover/cover-barricade: Tactical cover barricade kit; requirement=required; source=repo-generated-glb; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=required-error; path=src/assets/environment/cover-barricade-kit.glb. Repo-generated modular GLB kit for Level 1 blocker and cover visuals. Gameplay collision remains authored in level blocker proxies; QA must fail if primitive blocker stand-ins are visible. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS set-dressing/cable-tray: Cable tray dressing kit; requirement=optional; source=repo-generated-glb; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=optional-omit; path=src/assets/environment/cable-tray-kit.glb. Repo-generated modular GLB kit for tactical cable and floor dressing. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS set-dressing/extraction-beacon: Extraction beacon dressing kit; requirement=optional; source=repo-generated-glb; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=optional-omit; path=src/assets/environment/extraction-beacon-kit.glb. Repo-generated modular GLB kit for extraction staging and green beacon readability. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+- PASS set-dressing/wall-machinery: Wall machinery dressing kit; requirement=optional; source=repo-generated-glb; format=glb; loaded=true; failed=false; fallbackVisible=false; policy=optional-omit; path=src/assets/environment/wall-machinery-kit.glb. Repo-generated modular GLB kit for machinery, vents, and wall silhouette breaks. Loaded through the runtime GLTFLoader asset path. No visible primitive or placeholder fallback is reported for this asset ID.
+
+## Failure And Retry QA
+
+- PASS caught-state: enemy=sentry-lobby; pos=(15.476813476921437,-24.956401123076795); radius=2.45; phase=caught; alerts=1; player=(15.476813476921437,-24.956401123076795); sentryAssetLoaded=true; enemyQualityPasses=3; panel="OPERATION FAILED Sentry contact You were too close to a sentry. Reset the mission and use cover timing. Retry Title"; doors=lobby-door:closed:0, server-door:closed:0, extraction-door:closed:0
+- PASS retry-reset: phase=tutorial; alerts=0; startDistance=0; objectives=0/3; exitUnlocked=false; audio=active=gameplay; muted=false; unlocked=true; loadingHistory=4; doors=lobby-door:closed:0, server-door:closed:0, extraction-door:closed:0
+- PASS failure-route-console: pageErrors=0; consoleIssues=0
+- PASS failure-route-screenshots: artifacts/failure-retry/v0.16.3/01-sentry-contact.png, artifacts/failure-retry/v0.16.3/02-retry-loading.png, artifacts/failure-retry/v0.16.3/03-retry-tutorial-reset.png
+
+## Screenshot Coverage
+
+- PASS screenshot/title.png: captured (557.5 KB)
+- PASS screenshot/title-orbit-preview.png: captured (572.3 KB)
+- PASS screenshot/settings.png: captured (456.4 KB)
+- PASS screenshot/hero-select.png: captured (528.4 KB)
+- PASS screenshot/loading-level-one.png: captured (521.5 KB)
+- PASS screenshot/tutorial-01-insertion.png: captured (757.1 KB)
+- PASS screenshot/tutorial-02-keycard.png: captured (626.6 KB)
+- PASS screenshot/tutorial-03-terminal.png: captured (794.5 KB)
+- PASS screenshot/tutorial-04-sentry.png: captured (781.2 KB)
+- PASS screenshot/tutorial-05-extraction.png: captured (696.0 KB)
+- PASS screenshot/gameplay-level-one.png: captured (664.4 KB)
+- PASS screenshot/focus-lobby-door.png: captured (743.1 KB)
+- PASS screenshot/focus-server-door.png: captured (691.3 KB)
+- PASS screenshot/gameplay-command-codes.png: captured (639.0 KB)
+- PASS screenshot/focus-extraction-door.png: captured (698.1 KB)
+- PASS screenshot/complete.png: captured (566.0 KB)
+- PASS screenshot/caught-sentry.png: captured (644.3 KB)
+- PASS screenshot/retry-loading.png: captured (758.0 KB)
+- PASS screenshot/retry-tutorial-reset.png: captured (758.1 KB)
+
+## Tester Feedback
+
+- Title flow: verify the native title treatment, cinematic scene, staged hero model, hero-select preview space, Start, Change Hero, and Settings are visible.
+- Mission catalog: verify the player-facing mission selector is visible before mission start, reflects the active level, and exposes objective/enemy counts for future big levels.
+- Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and every step ends with "Good luck, cadet."
+- Level: verify keycard, terminal, command codes, sentries, extraction, wall/floor meshes, wall/floor texture quality, and all three door-focus screenshots are readable and properly grounded.
+- Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
+- Failure/retry: verify intentional sentry contact shows the operation-failed overlay, increments alerts, keeps the sentry GLB proven, and Retry returns to a clean mission start without carrying objectives, open doors, or alert count forward.
+- Coordinate QA: verify door/wall continuity by edge coordinates, not screenshot impression alone. Wall gaps must name door ID, wall IDs, frame/continuity bounds, and measured gap widths.
+- Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the gameplay camera to the current player position.
+- Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
+- Completion: verify triumphant cue starts and level stats appear.
+- Performance: 4 scene samples match the 55.9 FPS browser baseline with 0.0 ms median / 0.1 ms p95 overhead, but this environment cannot prove strict 16.7 ms frame cadence.
+
+## Required Fixes
+
+- P0: None recorded by generated report.
+- P1: Current headed browser baseline measured 55.9 FPS / 17.9 ms median and cannot prove strict 16.7 ms on the performance profile. The game tracks that baseline within the calibrated overhead budget across 4 scene sample(s): title=environment-limited, gameplay=environment-limited, complete=environment-limited, caught=environment-limited (0.0 ms median / 0.1 ms p95), so rerun on a true 60 Hz visible browser before marking the 60 FPS gate fully proven.
+- P1: None from generated mission catalog diagnostics.
+- P1: None from generated loading diagnostics.
+- P1: None from generated audio diagnostics.
+- P1: None from generated failure/retry diagnostics.
+- P1: None from generated runtime asset provenance audit.
+- P1: None from generated tutorial alignment diagnostics.
+- P1: None from generated asset grading.
+- P1: None from generated title composition diagnostics.
+- P1: None from generated coordinate geometry diagnostics.
+- P1: None from generated screenshot coverage.

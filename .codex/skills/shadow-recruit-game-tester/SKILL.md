@@ -26,6 +26,7 @@ Required evidence:
 - Runtime blocker/cover provenance diagnostics for every gameplay blocker that is visible to the player. Collision proxies may stay simple, but the visual object must be an approved GLB/generated asset with loaded bounds; primitive boxes used as visible cover are P1 production-art failures.
 - Per-zone or whole-level density diagnostics with floor area, cover/blocker footprint, set-dressing footprint, landmark/interactable counts, repeated-material exposure, and sparse coordinate regions.
 - Active-camera density diagnostics for each primary screenshot. Grade near, mid, and far bands separately by visible floor/wall emptiness, prop silhouettes, cover, landmarks, interactables, decals, lighting, cables/pipes, and objective context.
+- Multi-scene FPS diagnostics for title, active gameplay, completion, and sentry-failure/caught states. A single gameplay sample does not prove the player-facing performance budget when menus, overlays, animation states, or failure screens are also part of the build.
 - Failure/retry diagnostics for sentry contact. The tester must prove a sentry can fail the mission, the operation-failed overlay is readable, alerts increment, Retry rebuilds a clean run, objectives and doors reset, and the clean success-path playthrough still completes with zero alerts.
 - Frame pacing metrics for gameplay changes.
 - Any console/page errors.
@@ -62,6 +63,8 @@ When the user or a screenshot points out something the build should already know
 - For gameplay-camera density, grade the near, mid, and far depth bands separately. Fail the screenshot if the active player view is mostly empty floor/walls in any primary mission beat, even when the whole level average looks acceptable.
 - If the current debug state cannot answer the coordinate question, file a P1 instrumentation failure and request the missing debug bounds/projection metric rather than guessing.
 - If a screenshot shows a defect but the coordinates say the objects touch, request a debug overlay or alternate capture that projects the object bounds into the screenshot. The final report must reconcile the screenshot, world coordinates, and screen projection instead of picking whichever source is convenient.
+- Treat every screenshot as a hypothesis, not a verdict. The tester must name the coordinate source that confirms or rejects the visual read: object bounds, wall-run intervals, door-to-door ownership rows, projected screen rectangles, asset provenance, density zones, or FPS scene rows.
+- When the user points at "wall gaps between doors" or "wallops" in a screenshot, identify the two nearest door openings, compute the interval between their edges on the shared wall line, and prove that a named wall/return/trim/continuity surface owns that interval. Do not answer with a general statement that the door has a frame.
 
 ## Hard-Fail Evidence Rules
 
@@ -76,6 +79,9 @@ Fail the tester pass when any of these are true:
 - Texture/material grading says "acceptable" without proving wall, floor, and major object materials use authored or generated image textures at appropriate scale, with variation visible from the gameplay camera.
 - The test report cannot distinguish between final GLB/generated assets and primitive fallback visuals for walls, doors, props, objectives, sentries, extraction, or hero presentation.
 - Visible blocker or cover geometry is approved because it has collision coordinates, but the rendered asset is a primitive box, blockout material, or unknown fallback instead of a named generated/GLB cover asset.
+- FPS reporting includes only one sampled state for a player-facing release. Title, gameplay, completion, and failure/caught screens must either have rows in the FPS scene matrix or a documented reason the missing state is not reachable in this build.
+- A title pass is based on the hero being present in frame while the recruit's face/visor/chest identity, facing dot or yaw-to-camera, projected body bounds, and UI occlusion are missing.
+- AAA level readiness is approved from a whole-level density average while the primary gameplay screenshot lacks foreground, midground, or background detail from the actual player camera.
 
 ## Artifact Workflow
 
@@ -100,8 +106,9 @@ npm run tester:report
 
 3. Inspect screenshots together with metrics. Do not rely on logs alone.
 4. Inspect coordinates together with screenshots. For wall/door issues, load the level geometry JSON and debug bounds, compute min/max edges from center/size, and name the exact IDs and edge deltas in the report.
-5. Update or produce `docs/qa/<date>/v<version>/game-tester-report.md`.
-6. Route fixes:
+5. Inspect the FPS scene matrix. Title, gameplay, completion, and sentry-failure/caught rows should each report status, median/p95 frame time, calibrated overhead, renderer counters, screenshot path, and phase.
+6. Update or produce `docs/qa/<date>/v<version>/game-tester-report.md`.
+7. Route fixes:
    - Rendering/performance to `$threejs-webgpu-webgl-expert`.
    - Memory/leaks to `$threejs-memory`.
    - Gameplay state to `$threejs-gameplay-systems`.
@@ -146,6 +153,7 @@ Never let visual review and coordinate review run as separate approvals:
 - For title screens, inspect the screenshot plus camera target, hero world position, and hero forward/rotation data when exposed. Fail if the torso/head/visor points mostly away from the camera, if the hero-to-camera facing dot is below the project readability threshold, or if the camera is so distant that the recruit identity is unreadable.
 - For title hero visibility, require screen-space evidence. The report should include hero projected bounds or occupancy percentage, camera distance, facing dot/yaw-to-camera, and whether the face/visor/chest silhouette are readable. If the hero is turned away or too small, fail the title composition even when the menu UI works.
 - Treat hero-facing and hero-visibility as separate approvals. A large projected body can still fail when it shows the back, and a correct facing dot can still fail when the camera/title UI hides the face, visor, chest silhouette, or gear identity.
+- Treat "hero is looking at the player" as a camera-relative claim. Require the hero forward vector to face the camera enough for identity readability and require the projected head/chest region to be visible, not hidden by the title wordmark or command panel.
 - Compute title facing as a camera-relative metric when possible: normalize the hero forward vector and the hero-to-camera vector, record their dot product, and pair it with yaw-to-camera. Treat negative or near-side-on values as a failed recruit identity read unless a deliberate cinematic shot is documented and the face/visor/chest still project clearly.
 - Project the hero's head, chest, feet, and model bounds into the screenshot or use a runtime-provided projected rectangle. The tester should report viewport occupancy and whether UI panels cover the projected face/visor/chest area.
 
@@ -167,6 +175,18 @@ Judge large levels by production detail, not only size:
 - Use a simple scorecard when no project threshold exists: `0` empty blockout, `1` texture-only, `2` sparse props, `3` functional cover/landmarks, `4` strong tactical dressing/material variation, `5` AAA-ready scene with layered silhouettes, lighting, interactables, and narrative detail. Scores below `4` are not AAA-ready.
 - For each gameplay screenshot, score near, mid, and far bands separately. A `4` or better needs visible world function in that band: cover or traversal silhouette, generated/material detail, lighting variation, at least one tactical or narrative prop, and a clear relationship to the objective or patrol route. Any primary band below `3` is a P1 readability/art-density failure; any band below `4` is not AAA-ready.
 - Treat wall/floor texture quality and scene density as separate gates. A generated image texture can fix bland surfaces, but it cannot compensate for missing terminals, keycard readers, security cameras, pipes, signage, ceiling fixtures, cables, decals, cover, patrol markers, extraction lighting, or room-specific storytelling.
+- When scoring active-camera density, use the screenshot first to pick the suspect area, then use coordinates to prove which density zone and which near/mid/far band are sparse. If the current metrics cannot map a screenshot pixel region to a zone or camera-depth band, mark the tester evidence incomplete.
+
+## FPS Scene Matrix QA
+
+Require frame-pacing evidence for each player-facing state that can hide performance problems:
+
+- `title`: staged hero, native title treatment, background level preview, and menu overlays.
+- `gameplay`: normal player camera with the current level, objectives, sentries, doors, generated textures, and set dressing loaded.
+- `complete`: completion panel, triumphant state, and any completion animation/audio side effects.
+- `caught`: operation-failed overlay after sentry contact or forced alert state.
+
+For each row, record screenshot path, phase, median frame time, p95 frame time, sample count, renderer counters, pixel ratio, strict 16.7 ms result, calibrated browser-baseline overhead, and status. If the browser baseline cannot prove 60 FPS, the tester may mark the run environment-limited only when every sampled scene tracks the baseline within budget. If any scene exceeds baseline overhead or p95 budget, fail the performance gate even when another scene passes.
 
 ## Report Shape
 
@@ -193,6 +213,7 @@ Tester Feedback
 - Threat clarity.
 - Failure/retry clarity.
 - Performance concerns.
+- FPS scene matrix: title/gameplay/complete/caught state rows and any environment-limited caveat.
 
 Required Fixes
 - P0/P1/P2 findings with reproduction steps.

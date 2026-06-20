@@ -41,6 +41,7 @@ Use this workflow when screenshots show wall gaps around sliding doors or the te
 7. Report a machine-readable finding with `doorId`, `wallIds`, compared edges, interval neighbors, gap width, overlap depth, epsilon, and open/closed door state.
 8. If the runtime lacks bounds for frame, continuity meshes, wall-run ledgers, or door-to-door ownership rows, mark an instrumentation failure and route to `$threejs-qa-automation` or `$threejs-webgpu-webgl-expert` for debug overlays.
 9. Treat a screenshot-visible span between two doors as a full wall-line problem, not a door-local problem. Prove which object owns the space between the door bounds. If no wall, return, trim, frame, continuity/back-wall, or intentional door-priority surface owns it within epsilon, the geometry fails.
+10. Treat screenshot language like "wall gaps between doors" as a request for coordinates. Identify the nearest adjacent door intervals on the same physical wall line, compute the exact span between their edges, and return a pass/fail row naming the owner surface for that span.
 
 ## Validation Pipeline
 
@@ -79,6 +80,7 @@ For every new or modified level blockout:
 - When multiple door openings share one wall run, validate the entire run as a single sorted interval set. Do not approve each door in isolation; the span between two doors must be explicitly owned by wall, frame, return, trim, continuity/back-wall, or a deliberate door-priority surface.
 - Keep door state ownership explicit. `closed` intervals should name the visible door surface; `open` intervals should name the wall/portal/continuity surface that remains visible, plus the sliding door's priority surface if it overlaps the wall plane.
 - Require screenshot-to-coordinate parity for wall-run complaints. The validator output should let QA name the screenshot, wall line, door IDs, edge coordinates, owner interval, gap width, and state without reverse-engineering from rendered pixels.
+- Require projection or overlay handoff when the coordinates find a wall-run defect that the default camera cannot show. The geometry verdict still comes from the wall-run intervals, but QA needs a player-visible artifact to explain the failure.
 - Keep collision proxies simpler than art. Prefer box/capsule/convex proxies for level kits and reserve triangle meshes for static walkable ground that has passed budget review.
 
 ## Acceptance Checklist
@@ -94,6 +96,7 @@ Accept a level blockout only when:
 - Door continuity reports can prove the edge relationship between wall pieces, door panels, frames, returns, and back-wall surfaces for every door state that QA screenshots capture.
 - Multi-door wall-run interval ledgers can prove there is no unowned positive gap between nearby doors, adjacent wall segments, returns, trim, open-door priority surfaces, or continuity pieces.
 - Door-to-door ownership tables can name the exact authored surface that covers every span between adjacent doors on the same wall run, including open and closed state priority.
+- The validator can answer a screenshot complaint by returning the matching wall-line ID, adjacent door IDs, min/max edges, span width, owner ID, depth match, and whether the open door state still leaves a visible wall/portal surface.
 
 ## Scripted Check
 
