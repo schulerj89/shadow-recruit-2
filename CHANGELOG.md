@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.25.0 - 2026-06-20
+
+### Minor
+
+- Added an endpoint-based wall authoring generator where wall segments reference shared named endpoints, doorway openings are subtracted into valid spans, and paired visual mesh specs plus collision specs are emitted from the same generated wall spans.
+- Added endpoint debug marker output that renders every endpoint as a debug marker and marks endpoints used by only one wall in red.
+- Added a small rectangular endpoint-wall test room with one doorway plus a `test:wall-authoring` smoke test that proves doorway reachability, closed-room sealing, deliberate corner overlap, visual/collision pairing, and leak detection when one wall is shortened.
+- Added the wall-authoring smoke test to the standard `verify` chain without migrating current gameplay levels.
+
 ## 0.24.1 - 2026-06-20
 
 ### Patch

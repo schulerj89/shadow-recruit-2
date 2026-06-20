@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "id": "endpoint-wall-test-room",
+    "name": "Endpoint Wall Test Room"
+  },
+  "wallThickness": 0.5,
+  "wallHeight": 3,
+  "endpoints": {
+    "sw": [-4, -3],
+    "se": [4, -3],
+    "ne": [4, 3],
+    "nw": [-4, 3]
+  },
+  "walls": [
+    {
+      "id": "south-wall",
+      "from": "sw",
+      "to": "se",
+      "openings": [
+        {
+          "id": "south-doorway",
+          "centerOffset": 4,
+          "width": 1.6
+        }
+      ]
+    },
+    {
+      "id": "east-wall",
+      "from": "se",
+      "to": "ne"
+    },
+    {
+      "id": "north-wall",
+      "from": "ne",
+      "to": "nw"
+    },
+    {
+      "id": "west-wall",
+      "from": "nw",
+      "to": "sw"
+    }
+  ],
+  "testSeeds": {
+    "bounds": {
+      "min": [-6, -5],
+      "max": [6, 5]
+    },
+    "outsideSeed": [0, -4.5],
+    "insideSeed": [0, 0],
+    "cellSize": 0.1
+  }
+}
