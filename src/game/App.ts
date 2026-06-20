@@ -9,6 +9,7 @@ import { defaultLevel, getLevelById, levelCatalog } from './levels';
 import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract } from './math';
 import { loadSettings, saveSettings } from './settings';
 import type {
+  CinematicFocusState,
   DoorRuntime,
   EnemyRuntime,
   FramePacingSample,
@@ -43,6 +44,7 @@ type ShadowRecruitDebugApi = {
   missions: () => readonly LevelCatalogEntry[];
   settings: () => GameSettings;
   tutorialStep: () => TutorialState;
+  cinematicFocus: () => CinematicFocusState;
   selectedHero: () => HeroId;
   playerPosition: () => Vec2;
   playerVisible: () => boolean;
@@ -109,6 +111,7 @@ export class ShadowRecruitApp {
   private tutorialIndex = 0;
   private activePrompt = '';
   private focusUntil = 0;
+  private focusTargetId: string | null = null;
 
   constructor(private readonly host: HTMLDivElement) {
     this.shell = document.createElement('div');
@@ -574,6 +577,7 @@ export class ShadowRecruitApp {
   }
 
   private focusTarget(targetId: string): void {
+    this.focusTargetId = targetId;
     const object = this.anchorObjects.get(targetId);
     const position = new THREE.Vector3();
     if (object) {
@@ -947,6 +951,14 @@ export class ShadowRecruitApp {
     };
   }
 
+  private cinematicFocusState(): CinematicFocusState {
+    return {
+      active: this.phase === 'cinematic-focus',
+      target: this.focusTargetId,
+      remainingMs: this.phase === 'cinematic-focus' ? Math.max(0, Math.round(this.focusUntil - performance.now())) : 0,
+    };
+  }
+
   private framePacing(): FramePacingSample {
     const samples = [...this.frameDeltas].sort((a, b) => a - b);
     const latest = this.frameDeltas[this.frameDeltas.length - 1] ?? 16.7;
@@ -988,6 +1000,7 @@ export class ShadowRecruitApp {
       selectedHero: this.selectedHero,
       settings: { ...this.settings },
       tutorial: this.tutorialState(),
+      cinematicFocus: this.cinematicFocusState(),
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),
       doors: this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
@@ -1005,6 +1018,7 @@ export class ShadowRecruitApp {
       missions: () => levelCatalog,
       settings: () => ({ ...this.settings }),
       tutorialStep: () => this.tutorialState(),
+      cinematicFocus: () => this.cinematicFocusState(),
       selectedHero: () => this.selectedHero,
       playerPosition: () => ({ ...this.playerPosition }),
       playerVisible: () => Boolean(this.player?.object.visible ?? this.titleHero?.object.visible),

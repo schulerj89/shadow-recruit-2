@@ -34,14 +34,24 @@ try {
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.movePlayerTo({ x: -31, z: -25 }));
   await page.screenshot({ path: `${outputDir}/gameplay-level-one.png`, fullPage: true });
-  await page.evaluate(() => {
-    window.__shadowRecruitDebug?.collectObjective('access-keycard');
-    window.__shadowRecruitDebug?.collectObjective('security-terminal');
-    window.__shadowRecruitDebug?.collectObjective('command-codes');
-    window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 });
-  });
+  await captureDoorFocus('access-keycard', 'lobby-door');
+  await captureDoorFocus('security-terminal', 'server-door');
+  await captureDoorFocus('command-codes', 'extraction-door');
+  await page.evaluate(() => window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 }));
   await page.screenshot({ path: `${outputDir}/complete.png`, fullPage: true });
   console.info(`[screenshots] wrote screenshots to ${outputDir}`);
 } finally {
   await browser.close();
+}
+
+async function captureDoorFocus(objectiveId: string, doorId: string): Promise<void> {
+  await page.evaluate((id) => window.__shadowRecruitDebug?.collectObjective(id), objectiveId);
+  await page.waitForFunction(
+    (expected) => window.__shadowRecruitDebug?.cinematicFocus().active &&
+      window.__shadowRecruitDebug?.cinematicFocus().target === expected,
+    doorId,
+    { timeout: 30000 },
+  );
+  await page.screenshot({ path: `${outputDir}/focus-${doorId}.png`, fullPage: true });
+  await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
 }

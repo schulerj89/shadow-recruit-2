@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.7 - 2026-06-20
+
+### Patch
+
+- Added cinematic door-focus debug state, smoke assertions, and screenshots for each objective unlock.
+
 ## 0.1.6 - 2026-06-20
 
 ### Patch

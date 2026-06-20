@@ -71,14 +71,14 @@ try {
   }
   await expectPhase('playing');
   await page.locator('[data-testid="debug-panel"]').waitFor({ state: 'visible', timeout: 10000 });
+  await collectObjectiveAndExpectFocus('access-keycard', 'lobby-door', '09-focus-lobby-door.png');
+  await collectObjectiveAndExpectFocus('security-terminal', 'server-door', '10-focus-server-door.png');
+  await collectObjectiveAndExpectFocus('command-codes', 'extraction-door', '11-focus-extraction-door.png');
   await page.evaluate(() => {
-    window.__shadowRecruitDebug?.collectObjective('access-keycard');
-    window.__shadowRecruitDebug?.collectObjective('security-terminal');
-    window.__shadowRecruitDebug?.collectObjective('command-codes');
     window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 });
   });
   await expectPhase('complete');
-  await page.screenshot({ path: `${screenshotDir}/09-complete.png`, fullPage: true });
+  await page.screenshot({ path: `${screenshotDir}/12-complete.png`, fullPage: true });
 
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
@@ -111,6 +111,21 @@ try {
 
 async function expectPhase(phase: string): Promise<void> {
   await page.waitForFunction((expected) => window.__shadowRecruitDebug?.phase() === expected, phase, { timeout: 30000 });
+}
+
+async function collectObjectiveAndExpectFocus(objectiveId: string, doorId: string, screenshotName: string): Promise<void> {
+  await page.evaluate((id) => window.__shadowRecruitDebug?.collectObjective(id), objectiveId);
+  await expectPhase('cinematic-focus');
+  const focus = await page.evaluate(() => window.__shadowRecruitDebug?.cinematicFocus());
+  if (!focus?.active || focus.target !== doorId || focus.remainingMs <= 0) {
+    throw new Error(`Expected ${doorId} cinematic focus after ${objectiveId}, got ${JSON.stringify(focus)}`);
+  }
+  const doors = await page.evaluate(() => window.__shadowRecruitDebug?.doors());
+  if (!doors?.find((door) => door.id === doorId && door.open)) {
+    throw new Error(`Expected ${doorId} to be open, got ${JSON.stringify(doors)}`);
+  }
+  await page.screenshot({ path: `${screenshotDir}/${screenshotName}`, fullPage: true });
+  await expectPhase('playing');
 }
 
 async function expectNonblankCanvas(): Promise<void> {

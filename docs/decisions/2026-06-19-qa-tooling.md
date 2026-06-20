@@ -16,6 +16,7 @@ Expose:
 - `missions`
 - `settings`
 - `tutorialStep`
+- `cinematicFocus`
 - `playerPosition`
 - `playerVisible`
 - `enemies`

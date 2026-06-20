@@ -1,0 +1,93 @@
+{
+  "phase": "playing",
+  "levelId": "blacksite-threshold",
+  "selectedHero": "shadow-operative",
+  "settings": {
+    "debug": false,
+    "muted": false,
+    "performanceProfile": "balanced"
+  },
+  "tutorial": {
+    "index": 0,
+    "total": 5,
+    "step": {
+      "id": "hero",
+      "title": "Insertion",
+      "target": "hero",
+      "text": "Cadet, this is your first Shadow Recruit field operation. Move quietly, keep your suit low, and read the room before you cross open ground."
+    }
+  },
+  "cinematicFocus": {
+    "active": false,
+    "target": "hero",
+    "remainingMs": 0
+  },
+  "playerPosition": {
+    "x": 0,
+    "z": -29
+  },
+  "objectives": {
+    "collectedRequired": 0,
+    "totalRequired": 3,
+    "exitUnlocked": false
+  },
+  "doors": [
+    {
+      "id": "lobby-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "server-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "extraction-door",
+      "open": false,
+      "progress": 0
+    }
+  ],
+  "renderer": {
+    "drawCalls": 12,
+    "triangles": 185737,
+    "geometries": 24,
+    "textures": 14,
+    "pixelRatio": 1
+  },
+  "framePacing": {
+    "fps": 55.55555555555556,
+    "frameMs": 18,
+    "latestFrameMs": 18,
+    "p95FrameMs": 18.100000023841858,
+    "samples": 240
+  },
+  "memory": {
+    "runtimeObjects": 33,
+    "loadedAssets": 4,
+    "characterAssets": 2,
+    "staticAssets": 2,
+    "loadedAssetIds": [
+      "hero:shadow-operative",
+      "sentry",
+      "keycard",
+      "terminal"
+    ]
+  },
+  "browserBaseline": {
+    "fps": 55.55555555555556,
+    "frameMs": 18,
+    "latestFrameMs": 18.100000000000364,
+    "p95FrameMs": 18.100000000000364,
+    "samples": 240
+  },
+  "fpsGate": {
+    "targetFrameMs": 16.7,
+    "toleranceMs": 0.4,
+    "maxP95FrameMs": 20,
+    "strictTargetMet": false,
+    "browserCanProve60": false,
+    "tracksBaseline": true,
+    "status": "environment-limited"
+  }
+}

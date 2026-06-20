@@ -64,7 +64,7 @@ Date: ${date}
 
 - Title flow: verify logo, rotating level-one preview, hero model, Start, Change Hero, and Settings are visible.
 - Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and the final step includes "Good luck, cadet."
-- Level: verify keycard, terminal, command codes, sliding doors, sentries, and extraction are readable.
+- Level: verify keycard, terminal, command codes, sentries, extraction, and all three door-focus screenshots are readable.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate)}
 

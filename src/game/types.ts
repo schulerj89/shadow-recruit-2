@@ -131,12 +131,19 @@ export type TutorialState = {
   step: TutorialStep | null;
 };
 
+export type CinematicFocusState = {
+  active: boolean;
+  target: string | null;
+  remainingMs: number;
+};
+
 export type TesterState = {
   phase: Phase;
   levelId: string;
   selectedHero: string;
   settings: GameSettings;
   tutorial: TutorialState;
+  cinematicFocus: CinematicFocusState;
   playerPosition: Vec2;
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: readonly { id: string; open: boolean; progress: number }[];
