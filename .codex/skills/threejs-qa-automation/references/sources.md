@@ -20,7 +20,13 @@ Research date: 2026-06-20.
   - FPS is useful but incomplete; smoothness work should consider frame updates and perceived quality, not only a single average number.
 - Three.js Box3: https://threejs.org/docs/pages/Box3.html
   - Object-derived world bounds support runtime QA for rendered wall, door, prop, hero, and sentry placement.
+- Three.js Object3D: https://threejs.org/docs/pages/Object3D.html
+  - Object world transforms and world-position helpers support stable debug-state coordinates for hero, props, walls, doors, and camera-facing checks.
+- Three.js Raycaster: https://threejs.org/docs/pages/Raycaster.html
+  - Raycaster supports screenshot-region camera probes and debug picking so visual gaps can be linked to first-hit objects instead of only AABB proximity.
 - Three.js Vector3 projection: https://threejs.org/docs/pages/Vector3.html
   - `Vector3.project(camera)` converts world-space points into camera/NDC space, which supports screenshot-to-coordinate fusion, title hero occupancy, and UI-occlusion checks.
+- Khronos glTF 2.0 materials: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials
+  - Material texture slots and PBR factors are useful QA evidence for proving wall, floor, and prop materials are image-backed production assets rather than flat blockout colors.
 
 Re-check Playwright and Three.js docs before changing runner setup, screenshot thresholds, trace collection, coordinate projection, or bounds instrumentation.

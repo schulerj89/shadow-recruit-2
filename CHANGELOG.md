@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.17.1 - 2026-06-20
+
+### Patch
+
+- Tightened tester, QA automation, game-designer, and geometry-validator skills so wall gaps between doors require wall-line connection graphs, camera-probe first-hit evidence, coordinate ownership rows, title identity-anchor checks, and active-camera negative-space density grading.
+
 ## 0.17.0 - 2026-06-20
 
 ### Minor

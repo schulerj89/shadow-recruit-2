@@ -1,4 +1,4 @@
 interface:
   display_name: "Three.js QA Automation"
   short_description: "Automates browser, visual, coordinate, and smoke QA"
-  default_prompt: "Use $threejs-qa-automation to create browser smoke and screenshot QA that captures nonblank canvas proof, FPS metrics, debug state, wall-run coordinate ledgers, title hero projection/facing metrics, and level-density evidence."
+  default_prompt: "Use $threejs-qa-automation to create browser smoke and screenshot QA that captures nonblank canvas proof, FPS metrics, debug state, wall-run coordinate ledgers, wall-line connection graphs, camera-probe first-hit rows, title hero projection/facing/identity-anchor metrics, and active-camera negative-space density evidence."

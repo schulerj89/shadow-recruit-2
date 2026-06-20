@@ -1,4 +1,4 @@
 interface:
   display_name: "Shadow Recruit Game Designer"
   short_description: "Cinematic title, camera, and density direction"
-  default_prompt: "Use $shadow-recruit-game-designer to review Shadow Recruit 2 title composition, hero face/visor readability, hero-facing metrics, screen occupancy evidence, gameplay camera closeness, menu hierarchy, and AAA level-density readability from the active player camera."
+  default_prompt: "Use $shadow-recruit-game-designer to review Shadow Recruit 2 title composition, hero face/visor/chest identity anchors, hero-facing metrics, screen occupancy evidence, gameplay camera closeness, menu hierarchy, controlled negative space, and AAA level-density readability from the active player camera."
