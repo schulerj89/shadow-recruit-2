@@ -1,4 +1,4 @@
 interface:
-  display_name: "Three.js Level Geometry Validator"
-  short_description: "Validates level bounds and overlaps"
-  default_prompt: "Use $threejs-level-geometry-validator to validate a Shadow Recruit 2 blockout for overlapping walls, invalid bounds, and traversal gaps."
+  display_name: "Three.js Level Creator & Geometry Validator"
+  short_description: "Creates safe level bounds and walls"
+  default_prompt: "Use $threejs-level-geometry-validator to create and validate a Shadow Recruit 2 blockout for overlapping walls, invalid bounds, door openings, and traversal gaps."

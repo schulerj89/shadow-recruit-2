@@ -1,9 +1,9 @@
 ---
 name: threejs-level-geometry-validator
-description: Create and validate Three.js level blockout geometry with math-first boundary checks, wall overlap detection, AABB/OBB reasoning, clearance rules, spawn/objective containment, collision-proxy sanity checks, and navmesh blocker preparation. Use when Codex designs, reviews, or automates Shadow Recruit 2 level data, room bounds, wall kits, doors, blockers, patrol areas, walkable spaces, or any map layout where overlapping walls, invalid boundaries, trapped spawns, impossible corridors, or broken collision geometry are risks.
+description: Create and validate Three.js level blockouts with math-first boundary checks, wall overlap detection, AABB/OBB reasoning, clearance rules, spawn/objective containment, door-opening validation, collision-proxy sanity checks, and navmesh blocker preparation. Use when Codex acts as a level creator, map layout author, geometry QA agent, or automation loop for Shadow Recruit 2 level data, room bounds, wall kits, doors, blockers, patrol areas, walkable spaces, or any layout where overlapping walls, invalid boundaries, trapped spawns, impossible corridors, or broken collision geometry are risks.
 ---
 
-# Three.js Level Geometry Validator
+# Three.js Level Creator And Geometry Validator
 
 ## Geometry Contract
 
@@ -16,6 +16,17 @@ Default assumptions:
 - Keep wall, floor, room, blocker, door, spawn, objective, and nav tags separate.
 - Validate collision and navigation proxies before generated art or GLB dressing.
 - Preserve the visible 60 FPS path by rejecting needlessly dense collision/nav geometry.
+
+## Level Creator Workflow
+
+Use this workflow before building render meshes or asking asset skills for GLB dressing:
+
+1. Define `bounds`, `metadata`, and authoring units first. Include wall thickness, player capsule radius, NPC capsule radius, minimum door width, minimum corridor width, grid size, and epsilon tolerance.
+2. Lay out rooms, corridors, cover, doors, blockers, spawns, objectives, exits, patrol anchors, and debug teleports as data. Keep generated art and decorative meshes out of this source of truth.
+3. Reserve doorway and gate openings by splitting walls into named segments. Do not place a door collider on top of a continuous wall unless the wall segment is explicitly removed or marked disabled.
+4. Run the validator after every layout edit. Treat overlap errors as blocking. Treat narrow gaps, near-blocker spawns, and rotated-rect warnings as handoff items before accepting the level.
+5. Generate render meshes, collision proxies, navmesh blockers, debug overlays, and minimap data from the validated blockout, not the other way around.
+6. Re-run validation after art replacement, GLB scale changes, physics collider conversion, or procedural generation changes.
 
 ## Validation Pipeline
 
@@ -30,6 +41,16 @@ For every new or modified level blockout:
 7. Feed only validated walkable geometry and blockers into navmesh generation.
 8. Return machine-readable errors that name the offending IDs and the math used.
 
+## Math Gates
+
+- Use half-open intent when authoring snapped segments: adjacent wall edges may touch, but positive overlap depth on both axes is a collision.
+- Compute overlap depth as `min(a.max, b.max) - max(a.min, b.min)` per axis. Only report overlap when both depths are greater than epsilon.
+- Compute corridor clearance only when two blockers overlap on the perpendicular axis. A diagonal distance between unrelated corners is not enough to prove a playable passage.
+- Validate every spawn, objective, exit, patrol anchor, and interaction point against inflated blockers using the active capsule radius plus interaction margin.
+- For rotated walls or non-axis-aligned props, use OBB/SAT or physics scene queries. A world AABB is only a broad phase and can reject candidates, not approve final placement.
+- For polygon rooms, reject self-intersections, duplicate vertices, near-zero edges, reversed winding when the renderer/navmesh expects a convention, and triangulation holes.
+- For generated corridors, prove connected walkable space with route sampling or navmesh path queries before accepting the layout.
+
 ## Boundary Rules
 
 - A wall or blocker must not extend outside the declared level bounds unless it is marked as exterior-only dressing.
@@ -39,6 +60,19 @@ For every new or modified level blockout:
 - Use strict overlap tests with epsilon. `intersectsBox`-style checks can include touching edges, so compute overlap depth/area before reporting a wall collision.
 - For rotated rectangles, use oriented-box SAT or physics collider queries; do not approve layouts based only on their world AABB.
 - For polygon rooms, validate winding, self-intersections, duplicate vertices, and near-zero edges before triangulation or navmesh bake.
+- When a wall contains an opening, model the remaining wall pieces as separate rectangles so the validator can prove the opening exists.
+- Keep collision proxies simpler than art. Prefer box/capsule/convex proxies for level kits and reserve triangle meshes for static walkable ground that has passed budget review.
+
+## Acceptance Checklist
+
+Accept a level blockout only when:
+
+- Bounds contain every solid wall, door, blocker, collider, spawn, objective, exit, and required route marker.
+- No two solid rectangles have positive overlap depth on both axes unless one is marked non-solid dressing and excluded from collision/nav generation.
+- Door widths, corridor widths, cover gaps, vents, and stairs satisfy the active player and NPC capsule clearance rules.
+- Spawns and objectives are inside walkable space and outside inflated blocker clearance.
+- Required objective routes remain connected after every door state: locked, opening, open, alarm, combat, and extraction.
+- Debug views can draw bounds, collision proxies, overlap pairs, narrow gaps, capsule clearance, and nav blockers with stable IDs.
 
 ## Scripted Check
 
@@ -48,7 +82,7 @@ Use the bundled validator for early JSON blockouts with axis-aligned rectangles:
 node .codex\skills\threejs-level-geometry-validator\scripts\validate_level_geometry.mjs data\levels\mission-01.json --min-clearance 1.2
 ```
 
-Supported fields include `bounds`, `walls`, `blockers`, `colliders`, `spawns`, `objectives`, and `exits`. Prefer `center` plus `size` for rectangles and `position` for points.
+Supported rectangle fields include `bounds`, `walls`, `doors`, `blockers`, and `colliders`. Supported point fields include `spawns`, `objectives`, and `exits`. Prefer `center` plus `size` for rectangles and `position` for points.
 
 The script is an early gate, not the final physics proof. If it reports rotated geometry, complex polygons, or clearance ambiguity, route to `$threejs-physics-navigation` for collider queries or navmesh validation.
 

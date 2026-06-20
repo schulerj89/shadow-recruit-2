@@ -75,7 +75,7 @@ function validateLevel(level, config) {
     errors.push(issue('missing-bounds', 'Level must declare bounds.'));
   }
 
-  for (const collection of ['walls', 'blockers', 'colliders']) {
+  for (const collection of ['walls', 'doors', 'blockers', 'colliders']) {
     for (const [index, spec] of asArray(level[collection]).entries()) {
       const rect = rectFromSpec(spec, collection, index, errors, warnings);
       if (!rect) continue;
@@ -358,7 +358,11 @@ Input schema:
 {
   "bounds": { "min": [-20, -20], "max": [20, 20] },
   "walls": [
-    { "id": "north-wall", "center": [0, -10], "size": [20, 1] }
+    { "id": "north-wall-west", "center": [-6, -10], "size": [8, 1] },
+    { "id": "north-wall-east", "center": [6, -10], "size": [8, 1] }
+  ],
+  "doors": [
+    { "id": "north-door", "center": [0, -10], "size": [4, 0.8] }
   ],
   "spawns": [
     { "id": "player", "position": [0, 0] }

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-06-19
+
+### Patch
+
+- Strengthened the level geometry skill into a level creator workflow with explicit boundary, doorway, clearance, and wall-overlap math gates.
+
 ## 0.1.1 - 2026-06-19
 
 ### Patch
