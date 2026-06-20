@@ -20,7 +20,15 @@ try {
   await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(0.35));
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
   await writeFile(`${qaDir}/title-composition.json`, JSON.stringify(titleComposition, null, 2));
-  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65 || !titleComposition.levelPreviewVisible || titleComposition.orbitRadius < 5) {
+  if (
+    !titleComposition?.heroReadable ||
+    titleComposition.facingDot < 0.65 ||
+    titleComposition.heroScreenHeightRatio < 0.22 ||
+    titleComposition.heroScreenOccupancy < 0.012 ||
+    !titleComposition.heroScreenBounds ||
+    !titleComposition.levelPreviewVisible ||
+    titleComposition.orbitRadius < 5
+  ) {
     throw new Error(`Title hero is not readable from camera: ${JSON.stringify(titleComposition)}`);
   }
   await page.screenshot({ path: `${outputDir}/title.png`, fullPage: true });

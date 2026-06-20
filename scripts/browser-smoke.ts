@@ -31,7 +31,15 @@ try {
     throw new Error('Expected title hero model to be visible.');
   }
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
-  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65 || !titleComposition.levelPreviewVisible || titleComposition.orbitRadius < 5) {
+  if (
+    !titleComposition?.heroReadable ||
+    titleComposition.facingDot < 0.65 ||
+    titleComposition.heroScreenHeightRatio < 0.22 ||
+    titleComposition.heroScreenOccupancy < 0.012 ||
+    !titleComposition.heroScreenBounds ||
+    !titleComposition.levelPreviewVisible ||
+    titleComposition.orbitRadius < 5
+  ) {
     throw new Error(`Expected title hero and Level 1 preview orbit to be readable, got ${JSON.stringify(titleComposition)}`);
   }
   await expectAudioState('title', { muted: false, unlocked: false });

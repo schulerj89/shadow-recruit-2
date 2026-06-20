@@ -164,6 +164,17 @@ export type Bounds3 = {
   size: { x: number; y: number; z: number };
 };
 
+export type ScreenBounds = {
+  min: { x: number; y: number };
+  max: { x: number; y: number };
+  size: { x: number; y: number };
+  center: { x: number; y: number };
+  viewport: { width: number; height: number };
+  widthRatio: number;
+  heightRatio: number;
+  areaRatio: number;
+};
+
 export type SceneObjectBounds = {
   id: string;
   category: 'wall' | 'blocker' | 'set-dressing' | 'door' | 'door-frame' | 'door-continuity' | 'objective' | 'enemy' | 'hero' | 'extraction';
@@ -259,7 +270,10 @@ export type TitleComposition = {
   cameraDistance: number;
   orbitAngle: number;
   orbitRadius: number;
+  heroScreenOccupancy: number;
+  heroScreenHeightRatio: number;
   heroPosition?: { x: number; y: number; z: number };
+  heroScreenBounds?: ScreenBounds;
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   levelPreviewBounds?: Bounds3;

@@ -34,6 +34,7 @@ import type {
   RectSpec,
   RendererMetrics,
   SceneObjectBounds,
+  ScreenBounds,
   SetDressingDefinition,
   SetDressingVisibilityCheck,
   TesterState,
@@ -2363,6 +2364,9 @@ export class ShadowRecruitApp {
     let heroYaw = 0;
     let yawToCamera = 0;
     let cameraDistance = 0;
+    const heroScreenBounds = hero ? this.projectObjectScreenBounds(hero) : undefined;
+    const heroScreenOccupancy = heroScreenBounds?.areaRatio ?? 0;
+    const heroScreenHeightRatio = heroScreenBounds?.heightRatio ?? 0;
 
     if (hero && heroPosition) {
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hero.quaternion).normalize();
@@ -2375,13 +2379,19 @@ export class ShadowRecruitApp {
     }
 
     const heroVisible = Boolean(hero?.visible);
-    const heroReadable = active && heroVisible && facingDot >= 0.65 && cameraDistance >= 3.2 && cameraDistance <= 8.8;
+    const heroReadable = active &&
+      heroVisible &&
+      facingDot >= 0.65 &&
+      cameraDistance >= 3.2 &&
+      cameraDistance <= 8.8 &&
+      heroScreenHeightRatio >= 0.22 &&
+      heroScreenOccupancy >= 0.012;
     const notes = heroReadable && levelPreviewVisible
       ? ['Title hero faces the camera in a readable front/three-quarter pose while the Level 1 preview map supports the rotating title background.']
       : [
         active ? 'Title hero does not meet facing/readability thresholds.' : 'Title composition is not active in the current phase.',
         levelPreviewVisible ? 'Level 1 preview map is visible.' : 'Level 1 preview map is missing from the title scene.',
-        `facingDot=${roundMetric(facingDot)}, cameraDistance=${roundMetric(cameraDistance)}.`,
+        `facingDot=${roundMetric(facingDot)}, cameraDistance=${roundMetric(cameraDistance)}, screenHeight=${roundMetric(heroScreenHeightRatio)}, screenOccupancy=${roundMetric(heroScreenOccupancy)}.`,
       ];
 
     return {
@@ -2395,11 +2405,72 @@ export class ShadowRecruitApp {
       cameraDistance: roundMetric(cameraDistance),
       orbitAngle: roundMetric(orbitAngle),
       orbitRadius: roundMetric(orbitRadius),
+      heroScreenOccupancy: roundMetric(heroScreenOccupancy),
+      heroScreenHeightRatio: roundMetric(heroScreenHeightRatio),
       ...(heroPosition ? { heroPosition: this.vectorSnapshot(heroPosition) } : {}),
+      ...(heroScreenBounds ? { heroScreenBounds } : {}),
       cameraPosition: this.vectorSnapshot(cameraPosition),
       cameraTarget: this.vectorSnapshot(cameraTarget),
       ...(levelPreviewBounds ? { levelPreviewBounds } : {}),
       notes,
+    };
+  }
+
+  private projectObjectScreenBounds(object: THREE.Object3D): ScreenBounds | undefined {
+    const viewport = this.renderer.getSize(new THREE.Vector2());
+    const width = viewport.x || this.canvas.clientWidth || this.canvas.width;
+    const height = viewport.y || this.canvas.clientHeight || this.canvas.height;
+    if (width <= 0 || height <= 0) return undefined;
+
+    this.boundsScratch.setFromObject(object);
+    if (this.boundsScratch.isEmpty()) return undefined;
+
+    const min = this.boundsScratch.min;
+    const max = this.boundsScratch.max;
+    const corners = [
+      new THREE.Vector3(min.x, min.y, min.z),
+      new THREE.Vector3(min.x, min.y, max.z),
+      new THREE.Vector3(min.x, max.y, min.z),
+      new THREE.Vector3(min.x, max.y, max.z),
+      new THREE.Vector3(max.x, min.y, min.z),
+      new THREE.Vector3(max.x, min.y, max.z),
+      new THREE.Vector3(max.x, max.y, min.z),
+      new THREE.Vector3(max.x, max.y, max.z),
+    ];
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const corner of corners) {
+      const projected = corner.project(this.camera);
+      if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y) || !Number.isFinite(projected.z)) continue;
+      const x = (projected.x * 0.5 + 0.5) * width;
+      const y = (-projected.y * 0.5 + 0.5) * height;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+
+    if (![minX, minY, maxX, maxY].every(Number.isFinite)) return undefined;
+
+    const visibleMinX = clamp(minX, 0, width);
+    const visibleMinY = clamp(minY, 0, height);
+    const visibleMaxX = clamp(maxX, 0, width);
+    const visibleMaxY = clamp(maxY, 0, height);
+    const visibleWidth = Math.max(0, visibleMaxX - visibleMinX);
+    const visibleHeight = Math.max(0, visibleMaxY - visibleMinY);
+
+    return {
+      min: { x: roundMetric(visibleMinX), y: roundMetric(visibleMinY) },
+      max: { x: roundMetric(visibleMaxX), y: roundMetric(visibleMaxY) },
+      size: { x: roundMetric(visibleWidth), y: roundMetric(visibleHeight) },
+      center: { x: roundMetric(visibleMinX + visibleWidth / 2), y: roundMetric(visibleMinY + visibleHeight / 2) },
+      viewport: { width: roundMetric(width), height: roundMetric(height) },
+      widthRatio: roundMetric(visibleWidth / width),
+      heightRatio: roundMetric(visibleHeight / height),
+      areaRatio: roundMetric((visibleWidth * visibleHeight) / (width * height)),
     };
   }
 

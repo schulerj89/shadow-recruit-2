@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.4 - 2026-06-20
+
+### Patch
+
+- Added projected title-hero screen bounds and occupancy diagnostics so QA can prove the recruit is large enough to read on the title screen.
+
 ## 0.12.3 - 2026-06-20
 
 ### Patch

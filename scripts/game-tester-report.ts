@@ -92,11 +92,25 @@ type TitleComposition = {
   cameraDistance: number;
   orbitAngle?: number;
   orbitRadius?: number;
+  heroScreenOccupancy?: number;
+  heroScreenHeightRatio?: number;
   heroPosition?: { x: number; y: number; z: number };
+  heroScreenBounds?: ScreenBounds;
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   levelPreviewBounds?: Bounds3;
   notes: readonly string[];
+};
+
+type ScreenBounds = {
+  min: { x: number; y: number };
+  max: { x: number; y: number };
+  size: { x: number; y: number };
+  center: { x: number; y: number };
+  viewport: { width: number; height: number };
+  widthRatio: number;
+  heightRatio: number;
+  areaRatio: number;
 };
 
 type AssetQualityCheck = {
@@ -251,7 +265,7 @@ Date: ${date}
 - Audio state: gameplay metrics=${formatAudioState(metricAudio)}; completion playthrough=${formatAudioState(completionAudio)}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
-- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
+- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
@@ -411,13 +425,28 @@ function formatAudioState(audio: AudioState | undefined): string {
 
 function describeTitleFindings(composition: TitleComposition | undefined): string {
   if (!composition) return '- P1: Title composition metrics missing.';
+  if (!composition.heroScreenBounds) {
+    return `- P1: Title hero screen-space bounds are missing, so the tester cannot prove the recruit is large enough to read. ${composition.notes.join(' ')}`;
+  }
   if (!composition.heroReadable) {
-    return `- P1: Title hero is not readable from the camera: facingDot=${composition.facingDot}; cameraDistance=${composition.cameraDistance}; heroYaw=${composition.heroYaw}; yawToCamera=${composition.yawToCamera}. ${composition.notes.join(' ')}`;
+    return `- P1: Title hero is not readable from the camera: facingDot=${composition.facingDot}; cameraDistance=${composition.cameraDistance}; screenHeight=${formatRatio(composition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(composition.heroScreenOccupancy)}; heroYaw=${composition.heroYaw}; yawToCamera=${composition.yawToCamera}. ${composition.notes.join(' ')}`;
+  }
+  if ((composition.heroScreenHeightRatio ?? 0) < 0.22 || (composition.heroScreenOccupancy ?? 0) < 0.012) {
+    return `- P1: Title hero is technically visible but too small to prove recruit readability: screenHeight=${formatRatio(composition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(composition.heroScreenOccupancy)}; bounds=${formatScreenBounds(composition.heroScreenBounds)}.`;
   }
   if (!composition.levelPreviewVisible || (composition.orbitRadius ?? 0) < 5) {
     return `- P1: Title Level 1 orbit preview is not proven: levelPreview=${Boolean(composition.levelPreviewVisible)}; orbitRadius=${composition.orbitRadius ?? 'missing'}. ${composition.notes.join(' ')}`;
   }
   return '- P1: None from generated title composition diagnostics.';
+}
+
+function formatScreenBounds(bounds: ScreenBounds | undefined): string {
+  if (!bounds) return 'not captured';
+  return `x=${bounds.min.x}..${bounds.max.x}, y=${bounds.min.y}..${bounds.max.y}, viewport=${bounds.viewport.width}x${bounds.viewport.height}, width=${formatRatio(bounds.widthRatio)}, height=${formatRatio(bounds.heightRatio)}, area=${formatRatio(bounds.areaRatio)}`;
+}
+
+function formatRatio(value: number | undefined): string {
+  return typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'missing';
 }
 
 function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): string {
