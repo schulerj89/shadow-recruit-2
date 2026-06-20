@@ -83,8 +83,6 @@ type RenderQuality = {
   shadowMapSize: number;
   floorSegments: number;
   detectionConeSegments: number;
-  titleStageSegments: number;
-  titleRingSegments: number;
   extractionRingSegments: number;
   lightIntensityScale: number;
   textureAnisotropy: number;
@@ -127,8 +125,6 @@ const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
     shadowMapSize: 0,
     floorSegments: 6,
     detectionConeSegments: 18,
-    titleStageSegments: 20,
-    titleRingSegments: 36,
     extractionRingSegments: 32,
     lightIntensityScale: 0.62,
     textureAnisotropy: 1,
@@ -139,8 +135,6 @@ const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
     shadowMapSize: 1024,
     floorSegments: 24,
     detectionConeSegments: 32,
-    titleStageSegments: 36,
-    titleRingSegments: 72,
     extractionRingSegments: 64,
     lightIntensityScale: 1,
     textureAnisotropy: 4,
@@ -151,8 +145,6 @@ const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
     shadowMapSize: 2048,
     floorSegments: 36,
     detectionConeSegments: 48,
-    titleStageSegments: 48,
-    titleRingSegments: 96,
     extractionRingSegments: 96,
     lightIntensityScale: 1.18,
     textureAnisotropy: 8,
@@ -372,7 +364,7 @@ export class ShadowRecruitApp {
   private readonly assets = new AssetLibrary();
   private readonly titleHeroStagePosition = new THREE.Vector3(2.6, 0, -18);
   private readonly titleCameraTarget = new THREE.Vector3(2.6, 1.12, -18);
-  private readonly titlePreviewCenter = new THREE.Vector3(2.6, 0, -18);
+  private readonly titleCameraPosition = new THREE.Vector3(7.7, 3.05, -16.35);
   private readonly keyState = new Set<string>();
   private readonly pressedKeys = new Set<string>();
   private readonly frameDeltas: number[] = [];
@@ -412,7 +404,6 @@ export class ShadowRecruitApp {
   private focusUntil = 0;
   private focusTargetId: string | null = null;
   private focusPoint: Vec2 | null = null;
-  private titleOrbitOverrideAngle: number | null = null;
 
   constructor(private readonly host: HTMLDivElement) {
     this.shell = document.createElement('div');
@@ -464,7 +455,7 @@ export class ShadowRecruitApp {
     this.setPhase('loading');
     this.setLoading('loading title hero', 0.18);
     await this.assets.preloadHero(this.selectedHero);
-    this.setLoading('building rotating level preview', 0.62);
+    this.setLoading('staging title door and floor', 0.62);
     this.buildTitleScene();
     this.ready = true;
     this.setLoading('ready', 1);
@@ -476,21 +467,17 @@ export class ShadowRecruitApp {
   private buildTitleScene(): void {
     this.clearRuntime();
     this.createBaseScene();
-    this.addTitleLevelPreview();
     this.addTitleStageFloor(this.titleHeroStagePosition);
     this.addTitleDoorBackdrop(this.titleHeroStagePosition);
     this.titleHero?.animator?.dispose();
     this.titleHero = this.assets.createHero(this.selectedHero, `title-hero:${this.selectedHero}`);
-    this.addTitleHeroStage(this.titleHeroStagePosition);
     this.titleHero.object.position.copy(this.titleHeroStagePosition);
     this.titleHero.object.scale.multiplyScalar(1.35);
     this.titleHero.object.rotation.y = -0.4;
     this.applyObjectQuality(this.titleHero.object);
     this.scene.add(this.titleHero.object);
     this.anchorObjects.set('hero', this.titleHero.object);
-    this.camera.position.set(22, 15, -24);
-    this.camera.lookAt(this.titleCameraTarget);
-    this.orientTitleHeroTowardCamera();
+    this.applyStaticTitleCamera();
   }
 
   private async startRun(heroId = this.selectedHero, missionId = this.level.id): Promise<void> {
@@ -890,6 +877,7 @@ export class ShadowRecruitApp {
 
     this.scene.add(floor, centerLine, leftLine, rightLine);
     this.runtimeObjects.push({ object: floor }, { object: centerLine }, { object: leftLine }, { object: rightLine });
+    this.anchorObjects.set('title-floor', floor);
   }
 
   private addTitleDoorBackdrop(position: THREE.Vector3): void {
@@ -959,128 +947,7 @@ export class ShadowRecruitApp {
     group.add(backWall, leftDoor, rightDoor, header, leftJamb, rightJamb, threshold, lightBar, heroRim, alertGlow);
     this.scene.add(group);
     this.runtimeObjects.push({ object: group });
-  }
-
-  private addTitleLevelPreview(): void {
-    const level = defaultLevel;
-    const scale = 0.16;
-    const center = {
-      x: (level.bounds.min.x + level.bounds.max.x) / 2,
-      z: (level.bounds.min.z + level.bounds.max.z) / 2,
-    };
-    const group = new THREE.Group();
-    group.name = 'title-level-one-preview';
-    group.position.set(
-      this.titlePreviewCenter.x - center.x * scale,
-      0.035,
-      this.titlePreviewCenter.z - center.z * scale,
-    );
-    group.scale.setScalar(scale);
-
-    const floorSizeX = level.bounds.max.x - level.bounds.min.x;
-    const floorSizeZ = level.bounds.max.z - level.bounds.min.z;
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(floorSizeX, floorSizeZ, 1, 1),
-      new THREE.MeshBasicMaterial({
-        color: '#132631',
-        transparent: true,
-        opacity: 0.58,
-        depthWrite: false,
-      }),
-    );
-    floor.name = 'title-preview-floor';
-    floor.position.set(center.x, 0, center.z);
-    floor.rotation.x = -Math.PI / 2;
-    group.add(floor);
-
-    const wallMaterial = new THREE.MeshStandardMaterial({
-      color: '#33535e',
-      emissive: '#102d34',
-      emissiveIntensity: 0.42,
-      roughness: 0.56,
-      metalness: 0.18,
-    });
-    const blockerMaterial = new THREE.MeshStandardMaterial({
-      color: '#7b6a34',
-      emissive: '#342810',
-      emissiveIntensity: 0.36,
-      roughness: 0.62,
-      metalness: 0.12,
-    });
-    const doorMaterial = new THREE.MeshStandardMaterial({
-      color: '#6fffe2',
-      emissive: '#6fffe2',
-      emissiveIntensity: 0.72,
-      roughness: 0.42,
-      metalness: 0.24,
-    });
-
-    for (const wall of level.walls) group.add(this.createTitlePreviewRect(wall, wallMaterial, 'wall'));
-    for (const blocker of level.blockers) group.add(this.createTitlePreviewRect(blocker, blockerMaterial, 'blocker'));
-    for (const door of level.doors) group.add(this.createTitlePreviewRect(door, doorMaterial, 'door'));
-
-    for (const objective of level.objectives) {
-      const marker = new THREE.Mesh(
-        new THREE.CylinderGeometry(objective.radius, objective.radius * 0.72, 0.24, 18),
-        new THREE.MeshBasicMaterial({ color: objective.asset === 'terminal' ? '#5ad7ff' : objective.asset === 'codes' ? '#ffd45a' : '#6fffe2' }),
-      );
-      marker.name = `title-preview-objective:${objective.id}`;
-      marker.position.set(objective.position.x, 0.18, objective.position.z);
-      group.add(marker);
-    }
-
-    const extraction = new THREE.Mesh(
-      new THREE.TorusGeometry(2.8, 0.22, 8, 36),
-      new THREE.MeshBasicMaterial({ color: '#8eff81' }),
-    );
-    extraction.name = 'title-preview-extraction';
-    extraction.position.set(level.extraction.x, 0.26, level.extraction.z);
-    extraction.rotation.x = -Math.PI / 2;
-    group.add(extraction);
-
-    this.scene.add(group);
-    this.runtimeObjects.push({ object: group });
-    this.anchorObjects.set('title-level-preview', group);
-  }
-
-  private createTitlePreviewRect(rect: RectSpec, material: THREE.Material, category: string): THREE.Mesh {
-    const height = Math.max(rect.height ?? 0.8, 0.4);
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(rect.size.x, height, rect.size.z), material.clone());
-    mesh.name = `title-preview-${category}:${rect.id}`;
-    mesh.position.set(rect.center.x, height / 2, rect.center.z);
-    return mesh;
-  }
-
-  private addTitleHeroStage(position: THREE.Vector3): void {
-    const quality = this.quality();
-    const stage = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.55, 1.75, 0.18, quality.titleStageSegments),
-      new THREE.MeshStandardMaterial({
-        color: '#10222c',
-        roughness: 0.42,
-        metalness: 0.55,
-        emissive: '#123d42',
-        emissiveIntensity: 0.55,
-      }),
-    );
-    stage.name = 'title-hero-stage';
-    stage.position.set(position.x, 0.09, position.z);
-    stage.receiveShadow = quality.shadowsEnabled;
-
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.72, 0.035, 8, quality.titleRingSegments),
-      new THREE.MeshBasicMaterial({ color: '#6fffe2' }),
-    );
-    ring.name = 'title-hero-stage-ring';
-    ring.position.set(position.x, 0.22, position.z);
-    ring.rotation.x = -Math.PI / 2;
-
-    const light = new THREE.PointLight('#6fffe2', 5.2, 9);
-    light.name = 'title-hero-stage-light';
-    light.position.set(position.x, 2.8, position.z + 1.2);
-
-    this.scene.add(stage, ring, light);
-    this.runtimeObjects.push({ object: stage }, { object: ring }, { object: light });
+    this.anchorObjects.set('title-door-backdrop', group);
   }
 
   private createPlayer(): void {
@@ -1141,13 +1008,13 @@ export class ShadowRecruitApp {
     this.anchorObjects.set('extraction', ring);
   }
 
-  private frame(timeMs: number): void {
+  private frame(_timeMs: number): void {
     const delta = Math.min(this.clock.getDelta(), 0.05);
     this.frameDeltas.push(delta * 1000);
     if (this.frameDeltas.length > 240) this.frameDeltas.shift();
 
     if (this.phase === 'title' || this.phase === 'hero-select' || this.phase === 'settings') {
-      this.updateTitleCamera(timeMs / 1000);
+      this.updateTitleCamera();
     } else if (this.phase === 'playing') {
       this.updatePlaying(delta);
     } else if (this.phase === 'cinematic-focus' && performance.now() > this.focusUntil) {
@@ -1164,28 +1031,22 @@ export class ShadowRecruitApp {
     this.pressedKeys.clear();
   }
 
-  private updateTitleCamera(time: number): void {
-    const angle = this.titleOrbitOverrideAngle ?? time * 0.18;
-    this.applyTitleOrbitAngle(angle);
+  private updateTitleCamera(): void {
+    this.applyStaticTitleCamera();
   }
 
-  private applyTitleOrbitAngle(angle: number): void {
-    this.camera.position.set(
-      this.titleCameraTarget.x + Math.cos(angle) * 5.4,
-      3.05 + Math.sin(angle * 0.5) * 0.18,
-      this.titleCameraTarget.z + Math.sin(angle) * 4.6,
-    );
+  private applyStaticTitleCamera(): void {
+    this.camera.position.copy(this.titleCameraPosition);
     this.camera.lookAt(this.titleCameraTarget);
     this.orientTitleHeroTowardCamera(0.14);
   }
 
-  private setTitleOrbitAngle(angle: number): void {
-    this.titleOrbitOverrideAngle = Number.isFinite(angle) ? angle : 0;
-    this.applyTitleOrbitAngle(this.titleOrbitOverrideAngle);
+  private setTitleOrbitAngle(_angle: number): void {
+    this.applyStaticTitleCamera();
   }
 
   private clearTitleOrbitAngle(): void {
-    this.titleOrbitOverrideAngle = null;
+    this.applyStaticTitleCamera();
   }
 
   private orientTitleHeroTowardCamera(threeQuarterOffset = 0): void {
@@ -1450,7 +1311,7 @@ export class ShadowRecruitApp {
           <section class="command-panel">
             <div class="screen-kicker">Ready room</div>
             <h2 class="panel-title">Prepare the insertion.</h2>
-            <p class="panel-copy">The staged recruit and door set preview the mission tone. Tune field options, then begin the cinematic tutorial.</p>
+            <p class="panel-copy">The recruit holds at the blacksite door. Tune field options, then begin the cinematic tutorial.</p>
             <div class="button-row is-stacked">
               <button type="button" data-action="start">Start</button>
               <button type="button" data-action="hero-select">Change Hero</button>
@@ -3304,9 +3165,13 @@ export class ShadowRecruitApp {
     const heroPosition = hero?.getWorldPosition(new THREE.Vector3());
     const cameraPosition = this.camera.position.clone();
     const cameraTarget = this.titleCameraTarget.clone();
-    const titlePreview = this.anchorObjects.get('title-level-preview');
-    const levelPreviewBounds = titlePreview ? this.objectBounds(titlePreview) : undefined;
-    const levelPreviewVisible = Boolean(titlePreview?.visible && levelPreviewBounds);
+    const titleBackdrop = this.anchorObjects.get('title-door-backdrop');
+    const titleFloor = this.anchorObjects.get('title-floor');
+    const titleBackdropBounds = titleBackdrop ? this.objectBounds(titleBackdrop) : undefined;
+    const titleFloorBounds = titleFloor ? this.objectBounds(titleFloor) : undefined;
+    const titleBackdropVisible = Boolean(titleBackdrop?.visible && titleBackdropBounds);
+    const titleFloorVisible = Boolean(titleFloor?.visible && titleFloorBounds);
+    const levelPreviewVisible = false;
     const orbitVector = new THREE.Vector3(cameraPosition.x - cameraTarget.x, 0, cameraPosition.z - cameraTarget.z);
     const orbitRadius = orbitVector.length();
     const orbitAngle = Math.atan2(orbitVector.z, orbitVector.x);
@@ -3344,11 +3209,12 @@ export class ShadowRecruitApp {
       cameraDistance <= 8.8 &&
       heroScreenHeightRatio >= 0.22 &&
       heroScreenOccupancy >= 0.012;
-    const notes = heroReadable && levelPreviewVisible
-      ? ['Title hero faces the camera in a readable front/three-quarter pose while the Level 1 preview map supports the rotating title background.']
+    const notes = heroReadable && titleBackdropVisible && titleFloorVisible
+      ? ['Title hero idles in a readable front/three-quarter pose against a static blacksite door backdrop and generated floor, without the retired 360 level preview props.']
       : [
         active ? 'Title hero does not meet facing/readability thresholds.' : 'Title composition is not active in the current phase.',
-        levelPreviewVisible ? 'Level 1 preview map is visible.' : 'Level 1 preview map is missing from the title scene.',
+        titleBackdropVisible ? 'Static title door backdrop is visible.' : 'Static title door backdrop is missing from the title scene.',
+        titleFloorVisible ? 'Generated title floor is visible.' : 'Generated title floor is missing from the title scene.',
         titleTreatment.wordmarkReadable ? 'Native title wordmark passes visibility and overlap checks.' : `Native title wordmark needs review: ${titleTreatment.notes.join(' ')}`,
         identityReadable ? 'Head, visor, and chest anchors are visible and not hidden by UI.' : `Identity anchors need review: ${identityAnchors.map((anchor) => `${anchor.id}=visible:${anchor.visible}/ui:${anchor.uiOccluded}`).join(', ') || 'none'}.`,
         `facingDot=${roundMetric(facingDot)}, cameraDistance=${roundMetric(cameraDistance)}, screenHeight=${roundMetric(heroScreenHeightRatio)}, screenOccupancy=${roundMetric(heroScreenOccupancy)}.`,
@@ -3359,6 +3225,8 @@ export class ShadowRecruitApp {
       heroVisible,
       heroReadable,
       levelPreviewVisible,
+      titleBackdropVisible,
+      titleFloorVisible,
       facingDot: roundMetric(facingDot),
       heroYaw: roundMetric(heroYaw),
       yawToCamera: roundMetric(yawToCamera),
@@ -3373,7 +3241,8 @@ export class ShadowRecruitApp {
       ...(heroScreenBounds ? { heroScreenBounds } : {}),
       cameraPosition: this.vectorSnapshot(cameraPosition),
       cameraTarget: this.vectorSnapshot(cameraTarget),
-      ...(levelPreviewBounds ? { levelPreviewBounds } : {}),
+      ...(titleBackdropBounds ? { titleBackdropBounds } : {}),
+      ...(titleFloorBounds ? { titleFloorBounds } : {}),
       titleTreatment,
       notes,
     };

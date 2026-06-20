@@ -1,0 +1,482 @@
+{
+  "build": "v0.25.1",
+  "generatedAt": "2026-06-20T14:47:51.275Z",
+  "thresholds": {
+    "levelFootprintRatio": 0.18,
+    "zoneFootprintRatio": 0.2,
+    "wallRunEpsilon": 0.08
+  },
+  "summary": {
+    "missions": 2,
+    "pass": 2,
+    "review": 0,
+    "fail": 0
+  },
+  "missions": [
+    {
+      "levelId": "blacksite-threshold",
+      "name": "Blacksite Threshold",
+      "chapter": "Operation Glass Dagger",
+      "grade": "pass",
+      "catalogKnown": true,
+      "dimensions": {
+        "width": 84,
+        "depth": 72,
+        "floorArea": 6048
+      },
+      "counts": {
+        "walls": 12,
+        "doors": 3,
+        "blockers": 9,
+        "setDressing": 34,
+        "zones": 4,
+        "requiredObjectives": 3,
+        "enemies": 3,
+        "validationRoutePoints": 11,
+        "tutorialSteps": 5
+      },
+      "density": {
+        "grade": "pass",
+        "footprintArea": 1363.3039,
+        "footprintRatio": 0.2254,
+        "zones": [
+          {
+            "id": "entry-lobby",
+            "label": "Entry Lobby",
+            "grade": "pass",
+            "floorArea": 1344,
+            "footprintArea": 326.2551,
+            "footprintRatio": 0.2427,
+            "landmarkCount": 12,
+            "expectedLandmarkCount": 12,
+            "interactableCount": 2,
+            "screenshot": "gameplay-level-one.png",
+            "findings": []
+          },
+          {
+            "id": "security-stack",
+            "label": "Security Stack",
+            "grade": "pass",
+            "floorArea": 1932,
+            "footprintArea": 426.0211,
+            "footprintRatio": 0.2205,
+            "landmarkCount": 8,
+            "expectedLandmarkCount": 8,
+            "interactableCount": 3,
+            "screenshot": "tutorial-03-terminal.png",
+            "findings": []
+          },
+          {
+            "id": "server-wing",
+            "label": "Server Wing",
+            "grade": "pass",
+            "floorArea": 1260,
+            "footprintArea": 285.4433,
+            "footprintRatio": 0.2265,
+            "landmarkCount": 6,
+            "expectedLandmarkCount": 6,
+            "interactableCount": 3,
+            "screenshot": "gameplay-command-codes.png",
+            "findings": []
+          },
+          {
+            "id": "command-extraction",
+            "label": "Command And Extraction",
+            "grade": "pass",
+            "floorArea": 1512,
+            "footprintArea": 325.5844,
+            "footprintRatio": 0.2153,
+            "landmarkCount": 7,
+            "expectedLandmarkCount": 7,
+            "interactableCount": 2,
+            "screenshot": "complete.png",
+            "findings": []
+          }
+        ]
+      },
+      "wallRuns": [
+        {
+          "id": "x:-18",
+          "axis": "x",
+          "line": -18,
+          "grade": "pass",
+          "doors": [
+            "lobby-door"
+          ],
+          "wallIntervals": [
+            {
+              "id": "lobby-divider-west",
+              "min": -41,
+              "max": -3
+            },
+            {
+              "id": "lobby-divider-east",
+              "min": 3,
+              "max": 41
+            }
+          ],
+          "doorIntervals": [
+            {
+              "id": "lobby-door",
+              "min": -3,
+              "max": 3
+            }
+          ],
+          "doorToWallGaps": [
+            {
+              "doorId": "lobby-door",
+              "side": "before",
+              "fromId": "lobby-divider-west",
+              "toId": "lobby-door",
+              "gap": 0
+            },
+            {
+              "doorId": "lobby-door",
+              "side": "after",
+              "fromId": "lobby-door",
+              "toId": "lobby-divider-east",
+              "gap": 0
+            }
+          ],
+          "doorToDoorSpans": [],
+          "findings": []
+        },
+        {
+          "id": "x:5",
+          "axis": "x",
+          "line": 5,
+          "grade": "pass",
+          "doors": [
+            "server-door"
+          ],
+          "wallIntervals": [
+            {
+              "id": "server-divider-west",
+              "min": -41,
+              "max": 11
+            },
+            {
+              "id": "server-divider-east",
+              "min": 17,
+              "max": 30
+            }
+          ],
+          "doorIntervals": [
+            {
+              "id": "server-door",
+              "min": 11,
+              "max": 17
+            }
+          ],
+          "doorToWallGaps": [
+            {
+              "doorId": "server-door",
+              "side": "before",
+              "fromId": "server-divider-west",
+              "toId": "server-door",
+              "gap": 0
+            },
+            {
+              "doorId": "server-door",
+              "side": "after",
+              "fromId": "server-door",
+              "toId": "server-divider-east",
+              "gap": 0
+            }
+          ],
+          "doorToDoorSpans": [],
+          "findings": []
+        },
+        {
+          "id": "x:20",
+          "axis": "x",
+          "line": 20,
+          "grade": "pass",
+          "doors": [
+            "extraction-door"
+          ],
+          "wallIntervals": [
+            {
+              "id": "command-divider-west",
+              "min": -41,
+              "max": -3
+            },
+            {
+              "id": "command-divider-east",
+              "min": 3,
+              "max": 41
+            }
+          ],
+          "doorIntervals": [
+            {
+              "id": "extraction-door",
+              "min": -3,
+              "max": 3
+            }
+          ],
+          "doorToWallGaps": [
+            {
+              "doorId": "extraction-door",
+              "side": "before",
+              "fromId": "command-divider-west",
+              "toId": "extraction-door",
+              "gap": 0
+            },
+            {
+              "doorId": "extraction-door",
+              "side": "after",
+              "fromId": "extraction-door",
+              "toId": "command-divider-east",
+              "gap": 0
+            }
+          ],
+          "doorToDoorSpans": [],
+          "findings": []
+        }
+      ],
+      "playthrough": {
+        "grade": "pass",
+        "status": "pass",
+        "committedReportPath": "docs/qa/2026-06-20/v0.25.1/playthroughs/blacksite-threshold/playthrough-report.json",
+        "screenshotCount": 6,
+        "missingScreenshots": []
+      },
+      "route": {
+        "grade": "pass",
+        "outOfBoundsPoints": []
+      },
+      "unlocks": {
+        "grade": "pass",
+        "missingDoors": [],
+        "missingObjectives": []
+      },
+      "findings": []
+    },
+    {
+      "levelId": "relay-vault",
+      "name": "Relay Vault",
+      "chapter": "Operation Night Compass",
+      "grade": "pass",
+      "catalogKnown": true,
+      "dimensions": {
+        "width": 96,
+        "depth": 84,
+        "floorArea": 8064
+      },
+      "counts": {
+        "walls": 10,
+        "doors": 3,
+        "blockers": 5,
+        "setDressing": 28,
+        "zones": 3,
+        "requiredObjectives": 3,
+        "enemies": 3,
+        "validationRoutePoints": 9,
+        "tutorialSteps": 5
+      },
+      "density": {
+        "grade": "pass",
+        "footprintArea": 1750.292,
+        "footprintRatio": 0.2171,
+        "zones": [
+          {
+            "id": "south-entry",
+            "label": "South Entry",
+            "grade": "pass",
+            "floorArea": 2688,
+            "footprintArea": 588.4433,
+            "footprintRatio": 0.2189,
+            "landmarkCount": 8,
+            "expectedLandmarkCount": 8,
+            "interactableCount": 2,
+            "screenshot": "gameplay-level-one.png",
+            "findings": []
+          },
+          {
+            "id": "mid-security",
+            "label": "Mid Security",
+            "grade": "pass",
+            "floorArea": 2688,
+            "footprintArea": 553.3167,
+            "footprintRatio": 0.2058,
+            "landmarkCount": 7,
+            "expectedLandmarkCount": 7,
+            "interactableCount": 3,
+            "screenshot": "tutorial-03-terminal.png",
+            "findings": []
+          },
+          {
+            "id": "north-command",
+            "label": "North Command And Extraction",
+            "grade": "pass",
+            "floorArea": 2688,
+            "footprintArea": 608.5321,
+            "footprintRatio": 0.2264,
+            "landmarkCount": 8,
+            "expectedLandmarkCount": 8,
+            "interactableCount": 4,
+            "screenshot": "complete.png",
+            "findings": []
+          }
+        ]
+      },
+      "wallRuns": [
+        {
+          "id": "x:-14",
+          "axis": "x",
+          "line": -14,
+          "grade": "pass",
+          "doors": [
+            "entry-door"
+          ],
+          "wallIntervals": [
+            {
+              "id": "entry-divider-west",
+              "min": -47,
+              "max": -2
+            },
+            {
+              "id": "entry-divider-east",
+              "min": 2,
+              "max": 47
+            }
+          ],
+          "doorIntervals": [
+            {
+              "id": "entry-door",
+              "min": -2,
+              "max": 2
+            }
+          ],
+          "doorToWallGaps": [
+            {
+              "doorId": "entry-door",
+              "side": "before",
+              "fromId": "entry-divider-west",
+              "toId": "entry-door",
+              "gap": 0
+            },
+            {
+              "doorId": "entry-door",
+              "side": "after",
+              "fromId": "entry-door",
+              "toId": "entry-divider-east",
+              "gap": 0
+            }
+          ],
+          "doorToDoorSpans": [],
+          "findings": []
+        },
+        {
+          "id": "x:14",
+          "axis": "x",
+          "line": 14,
+          "grade": "pass",
+          "doors": [
+            "vault-door"
+          ],
+          "wallIntervals": [
+            {
+              "id": "vault-divider-west",
+              "min": -47,
+              "max": -2
+            },
+            {
+              "id": "vault-divider-east",
+              "min": 2,
+              "max": 47
+            }
+          ],
+          "doorIntervals": [
+            {
+              "id": "vault-door",
+              "min": -2,
+              "max": 2
+            }
+          ],
+          "doorToWallGaps": [
+            {
+              "doorId": "vault-door",
+              "side": "before",
+              "fromId": "vault-divider-west",
+              "toId": "vault-door",
+              "gap": 0
+            },
+            {
+              "doorId": "vault-door",
+              "side": "after",
+              "fromId": "vault-door",
+              "toId": "vault-divider-east",
+              "gap": 0
+            }
+          ],
+          "doorToDoorSpans": [],
+          "findings": []
+        },
+        {
+          "id": "x:28",
+          "axis": "x",
+          "line": 28,
+          "grade": "pass",
+          "doors": [
+            "extraction-door"
+          ],
+          "wallIntervals": [
+            {
+              "id": "extraction-divider-west",
+              "min": -47,
+              "max": -2
+            },
+            {
+              "id": "extraction-divider-east",
+              "min": 2,
+              "max": 47
+            }
+          ],
+          "doorIntervals": [
+            {
+              "id": "extraction-door",
+              "min": -2,
+              "max": 2
+            }
+          ],
+          "doorToWallGaps": [
+            {
+              "doorId": "extraction-door",
+              "side": "before",
+              "fromId": "extraction-divider-west",
+              "toId": "extraction-door",
+              "gap": 0
+            },
+            {
+              "doorId": "extraction-door",
+              "side": "after",
+              "fromId": "extraction-door",
+              "toId": "extraction-divider-east",
+              "gap": 0
+            }
+          ],
+          "doorToDoorSpans": [],
+          "findings": []
+        }
+      ],
+      "playthrough": {
+        "grade": "pass",
+        "status": "pass",
+        "committedReportPath": "docs/qa/2026-06-20/v0.25.1/playthroughs/relay-vault/playthrough-report.json",
+        "screenshotCount": 6,
+        "missingScreenshots": []
+      },
+      "route": {
+        "grade": "pass",
+        "outOfBoundsPoints": []
+      },
+      "unlocks": {
+        "grade": "pass",
+        "missingDoors": [],
+        "missingObjectives": []
+      },
+      "findings": []
+    }
+  ]
+}

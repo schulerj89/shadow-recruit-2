@@ -33,7 +33,6 @@ const aaaReadyLevelFootprintRatio = 0.18;
 const wallRunEpsilon = 0.08;
 const expectedScreenshots = [
   'title.png',
-  'title-orbit-preview.png',
   'settings.png',
   'hero-select.png',
   'loading-level-one.png',
@@ -480,6 +479,8 @@ type TitleComposition = {
   heroVisible: boolean;
   heroReadable: boolean;
   levelPreviewVisible?: boolean;
+  titleBackdropVisible?: boolean;
+  titleFloorVisible?: boolean;
   facingDot: number;
   heroYaw: number;
   yawToCamera: number;
@@ -495,6 +496,8 @@ type TitleComposition = {
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   levelPreviewBounds?: Bounds3;
+  titleBackdropBounds?: Bounds3;
+  titleFloorBounds?: Bounds3;
   titleTreatment?: TitleTreatmentState;
   notes: readonly string[];
 };
@@ -855,7 +858,7 @@ Date: ${date}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
 - Tutorial alignment: ${describeTutorialSummary(tutorialAlignment)}
-- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; identityReadable=${titleComposition.identityReadable ?? false}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; anchors=${formatTitleAnchorSummary(titleComposition)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
+- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; identityReadable=${titleComposition.identityReadable ?? false}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; doorBackdrop=${Boolean(titleComposition.titleBackdropVisible)}; floor=${Boolean(titleComposition.titleFloorVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; anchors=${formatTitleAnchorSummary(titleComposition)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Gameplay camera: ${formatGameplayCameraSummary(gameplayCamera)}
 - Gameplay view density: ${formatGameplayViewDensitySummary(gameplayViewDensity)}
@@ -2048,8 +2051,11 @@ function describeTitleFindings(composition: TitleComposition | undefined): strin
   if ((composition.heroScreenHeightRatio ?? 0) < 0.22 || (composition.heroScreenOccupancy ?? 0) < 0.012) {
     return `- P1: Title hero is technically visible but too small to prove recruit readability: screenHeight=${formatRatio(composition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(composition.heroScreenOccupancy)}; bounds=${formatScreenBounds(composition.heroScreenBounds)}.`;
   }
-  if (!composition.levelPreviewVisible || (composition.orbitRadius ?? 0) < 5) {
-    return `- P1: Title Level 1 orbit preview is not proven: levelPreview=${Boolean(composition.levelPreviewVisible)}; orbitRadius=${composition.orbitRadius ?? 'missing'}. ${composition.notes.join(' ')}`;
+  if (composition.levelPreviewVisible) {
+    return `- P1: Retired title Level 1 orbit preview is still visible; title should use the static door/floor hero stage. ${composition.notes.join(' ')}`;
+  }
+  if (!composition.titleBackdropVisible || !composition.titleFloorVisible) {
+    return `- P1: Static title door/floor stage is not proven: doorBackdrop=${Boolean(composition.titleBackdropVisible)}; floor=${Boolean(composition.titleFloorVisible)}. ${composition.notes.join(' ')}`;
   }
   return '- P1: None from generated title composition diagnostics.';
 }

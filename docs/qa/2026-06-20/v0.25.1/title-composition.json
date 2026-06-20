@@ -1,0 +1,230 @@
+{
+  "active": true,
+  "heroVisible": true,
+  "heroReadable": true,
+  "levelPreviewVisible": false,
+  "titleBackdropVisible": true,
+  "titleFloorVisible": true,
+  "facingDot": 0.99,
+  "heroYaw": 1.12,
+  "yawToCamera": 1.26,
+  "cameraDistance": 6.17,
+  "orbitAngle": 0.31,
+  "orbitRadius": 5.36,
+  "heroScreenOccupancy": 0.11,
+  "heroScreenHeightRatio": 0.44,
+  "identityReadable": true,
+  "identityAnchors": [
+    {
+      "id": "head",
+      "label": "Head silhouette",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 1.79,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 349.76,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Head silhouette projects into the title screenshot without UI occlusion."
+      ]
+    },
+    {
+      "id": "visor",
+      "label": "Face/visor read",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 1.64,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 373.82,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Face/visor read projects into the title screenshot without UI occlusion."
+      ]
+    },
+    {
+      "id": "chest",
+      "label": "Chest/gear read",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 1.17,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 443.3,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Chest/gear read projects into the title screenshot without UI occlusion."
+      ]
+    },
+    {
+      "id": "feet",
+      "label": "Foot grounding",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 0.11,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 586.22,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Foot grounding projects into the title screenshot without UI occlusion."
+      ]
+    }
+  ],
+  "heroPosition": {
+    "x": 2.6,
+    "y": 0,
+    "z": -18
+  },
+  "heroScreenBounds": {
+    "min": {
+      "x": 550.65,
+      "y": 291.35
+    },
+    "max": {
+      "x": 921.26,
+      "y": 688.02
+    },
+    "size": {
+      "x": 370.6,
+      "y": 396.67
+    },
+    "center": {
+      "x": 735.95,
+      "y": 489.69
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "widthRatio": 0.26,
+    "heightRatio": 0.44,
+    "areaRatio": 0.11
+  },
+  "cameraPosition": {
+    "x": 7.7,
+    "y": 3.05,
+    "z": -16.35
+  },
+  "cameraTarget": {
+    "x": 2.6,
+    "y": 1.12,
+    "z": -18
+  },
+  "titleBackdropBounds": {
+    "min": {
+      "x": 0.6,
+      "y": 0,
+      "z": -22.3
+    },
+    "max": {
+      "x": 7.54,
+      "y": 4.1,
+      "z": -19.51
+    },
+    "size": {
+      "x": 6.94,
+      "y": 4.1,
+      "z": 2.79
+    }
+  },
+  "titleFloorBounds": {
+    "min": {
+      "x": -4.3,
+      "y": 0,
+      "z": -23.4
+    },
+    "max": {
+      "x": 11.7,
+      "y": 0,
+      "z": -11.4
+    },
+    "size": {
+      "x": 16,
+      "y": 0,
+      "z": 12
+    }
+  },
+  "titleTreatment": {
+    "active": true,
+    "wordmarkText": "SHADOW RECRUIT 2",
+    "kickerText": "OPERATION BLACKGLASS",
+    "copyText": "A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.",
+    "wordmarkVisible": true,
+    "wordmarkReadable": true,
+    "wordmarkBounds": {
+      "min": {
+        "x": 160,
+        "y": 405.42
+      },
+      "max": {
+        "x": 671.75,
+        "y": 661.75
+      },
+      "size": {
+        "x": 511.75,
+        "y": 256.33
+      },
+      "center": {
+        "x": 415.88,
+        "y": 533.59
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "widthRatio": 0.36,
+      "heightRatio": 0.28,
+      "areaRatio": 0.1
+    },
+    "panelOverlapRatio": 0,
+    "heroOverlapRatio": 0.24,
+    "notes": [
+      "Native CSS wordmark is visible, final-title branded, and does not collide with the command panel or staged hero."
+    ]
+  },
+  "notes": [
+    "Title hero idles in a readable front/three-quarter pose against a static blacksite door backdrop and generated floor, without the retired 360 level preview props."
+  ]
+}

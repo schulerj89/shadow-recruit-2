@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.25.1 - 2026-06-20
+
+### Patch
+
+- Reworked the title screen into a static blacksite-door composition with only the idle hero, generated floor, and door backdrop, removing the 360 Level 1 preview props and hero plinth.
+- Updated title smoke, screenshot, and tester-report diagnostics so QA now proves the static door/floor stage and rejects the retired orbit preview.
+
 ## 0.25.0 - 2026-06-20
 
 ### Minor

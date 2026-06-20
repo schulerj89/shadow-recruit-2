@@ -29,7 +29,7 @@ try {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.setPerformanceProfile('performance'));
-  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(0.35));
+  await page.evaluate(() => window.__shadowRecruitDebug?.clearTitleOrbitAngle());
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
   await writeFile(`${qaDir}/title-composition.json`, JSON.stringify(titleComposition, null, 2));
   const titleTreatment = titleComposition?.titleTreatment;
@@ -42,8 +42,9 @@ try {
     !Array.isArray(titleComposition.identityAnchors) ||
     titleComposition.identityAnchors.filter((anchor) => ['head', 'visor', 'chest'].includes(anchor.id) && anchor.visible && !anchor.uiOccluded).length < 3 ||
     !titleComposition.heroScreenBounds ||
-    !titleComposition.levelPreviewVisible ||
-    titleComposition.orbitRadius < 5 ||
+    titleComposition.levelPreviewVisible ||
+    !titleComposition.titleBackdropVisible ||
+    !titleComposition.titleFloorVisible ||
     !titleTreatment?.wordmarkReadable ||
     !titleTreatment.wordmarkBounds ||
     titleTreatment.wordmarkBounds.areaRatio < 0.04 ||
@@ -53,9 +54,6 @@ try {
     throw new Error(`Title hero or native wordmark is not readable from camera: ${JSON.stringify(titleComposition)}`);
   }
   await page.screenshot({ path: `${outputDir}/title.png`, fullPage: true });
-  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(1.85));
-  await page.screenshot({ path: `${outputDir}/title-orbit-preview.png`, fullPage: true });
-  await page.evaluate(() => window.__shadowRecruitDebug?.clearTitleOrbitAngle());
   await page.getByRole('button', { name: 'Settings' }).click();
   await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });
   await page.screenshot({ path: `${outputDir}/settings.png`, fullPage: true });

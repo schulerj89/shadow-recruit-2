@@ -1,0 +1,23 @@
+{
+  "active": true,
+  "targetId": "access-keycard",
+  "targetKind": "objective",
+  "label": "Recover the lobby keycard",
+  "action": "Recover objective",
+  "distanceMeters": 7,
+  "bearingDegrees": 270,
+  "compassDirection": "W",
+  "targetPoint": {
+    "x": -31,
+    "z": -25
+  },
+  "unlocks": [
+    "lobby-door"
+  ],
+  "completedRequired": 0,
+  "totalRequired": 3,
+  "exitUnlocked": false,
+  "notes": [
+    "Guidance targets the next required objective access-keycard."
+  ]
+}

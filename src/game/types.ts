@@ -504,6 +504,8 @@ export type TitleComposition = {
   heroVisible: boolean;
   heroReadable: boolean;
   levelPreviewVisible: boolean;
+  titleBackdropVisible: boolean;
+  titleFloorVisible: boolean;
   facingDot: number;
   heroYaw: number;
   yawToCamera: number;
@@ -519,6 +521,8 @@ export type TitleComposition = {
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   levelPreviewBounds?: Bounds3;
+  titleBackdropBounds?: Bounds3;
+  titleFloorBounds?: Bounds3;
   titleTreatment: TitleTreatmentState;
   notes: readonly string[];
 };

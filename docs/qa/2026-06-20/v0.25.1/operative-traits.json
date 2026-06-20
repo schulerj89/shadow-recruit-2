@@ -1,0 +1,257 @@
+{
+  "selected": {
+    "id": "echo-vanguard",
+    "selectedId": "echo-vanguard",
+    "name": "Echo Vanguard",
+    "role": "Heavy recon kit",
+    "assetAuditId": "hero:echo-vanguard",
+    "traitIds": [
+      "echo-dampeners",
+      "armored-step",
+      "long-reach-interface"
+    ],
+    "traitSummary": [
+      "Lower sentry contact radius",
+      "Slightly slower movement",
+      "Wider objective reach"
+    ],
+    "base": {
+      "moveSpeed": 8.2,
+      "interactRadius": 1.62,
+      "enemyDetectionRadius": 2.4,
+      "terminalUseMs": 1200,
+      "extractionRadius": 2.7
+    },
+    "effective": {
+      "moveSpeed": 7.54,
+      "interactRadius": 1.77,
+      "enemyDetectionRadius": 2.11,
+      "terminalUseMs": 1200,
+      "extractionRadius": 2.7
+    },
+    "changedScalars": [
+      "moveSpeed",
+      "interactRadius",
+      "enemyDetectionRadius"
+    ],
+    "traits": [
+      {
+        "id": "echo-dampeners",
+        "label": "Echo dampeners",
+        "mechanic": "stealth",
+        "applied": true,
+        "scalar": "enemyDetectionRadius",
+        "operation": "multiplier",
+        "value": 0.88,
+        "baseValue": 2.4,
+        "effectiveValue": 2.11,
+        "delta": -0.29,
+        "notes": [
+          "Heavy recon kit reduces effective sentry contact radius so stealth choice changes enemy risk."
+        ]
+      },
+      {
+        "id": "armored-step",
+        "label": "Armored step",
+        "mechanic": "movement",
+        "applied": true,
+        "scalar": "moveSpeed",
+        "operation": "multiplier",
+        "value": 0.92,
+        "baseValue": 8.2,
+        "effectiveValue": 7.54,
+        "delta": -0.66,
+        "notes": [
+          "Extra armor slows traversal enough for QA to detect a scalar change without breaking Level 1 routes."
+        ]
+      },
+      {
+        "id": "long-reach-interface",
+        "label": "Long-reach interface",
+        "mechanic": "interaction",
+        "applied": true,
+        "scalar": "interactRadius",
+        "operation": "add",
+        "value": 0.15,
+        "baseValue": 1.62,
+        "effectiveValue": 1.77,
+        "delta": 0.15,
+        "notes": [
+          "Objective reach is slightly wider so interaction range changes are visible in deterministic probes."
+        ]
+      }
+    ],
+    "probes": [
+      {
+        "id": "echo-vanguard:echo-dampeners",
+        "traitId": "echo-dampeners",
+        "mechanic": "stealth",
+        "grade": "pass",
+        "expectedDelta": -0.29,
+        "actualDelta": -0.29,
+        "tolerance": 0.01,
+        "notes": [
+          "Echo dampeners changes enemyDetectionRadius by -0.29."
+        ]
+      },
+      {
+        "id": "echo-vanguard:armored-step",
+        "traitId": "armored-step",
+        "mechanic": "movement",
+        "grade": "pass",
+        "expectedDelta": -0.66,
+        "actualDelta": -0.66,
+        "tolerance": 0.01,
+        "notes": [
+          "Armored step changes moveSpeed by -0.66."
+        ]
+      },
+      {
+        "id": "echo-vanguard:long-reach-interface",
+        "traitId": "long-reach-interface",
+        "mechanic": "interaction",
+        "grade": "pass",
+        "expectedDelta": 0.15,
+        "actualDelta": 0.15,
+        "tolerance": 0.01,
+        "notes": [
+          "Long-reach interface changes interactRadius by 0.15."
+        ]
+      }
+    ]
+  },
+  "catalog": [
+    {
+      "id": "shadow-operative",
+      "name": "Shadow Operative",
+      "role": "Balanced infiltrator",
+      "assetAuditId": "hero:shadow-operative",
+      "traitIds": [
+        "balanced-kit"
+      ],
+      "traitSummary": [
+        "Baseline move speed",
+        "Standard sentry signature",
+        "Standard objective reach"
+      ],
+      "base": {
+        "moveSpeed": 8.2,
+        "interactRadius": 1.62,
+        "enemyDetectionRadius": 2.4,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "effective": {
+        "moveSpeed": 8.2,
+        "interactRadius": 1.62,
+        "enemyDetectionRadius": 2.4,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "changedScalars": []
+    },
+    {
+      "id": "echo-vanguard",
+      "name": "Echo Vanguard",
+      "role": "Heavy recon kit",
+      "assetAuditId": "hero:echo-vanguard",
+      "traitIds": [
+        "echo-dampeners",
+        "armored-step",
+        "long-reach-interface"
+      ],
+      "traitSummary": [
+        "Lower sentry contact radius",
+        "Slightly slower movement",
+        "Wider objective reach"
+      ],
+      "base": {
+        "moveSpeed": 8.2,
+        "interactRadius": 1.62,
+        "enemyDetectionRadius": 2.4,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "effective": {
+        "moveSpeed": 7.54,
+        "interactRadius": 1.77,
+        "enemyDetectionRadius": 2.11,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "changedScalars": [
+        "moveSpeed",
+        "interactRadius",
+        "enemyDetectionRadius"
+      ]
+    },
+    {
+      "id": "signal-warden",
+      "name": "Signal Warden",
+      "role": "Fast response suit",
+      "assetAuditId": "hero:signal-warden",
+      "traitIds": [
+        "overclocked-servos",
+        "signal-bleed"
+      ],
+      "traitSummary": [
+        "Faster route scouting",
+        "Louder sentry signature",
+        "Standard objective reach"
+      ],
+      "base": {
+        "moveSpeed": 8.2,
+        "interactRadius": 1.62,
+        "enemyDetectionRadius": 2.4,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "effective": {
+        "moveSpeed": 9.02,
+        "interactRadius": 1.62,
+        "enemyDetectionRadius": 2.59,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "changedScalars": [
+        "moveSpeed",
+        "enemyDetectionRadius"
+      ]
+    },
+    {
+      "id": "circuit-nomad",
+      "name": "Circuit Nomad",
+      "role": "Adaptive scout",
+      "assetAuditId": "hero:circuit-nomad",
+      "traitIds": [
+        "adaptive-interface",
+        "exfil-beacon-link",
+        "hotwire-stack"
+      ],
+      "traitSummary": [
+        "Widest objective reach",
+        "Larger extraction hold zone",
+        "Slightly faster terminal use"
+      ],
+      "base": {
+        "moveSpeed": 8.2,
+        "interactRadius": 1.62,
+        "enemyDetectionRadius": 2.4,
+        "terminalUseMs": 1200,
+        "extractionRadius": 2.7
+      },
+      "effective": {
+        "moveSpeed": 8.2,
+        "interactRadius": 2.07,
+        "enemyDetectionRadius": 2.4,
+        "terminalUseMs": 1080,
+        "extractionRadius": 3.05
+      },
+      "changedScalars": [
+        "interactRadius",
+        "terminalUseMs",
+        "extractionRadius"
+      ]
+    }
+  ]
+}

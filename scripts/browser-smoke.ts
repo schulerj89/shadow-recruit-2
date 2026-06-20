@@ -58,7 +58,7 @@ try {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
   await expectPhase('title');
-  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(0.35));
+  await page.evaluate(() => window.__shadowRecruitDebug?.clearTitleOrbitAngle());
   await expectNonblankCanvas();
   const titleHeroVisible = await page.evaluate(() => window.__shadowRecruitDebug?.playerVisible());
   if (!titleHeroVisible) {
@@ -75,31 +75,35 @@ try {
     !Array.isArray(titleComposition.identityAnchors) ||
     titleComposition.identityAnchors.filter((anchor) => ['head', 'visor', 'chest'].includes(anchor.id) && anchor.visible && !anchor.uiOccluded).length < 3 ||
     !titleComposition.heroScreenBounds ||
-    !titleComposition.levelPreviewVisible ||
-    titleComposition.orbitRadius < 5 ||
+    titleComposition.levelPreviewVisible ||
+    !titleComposition.titleBackdropVisible ||
+    !titleComposition.titleFloorVisible ||
     !titleTreatment?.wordmarkReadable ||
     !titleTreatment.wordmarkBounds ||
     titleTreatment.wordmarkBounds.areaRatio < 0.04 ||
     titleTreatment.panelOverlapRatio > 0.01 ||
     titleTreatment.heroOverlapRatio > 0.32
   ) {
-    throw new Error(`Expected title hero, native wordmark, and Level 1 preview orbit to be readable, got ${JSON.stringify(titleComposition)}`);
+    throw new Error(`Expected static title hero, native wordmark, door backdrop, and floor to be readable, got ${JSON.stringify(titleComposition)}`);
   }
   await expectAudioState('title', { muted: false, unlocked: false });
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });
   await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(1.85));
   const laterTitleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
-  if (
-    !laterTitleComposition?.levelPreviewVisible ||
-    Math.hypot(
+  const titleCameraDelta = laterTitleComposition
+    ? Math.hypot(
       laterTitleComposition.cameraPosition.x - titleComposition.cameraPosition.x,
       laterTitleComposition.cameraPosition.z - titleComposition.cameraPosition.z,
-    ) < 4
+    )
+    : Infinity;
+  if (
+    !laterTitleComposition?.titleBackdropVisible ||
+    !laterTitleComposition.titleFloorVisible ||
+    laterTitleComposition.levelPreviewVisible ||
+    titleCameraDelta > 0.01
   ) {
-    throw new Error(`Expected deterministic title orbit camera movement around Level 1 preview, got ${JSON.stringify({ titleComposition, laterTitleComposition })}`);
+    throw new Error(`Expected static title camera with no Level 1 orbit preview, got ${JSON.stringify({ titleComposition, laterTitleComposition, titleCameraDelta })}`);
   }
-  await page.screenshot({ path: `${screenshotDir}/01b-title-orbit-preview.png`, fullPage: true });
-  await page.evaluate(() => window.__shadowRecruitDebug?.clearTitleOrbitAngle());
 
   await page.getByRole('button', { name: 'Settings' }).click();
   await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });
