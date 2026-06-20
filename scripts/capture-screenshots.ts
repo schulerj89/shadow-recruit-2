@@ -92,6 +92,16 @@ try {
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.teleportPlayerTo({ x: -24, z: -25 }));
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
+  const gameplayCamera = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState().gameplayCamera);
+  if (
+    !gameplayCamera?.readable ||
+    gameplayCamera.cameraDistance > 7.1 ||
+    gameplayCamera.playerScreenHeightRatio < 0.12 ||
+    gameplayCamera.playerScreenOccupancy < 0.004
+  ) {
+    throw new Error(`Normal gameplay camera is not close enough for player readability: ${JSON.stringify(gameplayCamera)}`);
+  }
+  await writeFile(`${qaDir}/gameplay-camera.json`, JSON.stringify(gameplayCamera, null, 2));
   await page.screenshot({ path: `${outputDir}/gameplay-level-one.png`, fullPage: true });
   await captureDoorFocus('access-keycard', 'lobby-door');
   await captureDoorFocus('security-terminal', 'server-door');

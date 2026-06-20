@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.16.4 - 2026-06-20
+
+### Patch
+
+- Tuned the normal gameplay camera closer to the player and added camera readability diagnostics for distance, projected player bounds, screen height, and screen occupancy.
+- Added smoke, screenshot, tester-report, and skill gates so the primary gameplay camera cannot regress into a distant tactical overview without failing QA.
+
 ## 0.16.3 - 2026-06-20
 
 ### Patch

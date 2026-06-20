@@ -21,6 +21,7 @@ import type {
   EnemyRuntime,
   FramePacingSample,
   GameSettings,
+  GameplayCameraState,
   GeometryDiagnostics,
   LevelCatalogEntry,
   LevelDefinition,
@@ -81,6 +82,8 @@ type AssetQualityOptions = {
 type ShellTextureKind = 'floor' | 'wall' | 'blocker' | 'trim';
 
 const minimumLoadingScreenMs = 650;
+const gameplayCameraTargetHeight = 1.15;
+const gameplayCameraOffset = { x: 3.15, y: 3.85, z: 4.65 };
 
 const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
   performance: {
@@ -305,6 +308,8 @@ export class ShadowRecruitApp {
   private readonly enemyDetectionCones = new Map<string, THREE.Object3D>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
   private readonly boundsScratch = new THREE.Box3();
+  private readonly gameplayCameraTargetScratch = new THREE.Vector3();
+  private readonly gameplayCameraDesiredScratch = new THREE.Vector3();
   private readonly doorTexture = new THREE.TextureLoader().load(doorPanelUrl);
   private readonly floorTexture = new THREE.TextureLoader().load(floorPanelUrl);
   private readonly wallTexture = new THREE.TextureLoader().load(wallPanelUrl);
@@ -1038,7 +1043,7 @@ export class ShadowRecruitApp {
     } else if (this.phase === 'playing') {
       this.updatePlaying(delta);
     } else if (this.phase === 'cinematic-focus' && performance.now() > this.focusUntil) {
-      this.setPhase('playing');
+      this.enterGameplay();
     }
 
     this.updateDoors(delta);
@@ -1164,14 +1169,27 @@ export class ShadowRecruitApp {
   }
 
   private updateGameplayCamera(snap = false): void {
-    const target = new THREE.Vector3(this.playerPosition.x, 1.05, this.playerPosition.z);
-    const desired = new THREE.Vector3(this.playerPosition.x + 4.1, 5.2, this.playerPosition.z + 6.2);
+    const target = this.gameplayCameraTargetScratch.set(
+      this.playerPosition.x,
+      gameplayCameraTargetHeight,
+      this.playerPosition.z,
+    );
+    const desired = this.gameplayCameraDesiredScratch.set(
+      this.playerPosition.x + gameplayCameraOffset.x,
+      gameplayCameraOffset.y,
+      this.playerPosition.z + gameplayCameraOffset.z,
+    );
     if (snap) {
       this.camera.position.copy(desired);
     } else {
-      this.camera.position.lerp(desired, 0.08);
+      this.camera.position.lerp(desired, 0.11);
     }
     this.camera.lookAt(target);
+  }
+
+  private enterGameplay(): void {
+    this.setPhase('playing');
+    this.updateGameplayCamera(true);
   }
 
   private tryInteract(): void {
@@ -1294,8 +1312,7 @@ export class ShadowRecruitApp {
     if (this.phase !== 'tutorial') return;
     this.tutorialIndex += 1;
     if (this.tutorialIndex >= this.level.tutorial.length) {
-      this.setPhase('playing');
-      this.runStartedAt = performance.now();
+      this.enterGameplay();
       return;
     }
     this.focusTarget(this.level.tutorial[this.tutorialIndex].target);
@@ -1563,8 +1580,7 @@ export class ShadowRecruitApp {
     } else if (action === 'next-tutorial') {
       this.nextTutorial();
     } else if (action === 'skip-tutorial') {
-      this.setPhase('playing');
-      this.runStartedAt = performance.now();
+      this.enterGameplay();
     } else if (action === 'retry') {
       await this.startRun();
     } else if (action === 'toggle-mute') {
@@ -2508,6 +2524,41 @@ export class ShadowRecruitApp {
     };
   }
 
+  private gameplayCameraState(): GameplayCameraState {
+    const target = new THREE.Vector3(this.playerPosition.x, gameplayCameraTargetHeight, this.playerPosition.z);
+    const playerObject = this.player?.object;
+    const playerScreenBounds = playerObject ? this.projectObjectScreenBounds(playerObject) : undefined;
+    const playerScreenOccupancy = playerScreenBounds?.areaRatio ?? 0;
+    const playerScreenHeightRatio = playerScreenBounds?.heightRatio ?? 0;
+    const cameraDistance = this.camera.position.distanceTo(target);
+    const active = this.phase === 'playing';
+    const readable = active &&
+      Boolean(playerObject?.visible) &&
+      cameraDistance >= 4.6 &&
+      cameraDistance <= 7.1 &&
+      playerScreenHeightRatio >= 0.12 &&
+      playerScreenOccupancy >= 0.004;
+    const notes = readable
+      ? ['Gameplay camera keeps the player close enough to read the hero, nearby floor texture, cover, doors, and objectives.']
+      : [
+        active ? 'Gameplay phase is active.' : 'Gameplay phase is not active.',
+        playerObject?.visible ? 'Player object is visible.' : 'Player object is missing or hidden.',
+        `cameraDistance=${roundMetric(cameraDistance)}, screenHeight=${roundMetric(playerScreenHeightRatio)}, screenOccupancy=${roundMetric(playerScreenOccupancy)}.`,
+      ];
+
+    return {
+      active,
+      readable,
+      cameraPosition: this.vectorSnapshot(this.camera.position),
+      cameraTarget: this.vectorSnapshot(target),
+      cameraDistance: roundMetric(cameraDistance),
+      ...(playerScreenBounds ? { playerScreenBounds } : {}),
+      playerScreenOccupancy: roundMetric(playerScreenOccupancy),
+      playerScreenHeightRatio: roundMetric(playerScreenHeightRatio),
+      notes,
+    };
+  }
+
   private framePacing(): FramePacingSample {
     const samples = [...this.frameDeltas].sort((a, b) => a - b);
     const latest = this.frameDeltas[this.frameDeltas.length - 1] ?? 16.7;
@@ -2527,7 +2578,7 @@ export class ShadowRecruitApp {
     if (!level) throw new Error(`Unknown mission: ${missionId}`);
     this.level = level;
     await this.startRun(this.selectedHero, missionId);
-    this.setPhase('playing');
+    this.enterGameplay();
   }
 
   private movePlayerTo(point: Vec2): void {
@@ -2558,6 +2609,7 @@ export class ShadowRecruitApp {
       loading: this.loadingState(),
       tutorial: this.tutorialState(),
       cinematicFocus: this.cinematicFocusState(),
+      gameplayCamera: this.gameplayCameraState(),
       completion: this.completionStats(),
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),

@@ -399,6 +399,18 @@ export type CinematicFocusState = {
   cameraPosition: { x: number; y: number; z: number };
 };
 
+export type GameplayCameraState = {
+  active: boolean;
+  readable: boolean;
+  cameraPosition: { x: number; y: number; z: number };
+  cameraTarget: { x: number; y: number; z: number };
+  cameraDistance: number;
+  playerScreenBounds?: ScreenBounds;
+  playerScreenOccupancy: number;
+  playerScreenHeightRatio: number;
+  notes: readonly string[];
+};
+
 export type CompletionStats = {
   active: boolean;
   elapsedSeconds: number;
@@ -419,6 +431,7 @@ export type TesterState = {
   loading: LoadingState;
   tutorial: TutorialState;
   cinematicFocus: CinematicFocusState;
+  gameplayCamera: GameplayCameraState;
   completion: CompletionStats;
   playerPosition: Vec2;
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };

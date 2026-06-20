@@ -14,6 +14,7 @@ const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const committedFailureRetryPath = `${outputDir}/failure-retry-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
+const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
 const screenshotDir = `${outputDir}/screenshots`;
@@ -91,6 +92,7 @@ type Metrics = {
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
   titleComposition?: TitleComposition;
+  gameplayCamera?: GameplayCameraState;
   tutorialAlignment?: readonly TutorialAlignmentCheck[];
   loading?: LoadingState;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
@@ -121,6 +123,18 @@ type LoadingStep = {
   label: string;
   value: number;
   elapsedMs: number;
+};
+
+type GameplayCameraState = {
+  active: boolean;
+  readable: boolean;
+  cameraPosition: { x: number; y: number; z: number };
+  cameraTarget: { x: number; y: number; z: number };
+  cameraDistance: number;
+  playerScreenBounds?: ScreenBounds;
+  playerScreenOccupancy: number;
+  playerScreenHeightRatio: number;
+  notes: readonly string[];
 };
 
 type LoadingState = {
@@ -390,6 +404,9 @@ const missionCatalogArtifact = existsSync(missionCatalogPath)
 const titleComposition = existsSync(titleCompositionPath)
   ? JSON.parse(await readFile(titleCompositionPath, 'utf8')) as TitleComposition
   : metrics?.titleComposition;
+const gameplayCamera = existsSync(gameplayCameraPath)
+  ? JSON.parse(await readFile(gameplayCameraPath, 'utf8')) as GameplayCameraState
+  : metrics?.gameplayCamera ?? (playthrough?.finalState?.gameplayCamera as GameplayCameraState | undefined);
 const tutorialAlignment = existsSync(tutorialAlignmentPath)
   ? JSON.parse(await readFile(tutorialAlignmentPath, 'utf8')) as readonly TutorialAlignmentCheck[]
   : metrics?.tutorialAlignment ?? [];
@@ -417,6 +434,7 @@ const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
+const gameplayCameraFindings = describeGameplayCameraFindings(gameplayCamera);
 const tutorialFindings = describeTutorialFindings(tutorialAlignment);
 const audioFindings = describeAudioFindings(metricAudio, completionAudio, settings, playthroughSettings);
 const failureRetryFindings = describeFailureRetryFindings(failureRetry);
@@ -463,6 +481,7 @@ Date: ${date}
 - Tutorial alignment: ${describeTutorialSummary(tutorialAlignment)}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
+- Gameplay camera: ${formatGameplayCameraSummary(gameplayCamera)}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); aaaReady=${describeAaaDensitySummary(geometry)}; zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Failure/retry evidence: ${formatFailureRetrySummary(failureRetry)}
@@ -479,6 +498,10 @@ ${formatFpsSceneMatrix(fpsScenes, baseline)}
 ## Tutorial Alignment QA
 
 ${formatTutorialAlignment(tutorialAlignment)}
+
+## Gameplay Camera QA
+
+${formatGameplayCamera(gameplayCamera)}
 
 ## Mission Catalog QA
 
@@ -513,7 +536,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
 - Failure/retry: verify intentional sentry contact shows the operation-failed overlay, increments alerts, keeps the sentry GLB proven, and Retry returns to a clean mission start without carrying objectives, open doors, or alert count forward.
 - Coordinate QA: verify door/wall continuity by edge coordinates, not screenshot impression alone. Wall gaps must name door ID, wall IDs, frame/continuity bounds, and measured gap widths.
-- Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the gameplay camera to the current player position.
+- Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the closer gameplay camera to the current player position and proving player screen occupancy.
 - Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate, fpsScenes)}
@@ -530,6 +553,7 @@ ${assetAuditFindings}
 ${tutorialFindings}
 ${assetFindings}
 ${titleFindings}
+${gameplayCameraFindings}
 ${geometryFindings}
 ${screenshotFindings}
 `);
@@ -848,6 +872,27 @@ function describeTitleFindings(composition: TitleComposition | undefined): strin
     return `- P1: Title Level 1 orbit preview is not proven: levelPreview=${Boolean(composition.levelPreviewVisible)}; orbitRadius=${composition.orbitRadius ?? 'missing'}. ${composition.notes.join(' ')}`;
   }
   return '- P1: None from generated title composition diagnostics.';
+}
+
+function formatGameplayCameraSummary(camera: GameplayCameraState | undefined): string {
+  if (!camera) return 'not captured';
+  return `readable=${camera.readable}; active=${camera.active}; cameraDistance=${camera.cameraDistance}; screenHeight=${formatRatio(camera.playerScreenHeightRatio)}; screenOccupancy=${formatRatio(camera.playerScreenOccupancy)}; screenBounds=${formatScreenBounds(camera.playerScreenBounds)}`;
+}
+
+function formatGameplayCamera(camera: GameplayCameraState | undefined): string {
+  if (!camera) return '- Gameplay camera diagnostics not captured.';
+  return `- ${camera.readable ? 'PASS' : 'FAIL'} gameplay-camera: active=${camera.active}; readable=${camera.readable}; cameraDistance=${camera.cameraDistance}; target=(${camera.cameraTarget.x},${camera.cameraTarget.y},${camera.cameraTarget.z}); camera=(${camera.cameraPosition.x},${camera.cameraPosition.y},${camera.cameraPosition.z}); screenHeight=${formatRatio(camera.playerScreenHeightRatio)}; screenOccupancy=${formatRatio(camera.playerScreenOccupancy)}; screenBounds=${formatScreenBounds(camera.playerScreenBounds)}. ${camera.notes.join(' ')}`;
+}
+
+function describeGameplayCameraFindings(camera: GameplayCameraState | undefined): string {
+  if (!camera) return '- P1: Gameplay camera diagnostics missing; tester cannot prove the closer player-readable camera framing.';
+  if (!camera.readable || !camera.playerScreenBounds) {
+    return `- P1: Gameplay camera is not close/readable enough from the active player screenshot: active=${camera.active}; readable=${camera.readable}; cameraDistance=${camera.cameraDistance}; screenHeight=${formatRatio(camera.playerScreenHeightRatio)}; screenOccupancy=${formatRatio(camera.playerScreenOccupancy)}. ${camera.notes.join(' ')}`;
+  }
+  if (camera.cameraDistance > 7.1 || camera.playerScreenHeightRatio < 0.12 || camera.playerScreenOccupancy < 0.004) {
+    return `- P1: Gameplay camera metrics are below readability thresholds: cameraDistance=${camera.cameraDistance}; screenHeight=${formatRatio(camera.playerScreenHeightRatio)}; screenOccupancy=${formatRatio(camera.playerScreenOccupancy)}.`;
+  }
+  return '- P1: None from generated gameplay camera diagnostics.';
 }
 
 function formatScreenBounds(bounds: ScreenBounds | undefined): string {
