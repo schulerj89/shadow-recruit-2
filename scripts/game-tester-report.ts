@@ -5,9 +5,11 @@ import packageInfo from '../package.json';
 const date = process.env.QA_DATE ?? '2026-06-20';
 const outputDir = process.env.TESTER_REPORT_DIR ?? `docs/qa/${date}/v${packageInfo.version}`;
 const smokeDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
+const playthroughReportPath = process.env.PLAYTHROUGH_REPORT_PATH ?? `artifacts/playthrough/v${packageInfo.version}/playthrough-report.json`;
 const fpsMetricsPath = process.env.FPS_METRICS_PATH ?? `artifacts/fps/v${packageInfo.version}/metrics.json`;
 const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
+const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 
 type Metrics = {
@@ -30,6 +32,9 @@ type Metrics = {
 const metrics = existsSync(fpsMetricsPath)
   ? JSON.parse(await readFile(fpsMetricsPath, 'utf8')) as Metrics
   : null;
+const playthroughReport = existsSync(playthroughReportPath)
+  ? await readFile(playthroughReportPath, 'utf8')
+  : null;
 const frame = metrics?.framePacing;
 const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
@@ -42,6 +47,9 @@ await mkdir(outputDir, { recursive: true });
 if (metrics) {
   await writeFile(committedMetricsPath, JSON.stringify(metrics, null, 2));
 }
+if (playthroughReport) {
+  await writeFile(committedPlaythroughPath, playthroughReport);
+}
 await writeFile(reportPath, `# Shadow Recruit 2 Game Tester Report
 
 Build: v${packageInfo.version}
@@ -50,6 +58,7 @@ Date: ${date}
 ## Evidence
 
 - Smoke screenshots: \`${smokeDir}\`
+- Browser playthrough: \`${committedPlaythroughPath}\` (${playthroughReport ? 'captured' : 'not captured'})
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
 - Metrics available: ${metrics ? 'yes' : 'no'}
@@ -65,6 +74,7 @@ Date: ${date}
 - Title flow: verify logo, rotating level-one preview, hero model, Start, Change Hero, and Settings are visible.
 - Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and the final step includes "Good luck, cadet."
 - Level: verify keycard, terminal, command codes, sentries, extraction, and all three door-focus screenshots are readable.
+- Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate)}
 

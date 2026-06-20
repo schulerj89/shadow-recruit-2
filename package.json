@@ -1,6 +1,6 @@
 {
   "name": "shadow-recruit-2",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "test:geometry": "node .codex/skills/threejs-level-geometry-validator/scripts/validate_level_geometry.mjs data/levels/level-one.geometry.json --min-clearance 1.1 --json",
     "test:playthrough": "tsx scripts/scripted-playthrough.ts",
+    "playthrough:browser": "tsx scripts/browser-playthrough.ts",
     "test:browser": "tsx scripts/browser-smoke.ts",
     "test:fps": "tsx scripts/fps-gate.ts",
     "screenshots": "tsx scripts/capture-screenshots.ts",

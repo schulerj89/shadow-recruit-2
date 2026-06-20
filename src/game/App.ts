@@ -56,6 +56,7 @@ type ShadowRecruitDebugApi = {
   memoryMetrics: () => MemoryMetrics;
   selectMission: (missionId: string) => Promise<void>;
   movePlayerTo: (point: Vec2) => void;
+  teleportPlayerTo: (point: Vec2) => void;
   collectObjective: (objectiveId: string) => void;
   forceAlert: () => void;
   forceFailure: () => void;
@@ -982,10 +983,14 @@ export class ShadowRecruitApp {
   }
 
   private movePlayerTo(point: Vec2): void {
-    this.playerPosition = { ...point };
-    if (this.player) this.player.object.position.set(point.x, 0, point.z);
+    this.teleportPlayerTo(point);
     this.tryInteract();
     this.checkExtraction();
+  }
+
+  private teleportPlayerTo(point: Vec2): void {
+    this.playerPosition = { ...point };
+    if (this.player) this.player.object.position.set(point.x, 0, point.z);
   }
 
   private forceAlert(): void {
@@ -1030,6 +1035,7 @@ export class ShadowRecruitApp {
       memoryMetrics: () => this.memoryMetrics(),
       selectMission: (missionId) => this.selectMission(missionId),
       movePlayerTo: (point) => this.movePlayerTo(point),
+      teleportPlayerTo: (point) => this.teleportPlayerTo(point),
       collectObjective: (objectiveId) => this.collectObjective(objectiveId),
       forceAlert: () => this.forceAlert(),
       forceFailure: () => this.setPhase('caught'),

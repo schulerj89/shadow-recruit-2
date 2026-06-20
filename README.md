@@ -24,6 +24,19 @@ See `AGENTS.md` for when to use each skill.
 
 ## Validation
 
+Browser commands assume the Vite dev server is available on `http://127.0.0.1:5173/`.
+
+```powershell
+npm run verify
+npm run playthrough:browser
+npm run test:browser
+npm run test:fps
+npm run screenshots
+npm run tester:report
+```
+
+Skill edits should also run:
+
 ```powershell
 python C:\Users\joshs\.codex\skills\.system\skill-creator\scripts\quick_validate.py .codex\skills\threejs-game-director
 ```

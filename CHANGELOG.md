@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-06-20
+
+### Minor
+
+- Added a browser playthrough runner that drives the authored route, keyboard objective interactions, door-focus cinematics, and extraction completion with artifacts.
+
 ## 0.1.7 - 2026-06-20
 
 ### Patch

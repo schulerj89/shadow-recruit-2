@@ -26,6 +26,7 @@ Expose:
 - `framePacing`
 - `memoryMetrics`
 - `movePlayerTo`
+- `teleportPlayerTo`
 - `collectObjective`
 - `forceAlert`
 - `forceFailure`
@@ -36,6 +37,7 @@ Expose:
 ## Scripts
 
 - `npm run test:playthrough`
+- `npm run playthrough:browser`
 - `npm run test:browser`
 - `npm run test:fps`
 - `npm run screenshots`
