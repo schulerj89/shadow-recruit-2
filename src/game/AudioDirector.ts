@@ -2,9 +2,9 @@ import titleTrackUrl from '../assets/title-on-patrol.ogg?url';
 import gameplayTrackUrl from '../assets/ghost-steps.mp3?url';
 import loadingTrackUrl from '../assets/future-loading-loop.wav?url';
 import completionTrackUrl from '../assets/dark-sci-fi-urgent.mp3?url';
-import type { GameSettings } from './types';
+import type { AudioState, AudioTrackId, GameSettings } from './types';
 
-type TrackId = 'title' | 'loading' | 'gameplay' | 'complete';
+type TrackId = AudioTrackId;
 
 const tracks: Record<TrackId, string> = {
   title: titleTrackUrl,
@@ -64,7 +64,7 @@ export class AudioDirector {
     this.activeTrack = null;
   }
 
-  snapshot(): { activeTrack: TrackId | null; muted: boolean; unlocked: boolean } {
+  snapshot(): AudioState {
     return {
       activeTrack: this.activeTrack,
       muted: this.settings.muted,

@@ -34,6 +34,7 @@ try {
   if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65 || !titleComposition.levelPreviewVisible || titleComposition.orbitRadius < 5) {
     throw new Error(`Expected title hero and Level 1 preview orbit to be readable, got ${JSON.stringify(titleComposition)}`);
   }
+  await expectAudioState('title', { muted: false, unlocked: false });
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });
   await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(1.85));
   const laterTitleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
@@ -59,6 +60,7 @@ try {
   if (!settings?.debug || !settings.muted || settings.performanceProfile !== 'performance') {
     throw new Error(`Expected settings to update, got ${JSON.stringify(settings)}`);
   }
+  await expectAudioState('title', { muted: true, unlocked: true });
   await page.getByRole('button', { name: 'Back' }).click();
   await expectPhase('title');
 
@@ -80,8 +82,10 @@ try {
   if (!loadingState?.active || loadingState.value <= 0 || loadingState.history.length === 0) {
     throw new Error(`Expected observable loading state before tutorial, got ${JSON.stringify(loadingState)}`);
   }
+  await expectAudioState('loading', { muted: true, unlocked: true });
   await page.screenshot({ path: `${screenshotDir}/03b-loading-level-one.png`, fullPage: true });
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
+  await expectAudioState('gameplay', { muted: true, unlocked: true });
 
   const tutorialSteps = [
     { id: 'hero', title: 'Insertion', target: 'hero' },
@@ -120,6 +124,7 @@ try {
   await expectStat('complete-stat-alerts', '0');
   await expectStat('complete-stat-profile', 'performance');
   await page.screenshot({ path: `${screenshotDir}/12-complete.png`, fullPage: true });
+  await expectAudioState('complete', { muted: true, unlocked: true });
 
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
@@ -130,6 +135,9 @@ try {
   }
   if (!state.completion.active || !state.completion.triumphantCue || state.completion.objectivesCompleted !== 3 || state.completion.objectivesTotal !== 3 || state.completion.alerts !== 0) {
     throw new Error(`Expected completion stats with triumphant cue, got ${JSON.stringify(state.completion)}`);
+  }
+  if (!state.audio || state.audio.activeTrack !== 'complete' || !state.audio.muted || !state.audio.unlocked) {
+    throw new Error(`Expected final tester audio state to retain muted completion cue, got ${JSON.stringify(state.audio)}`);
   }
   if (state.renderer.drawCalls <= 0 || state.renderer.triangles <= 0) {
     throw new Error(`Expected live renderer metrics, got ${JSON.stringify(state.renderer)}`);
@@ -213,6 +221,16 @@ async function expectStat(testId: string, value: string): Promise<void> {
   const text = await page.locator(`[data-testid="${testId}"] strong`).innerText({ timeout: 10000 });
   if (text.trim() !== value) {
     throw new Error(`Expected ${testId} to be ${value}, got ${text}`);
+  }
+}
+
+async function expectAudioState(
+  activeTrack: 'title' | 'loading' | 'gameplay' | 'complete',
+  expected: { muted: boolean; unlocked: boolean },
+): Promise<void> {
+  const state = await page.evaluate(() => window.__shadowRecruitDebug?.audioState());
+  if (!state || state.activeTrack !== activeTrack || state.muted !== expected.muted || state.unlocked !== expected.unlocked) {
+    throw new Error(`Expected audio ${activeTrack} muted=${expected.muted} unlocked=${expected.unlocked}, got ${JSON.stringify(state)}`);
   }
 }
 

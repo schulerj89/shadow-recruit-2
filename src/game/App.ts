@@ -10,6 +10,7 @@ import { defaultLevel, getLevelById, levelCatalog } from './levels';
 import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract } from './math';
 import { isPerformanceProfile, loadSettings, saveSettings } from './settings';
 import type {
+  AudioState,
   AssetQualityCheck,
   AssetQualityGrade,
   Bounds3,
@@ -121,6 +122,7 @@ type ShadowRecruitDebugApi = {
   missionId: () => string;
   missions: () => readonly LevelCatalogEntry[];
   settings: () => GameSettings;
+  audioState: () => AudioState;
   loadingState: () => LoadingState;
   tutorialStep: () => TutorialState;
   cinematicFocus: () => CinematicFocusState;
@@ -2328,6 +2330,7 @@ export class ShadowRecruitApp {
       levelId: this.level.id,
       selectedHero: this.selectedHero,
       settings: { ...this.settings },
+      audio: this.audio.snapshot(),
       loading: this.loadingState(),
       tutorial: this.tutorialState(),
       cinematicFocus: this.cinematicFocusState(),
@@ -2407,6 +2410,7 @@ export class ShadowRecruitApp {
       missionId: () => this.level.id,
       missions: () => levelCatalog,
       settings: () => ({ ...this.settings }),
+      audioState: () => this.audio.snapshot(),
       loadingState: () => this.loadingState(),
       tutorialStep: () => this.tutorialState(),
       cinematicFocus: () => this.cinematicFocusState(),

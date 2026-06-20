@@ -20,6 +20,14 @@ export type GameSettings = {
   performanceProfile: PerformanceProfile;
 };
 
+export type AudioTrackId = 'title' | 'loading' | 'gameplay' | 'complete';
+
+export type AudioState = {
+  activeTrack: AudioTrackId | null;
+  muted: boolean;
+  unlocked: boolean;
+};
+
 export type RectSpec = {
   id: string;
   center: Vec2;
@@ -300,6 +308,7 @@ export type TesterState = {
   levelId: string;
   selectedHero: string;
   settings: GameSettings;
+  audio: AudioState;
   loading: LoadingState;
   tutorial: TutorialState;
   cinematicFocus: CinematicFocusState;

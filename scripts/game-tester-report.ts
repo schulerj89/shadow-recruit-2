@@ -54,6 +54,7 @@ type Metrics = {
     textures: number;
   };
   memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[]; failedAssetIds?: readonly string[] };
+  audio?: AudioState;
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
   titleComposition?: TitleComposition;
@@ -72,6 +73,12 @@ type LoadingState = {
   label: string;
   value: number;
   history: readonly LoadingStep[];
+};
+
+type AudioState = {
+  activeTrack: 'title' | 'loading' | 'gameplay' | 'complete' | null;
+  muted: boolean;
+  unlocked: boolean;
 };
 
 type TitleComposition = {
@@ -205,10 +212,14 @@ const assetQuality = metrics?.assetQuality ?? [];
 const geometry = metrics?.geometry ?? (playthrough?.finalState?.geometry as GeometryDiagnostics | undefined);
 const loading = metrics?.loading ?? (playthrough?.finalState?.loading as LoadingState | undefined);
 const settings = metrics?.settings;
+const metricAudio = metrics?.audio;
+const completionAudio = playthrough?.finalState?.audio as AudioState | undefined;
+const playthroughSettings = playthrough?.finalState?.settings as { debug: boolean; muted: boolean; performanceProfile: string } | undefined;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
+const audioFindings = describeAudioFindings(metricAudio, completionAudio, settings, playthroughSettings);
 const screenshotCoverage = await inspectScreenshotCoverage(screenshotDir);
 const screenshotFindings = describeScreenshotFindings(screenshotCoverage);
 
@@ -237,6 +248,7 @@ Date: ${date}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
+- Audio state: gameplay metrics=${formatAudioState(metricAudio)}; completion playthrough=${formatAudioState(completionAudio)}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
@@ -277,6 +289,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - P0: None recorded by generated report.
 ${frameFinding}
 ${describeLoadingFindings(loading)}
+${audioFindings}
 ${assetFindings}
 ${titleFindings}
 ${geometryFindings}
@@ -350,6 +363,50 @@ function describeLoadingFindings(loading: LoadingState | undefined): string {
     return `- P2: Latest loading state did not reach ready/start value: ${loading.label} ${(loading.value * 100).toFixed(0)}%.`;
   }
   return '- P1: None from generated loading diagnostics.';
+}
+
+function describeAudioFindings(
+  metricAudio: AudioState | undefined,
+  completionAudio: AudioState | undefined,
+  metricSettings: Metrics['settings'] | undefined,
+  completionSettings: Metrics['settings'] | undefined,
+): string {
+  const findings: string[] = [];
+  if (!metricAudio) {
+    findings.push('- P1: Gameplay audio diagnostics missing from FPS metrics.');
+  } else {
+    if (metricAudio.activeTrack !== 'gameplay') {
+      findings.push(`- P1: Gameplay audio should be on the gameplay track during FPS metrics, got ${formatAudioState(metricAudio)}.`);
+    }
+    if (!metricAudio.unlocked) {
+      findings.push(`- P1: Gameplay audio should be unlocked after mission start, got ${formatAudioState(metricAudio)}.`);
+    }
+    if (metricSettings && metricAudio.muted !== metricSettings.muted) {
+      findings.push(`- P1: Gameplay audio mute state (${metricAudio.muted}) does not match settings mute state (${metricSettings.muted}).`);
+    }
+  }
+
+  if (!completionAudio) {
+    findings.push('- P1: Completion audio diagnostics missing from browser playthrough final state.');
+  } else {
+    if (completionAudio.activeTrack !== 'complete') {
+      findings.push(`- P1: Completion audio should switch to the triumphant completion track, got ${formatAudioState(completionAudio)}.`);
+    }
+    if (!completionAudio.unlocked) {
+      findings.push(`- P1: Completion audio should remain unlocked after player input, got ${formatAudioState(completionAudio)}.`);
+    }
+    if (completionSettings && completionAudio.muted !== completionSettings.muted) {
+      findings.push(`- P1: Completion audio mute state (${completionAudio.muted}) does not match playthrough settings mute state (${completionSettings.muted}).`);
+    }
+  }
+
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated audio diagnostics.';
+}
+
+function formatAudioState(audio: AudioState | undefined): string {
+  return audio
+    ? `active=${audio.activeTrack ?? 'none'}; muted=${audio.muted}; unlocked=${audio.unlocked}`
+    : 'not captured';
 }
 
 function describeTitleFindings(composition: TitleComposition | undefined): string {
