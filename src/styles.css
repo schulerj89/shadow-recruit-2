@@ -208,6 +208,57 @@ input[type="checkbox"] {
   margin-left: 20px;
 }
 
+.mission-select-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.46fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid rgba(147, 186, 211, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mission-select-row {
+  display: grid;
+  gap: 8px;
+  align-self: start;
+}
+
+.mission-select-row span,
+.mission-brief strong {
+  color: #9ec7d9;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.mission-select-row select {
+  width: 100%;
+  min-height: 38px;
+  color: #ecf7ff;
+  background: #0b121c;
+  border: 1px solid rgba(132, 216, 233, 0.38);
+  border-radius: 6px;
+  padding: 0 10px;
+}
+
+.mission-brief {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mission-brief span {
+  font-weight: 800;
+}
+
+.mission-brief small {
+  color: #a9c0cc;
+  line-height: 1.38;
+}
+
 .settings-screen {
   width: min(1040px, 94vw);
 }
@@ -470,6 +521,10 @@ input[type="checkbox"] {
   .hero-grid,
   .stats-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .mission-select-panel {
+    grid-template-columns: 1fr;
   }
 
   .hero-select {

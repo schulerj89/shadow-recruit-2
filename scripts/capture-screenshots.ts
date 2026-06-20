@@ -49,8 +49,25 @@ try {
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'title', undefined, { timeout: 30000 });
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
+  const missionCatalog = await page.evaluate(() => ({
+    selectedMissionId: window.__shadowRecruitDebug?.missionId(),
+    missions: window.__shadowRecruitDebug?.missions(),
+  }));
+  const selectedMission = await page.getByLabel('Mission').inputValue();
+  const missionBrief = await page.locator('[data-testid="mission-brief"]').innerText();
+  const catalogMissions = missionCatalog.missions ?? [];
+  if (
+    selectedMission !== missionCatalog.selectedMissionId ||
+    !catalogMissions.some((mission) => mission.id === selectedMission) ||
+    !missionBrief.includes('required objectives') ||
+    !missionBrief.includes('sentries')
+  ) {
+    throw new Error(`Mission selector evidence is incomplete: ${JSON.stringify({ selectedMission, missionCatalog, missionBrief })}`);
+  }
+  const selectedMissionName = catalogMissions.find((mission) => mission.id === selectedMission)?.name ?? 'Blacksite Threshold';
+  await writeFile(`${qaDir}/mission-catalog.json`, JSON.stringify({ ...missionCatalog, missionBrief }, null, 2));
   await page.screenshot({ path: `${outputDir}/hero-select.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Start Level' }).click();
+  await page.getByRole('button', { name: new RegExp(`^Start ${escapeRegex(selectedMissionName)}$`) }).click();
   await page.waitForSelector('[data-testid="loading-panel"]', { timeout: 12000 });
   const loadingState = await page.evaluate(() => window.__shadowRecruitDebug?.loadingState());
   if (!loadingState?.active || loadingState.value <= 0 || loadingState.history.length === 0) {
@@ -98,4 +115,8 @@ async function captureDoorFocus(objectiveId: string, doorId: string): Promise<vo
   );
   await page.screenshot({ path: `${outputDir}/focus-${doorId}.png`, fullPage: true });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

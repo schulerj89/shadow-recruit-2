@@ -12,6 +12,7 @@ const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
+const missionCatalogPath = `${outputDir}/mission-catalog.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 const expectedScreenshots = [
   'title.png',
@@ -33,6 +34,8 @@ const expectedScreenshots = [
 ] as const;
 
 type Metrics = {
+  levelId?: string;
+  missionCatalog?: readonly LevelCatalogEntry[];
   framePacing?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
   browserBaseline?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
   fpsGate?: {
@@ -88,6 +91,20 @@ type AudioState = {
   activeTrack: 'title' | 'loading' | 'gameplay' | 'complete' | null;
   muted: boolean;
   unlocked: boolean;
+};
+
+type LevelCatalogEntry = {
+  id: string;
+  name: string;
+  chapter: string;
+  objectiveCount: number;
+  enemyCount: number;
+};
+
+type MissionCatalogArtifact = {
+  selectedMissionId?: string;
+  missions?: readonly LevelCatalogEntry[];
+  missionBrief?: string;
 };
 
 type TutorialAlignmentCheck = {
@@ -295,6 +312,9 @@ const playthroughReport = existsSync(playthroughReportPath)
   ? await readFile(playthroughReportPath, 'utf8')
   : null;
 const playthrough = playthroughReport ? JSON.parse(playthroughReport) : null;
+const missionCatalogArtifact = existsSync(missionCatalogPath)
+  ? JSON.parse(await readFile(missionCatalogPath, 'utf8')) as MissionCatalogArtifact
+  : null;
 const titleComposition = existsSync(titleCompositionPath)
   ? JSON.parse(await readFile(titleCompositionPath, 'utf8')) as TitleComposition
   : metrics?.titleComposition;
@@ -315,7 +335,11 @@ const settings = metrics?.settings;
 const metricAudio = metrics?.audio;
 const completionAudio = playthrough?.finalState?.audio as AudioState | undefined;
 const playthroughSettings = playthrough?.finalState?.settings as { debug: boolean; muted: boolean; performanceProfile: string } | undefined;
+const missionCatalog = missionCatalogArtifact?.missions ?? metrics?.missionCatalog ?? playthrough?.finalState?.missionCatalog ?? [];
+const selectedMissionId = missionCatalogArtifact?.selectedMissionId ?? metrics?.levelId ?? playthrough?.finalState?.levelId;
+const missionBrief = missionCatalogArtifact?.missionBrief;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
+const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
@@ -343,8 +367,10 @@ Date: ${date}
 - Browser playthrough: \`${committedPlaythroughPath}\` (${playthroughReport ? 'captured' : 'not captured'})
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
+- Mission catalog evidence: \`${missionCatalogPath}\` (${missionCatalogArtifact ? 'captured' : 'not captured'})
 - Screenshot coverage: ${screenshotCoverage.present.length}/${expectedScreenshots.length} expected captures present (${formatKb(screenshotCoverage.totalBytes)})
 - Metrics available: ${metrics ? 'yes' : 'no'}
+- Mission catalog: ${formatMissionCatalogSummary(missionCatalog, selectedMissionId, missionBrief)}
 - Game frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms median, ${(frame.latestFrameMs ?? frame.frameMs).toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
@@ -369,6 +395,10 @@ ${formatGeometryDiagnostics(geometry)}
 
 ${formatTutorialAlignment(tutorialAlignment)}
 
+## Mission Catalog QA
+
+${formatMissionCatalog(missionCatalog, selectedMissionId, missionBrief)}
+
 ## Wall-Run Interval QA
 
 ${formatWallRunContinuity(geometry)}
@@ -388,6 +418,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 ## Tester Feedback
 
 - Title flow: verify the native title treatment, cinematic scene, staged hero model, hero-select preview space, Start, Change Hero, and Settings are visible.
+- Mission catalog: verify the player-facing mission selector is visible before mission start, reflects the active level, and exposes objective/enemy counts for future big levels.
 - Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and every step ends with "Good luck, cadet."
 - Level: verify keycard, terminal, command codes, sentries, extraction, wall/floor meshes, wall/floor texture quality, and all three door-focus screenshots are readable and properly grounded.
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
@@ -401,6 +432,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 
 - P0: None recorded by generated report.
 ${frameFinding}
+${missionCatalogFindings}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
 ${assetAuditFindings}
@@ -412,6 +444,55 @@ ${screenshotFindings}
 `);
 
 console.info(`[tester-report] wrote ${reportPath}`);
+
+function formatMissionCatalogSummary(
+  catalog: readonly LevelCatalogEntry[],
+  selectedMissionId: string | undefined,
+  missionBrief: string | undefined,
+): string {
+  if (catalog.length === 0) return 'not captured';
+  const selected = catalog.find((mission) => mission.id === selectedMissionId);
+  const names = catalog.map((mission) => `${mission.id}(${mission.objectiveCount} objectives, ${mission.enemyCount} enemies)`).join(', ');
+  return `selected=${selected?.name ?? selectedMissionId ?? 'missing'}; missions=${catalog.length}; ${names}${missionBrief ? '; hero-select brief captured' : ''}`;
+}
+
+function formatMissionCatalog(
+  catalog: readonly LevelCatalogEntry[],
+  selectedMissionId: string | undefined,
+  missionBrief: string | undefined,
+): string {
+  if (catalog.length === 0) return '- Mission catalog diagnostics not captured.';
+  const selected = catalog.find((mission) => mission.id === selectedMissionId);
+  return [
+    `- ${selected ? 'PASS' : 'FAIL'} mission-selected: selected=${selectedMissionId ?? 'missing'}; label=${selected?.name ?? 'missing'}; brief=${missionBrief ? JSON.stringify(missionBrief) : 'not captured'}`,
+    ...catalog.map((mission) => `- PASS mission/${mission.id}: ${mission.chapter} / ${mission.name}; objectives=${mission.objectiveCount}; enemies=${mission.enemyCount}`),
+  ].join('\n');
+}
+
+function describeMissionCatalogFindings(
+  catalog: readonly LevelCatalogEntry[],
+  selectedMissionId: string | undefined,
+  missionBrief: string | undefined,
+): string {
+  if (catalog.length === 0) {
+    return '- P1: Mission catalog diagnostics missing; tester cannot prove the player-facing mission selector is backed by level data.';
+  }
+  const selected = catalog.find((mission) => mission.id === selectedMissionId);
+  const findings: string[] = [];
+  if (!selected) {
+    findings.push(`- P1: Selected mission ${selectedMissionId ?? 'missing'} is not present in the exposed mission catalog.`);
+  }
+  if (!missionBrief) {
+    findings.push('- P1: Mission selector brief was not captured in the hero-select screenshot evidence.');
+  } else if (!/required objectives/i.test(missionBrief) || !/sentries/i.test(missionBrief)) {
+    findings.push(`- P1: Mission selector brief does not expose objective and enemy counts: ${JSON.stringify(missionBrief)}.`);
+  }
+  for (const mission of catalog) {
+    if (mission.objectiveCount <= 0) findings.push(`- P1: Mission ${mission.id} exposes no required objectives in the catalog.`);
+    if (mission.enemyCount <= 0) findings.push(`- P1: Mission ${mission.id} exposes no sentry/enemy count in the catalog.`);
+  }
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated mission catalog diagnostics.';
+}
 
 function describeFrameFinding(
   frame: Metrics['framePacing'] | undefined,

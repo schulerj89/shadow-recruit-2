@@ -411,6 +411,7 @@ export type CompletionStats = {
 export type TesterState = {
   phase: Phase;
   levelId: string;
+  missionCatalog: readonly LevelCatalogEntry[];
   selectedHero: string;
   settings: GameSettings;
   audio: AudioState;

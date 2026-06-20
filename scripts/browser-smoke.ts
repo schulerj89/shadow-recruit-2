@@ -91,6 +91,18 @@ try {
 
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
+  const missions = await page.evaluate(() => window.__shadowRecruitDebug?.missions());
+  const missionSelectValue = await page.getByLabel('Mission').inputValue();
+  const missionBrief = await page.locator('[data-testid="mission-brief"]').innerText();
+  if (
+    !missions?.some((mission) => mission.id === defaultLevel.id && mission.objectiveCount === 3 && mission.enemyCount === 3) ||
+    missionSelectValue !== defaultLevel.id ||
+    !missionBrief.includes(defaultLevel.name) ||
+    !missionBrief.includes('3 required objectives') ||
+    !missionBrief.includes('3 sentries')
+  ) {
+    throw new Error(`Expected mission catalog selector for ${defaultLevel.id}, got ${JSON.stringify({ missions, missionSelectValue, missionBrief })}`);
+  }
   await page.getByText('Echo Vanguard').click();
   const selectedHero = await page.evaluate(() => window.__shadowRecruitDebug?.selectedHero());
   if (selectedHero !== 'echo-vanguard') {
@@ -101,7 +113,7 @@ try {
     throw new Error('Expected selected hero preview to remain visible.');
   }
   await page.screenshot({ path: `${screenshotDir}/03-hero-select.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Start Level' }).click();
+  await page.getByRole('button', { name: `Start ${defaultLevel.name}` }).click();
   await page.waitForSelector('[data-testid="loading-panel"]', { timeout: 12000 });
   const loadingState = await page.evaluate(() => window.__shadowRecruitDebug?.loadingState());
   if (!loadingState?.active || loadingState.value <= 0 || loadingState.history.length === 0) {
@@ -166,6 +178,13 @@ try {
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
     throw new Error(`Expected completed objectives, got ${JSON.stringify(state)}`);
+  }
+  if (
+    state.levelId !== defaultLevel.id ||
+    state.missionCatalog.length !== missions.length ||
+    !state.missionCatalog.some((mission) => mission.id === defaultLevel.id && mission.name === defaultLevel.name)
+  ) {
+    throw new Error(`Expected tester state to expose selected mission catalog, got ${JSON.stringify({ levelId: state.levelId, missionCatalog: state.missionCatalog })}`);
   }
   if (state.loading.history.length < 3 || !state.loading.history.some((step) => step.label.includes('tactical dressing'))) {
     throw new Error(`Expected tester state to retain mission loading history, got ${JSON.stringify(state.loading)}`);

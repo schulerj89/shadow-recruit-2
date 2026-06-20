@@ -1327,6 +1327,23 @@ export class ShadowRecruitApp {
           <div class="screen-kicker">Recruit roster</div>
           <h2>Select your operative</h2>
           <p>The selected GLB is used in the title preview, tutorial, and mission runtime.</p>
+          <section class="mission-select-panel" data-testid="mission-select-panel">
+            <label class="mission-select-row">
+              <span>Mission</span>
+              <select data-mission-select="true" data-testid="mission-select" aria-label="Mission">
+                ${levelCatalog.map((mission) => `
+                  <option value="${mission.id}" ${mission.id === this.level.id ? 'selected' : ''}>
+                    ${mission.name}
+                  </option>
+                `).join('')}
+              </select>
+            </label>
+            <div class="mission-brief" data-testid="mission-brief">
+              <strong>${this.level.chapter}</strong>
+              <span>${this.level.name}</span>
+              <small>${this.level.objectives.filter((objective) => objective.required).length} required objectives, ${this.level.enemies.length} sentries, ${this.level.doors.length} sliding doors, ${this.level.zones.length} density zones.</small>
+            </div>
+          </section>
           <div class="hero-grid">
             ${heroOptions.map((hero) => `
               <button type="button" class="hero-card ${hero.id === this.selectedHero ? 'is-selected' : ''}" data-hero-id="${hero.id}">
@@ -1337,7 +1354,7 @@ export class ShadowRecruitApp {
             `).join('')}
           </div>
           <div class="button-row">
-            <button type="button" data-action="start-level">Start Level</button>
+            <button type="button" data-action="start-level">Start ${this.level.name}</button>
             <button type="button" data-action="back-title">Back</button>
           </div>
         </section>`;
@@ -1406,7 +1423,7 @@ export class ShadowRecruitApp {
       this.overlay.innerHTML = `
         <section class="complete-panel" data-testid="complete-panel" data-completion-cue="${stats.triumphantCue ? 'triumphant' : 'none'}">
           <div class="screen-kicker">Extraction complete</div>
-          <h2>Blacksite Threshold cleared</h2>
+          <h2>${this.level.name} cleared</h2>
           <p>Command confirms exfil. Triumphant extraction cue is live and the level stats are locked.</p>
           <div class="stats-grid">
             <div class="stat-card" data-testid="complete-stat-time"><span>Time</span><strong>${stats.elapsedSeconds}s</strong></div>
@@ -1499,6 +1516,10 @@ export class ShadowRecruitApp {
     this.shell.addEventListener('change', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) return;
+      if (target instanceof HTMLSelectElement && target.dataset.missionSelect === 'true') {
+        this.selectMissionForMenu(target.value);
+        return;
+      }
       const setting = target.dataset.setting;
       if (!setting) return;
       if (setting === 'debug' && target instanceof HTMLInputElement) this.settings.debug = target.checked;
@@ -1547,6 +1568,14 @@ export class ShadowRecruitApp {
     this.selectedHero = heroId;
     this.setLoading(`loading ${heroOptionById(heroId).name}`, 0.45);
     await this.assets.preloadHero(heroId);
+    this.buildTitleScene();
+    this.setPhase('hero-select');
+  }
+
+  private selectMissionForMenu(missionId: string): void {
+    const level = getLevelById(missionId);
+    if (!level) throw new Error(`Unknown mission: ${missionId}`);
+    this.level = level;
     this.buildTitleScene();
     this.setPhase('hero-select');
   }
@@ -2459,7 +2488,7 @@ export class ShadowRecruitApp {
     const level = getLevelById(missionId);
     if (!level) throw new Error(`Unknown mission: ${missionId}`);
     this.level = level;
-    await this.startRun(this.selectedHero);
+    await this.startRun(this.selectedHero, missionId);
     this.setPhase('playing');
   }
 
@@ -2484,6 +2513,7 @@ export class ShadowRecruitApp {
     return {
       phase: this.phase,
       levelId: this.level.id,
+      missionCatalog: levelCatalog,
       selectedHero: this.selectedHero,
       settings: { ...this.settings },
       audio: this.audio.snapshot(),

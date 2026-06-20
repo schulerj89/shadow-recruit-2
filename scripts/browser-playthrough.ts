@@ -34,11 +34,12 @@ try {
 
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
-  if (level.id === defaultLevel.id) {
-    await page.getByRole('button', { name: 'Start Level' }).click();
-  } else {
-    await page.evaluate((missionId) => window.__shadowRecruitDebug?.startGame(undefined, missionId), level.id);
+  const missionOptions = await page.evaluate(() => window.__shadowRecruitDebug?.missions());
+  if (!missionOptions?.some((mission) => mission.id === level.id)) {
+    throw new Error(`Mission ${level.id} is missing from the player-facing mission catalog: ${JSON.stringify(missionOptions)}`);
   }
+  await page.getByLabel('Mission').selectOption(level.id);
+  await page.getByRole('button', { name: new RegExp(`^Start ${escapeRegex(level.name)}$`) }).click();
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
 
   for (const step of level.tutorial) {
@@ -144,4 +145,8 @@ async function captureState(): Promise<TesterState> {
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state) throw new Error('Missing tester state.');
   return state;
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

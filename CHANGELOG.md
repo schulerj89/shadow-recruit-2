@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.14.0 - 2026-06-20
+
+### Minor
+
+- Added a player-facing mission selector to the pre-mission operative screen, backed by the level catalog and mission briefing counts so future big levels have a reusable launch path.
+- Added mission-catalog QA evidence to screenshots, browser smoke, playthrough startup, tester state, and the generated game-tester report.
+- Recorded the subagent-driven production decision for choosing mission-catalog work as the next big-level architecture slice.
+
 ## 0.13.4 - 2026-06-20
 
 ### Patch
