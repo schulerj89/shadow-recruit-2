@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.1 - 2026-06-20
+
+### Patch
+
+- Tightened tester, designer, director, level-geometry, world-builder, and asset-builder skills so screenshot concerns must be paired with coordinates, title hero facing/projection evidence, and per-zone AAA density grading.
+
 ## 0.13.0 - 2026-06-20
 
 ### Minor

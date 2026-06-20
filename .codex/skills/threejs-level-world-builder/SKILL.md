@@ -39,6 +39,7 @@ Start every level slice with:
 - Use generated textures as one layer only. Walls and floors still need geometry silhouettes, seams, decals, panels, pipes, vents, lights, terminals, rails, clutter, and objective staging that read from the gameplay camera.
 - Design camera-visible layers. Each important screenshot should have readable foreground, midground, and background detail: cover or equipment near the player, objective or patrol context in the midground, and landmarks, lighting, silhouettes, or signage in the distance.
 - Avoid "large but empty" spaces unless the emptiness is a deliberate stealth timing arena with visible purpose. If broad floor area has no cover, machinery, terminals, vents, cables, lighting accents, patrol props, or extraction staging, mark the zone as blockout-quality.
+- Do not rely on whole-level density averages. A strong entry room does not excuse an empty security stack, extraction hall, or corridor. Attach coordinates, screenshot names, and missing asset categories to every sparse zone so asset-builder work can be assigned directly.
 - Hand memory and streaming budget checks to `$threejs-memory`.
 - Hand GLB kit generation and registry work to `$threejs-aaa-asset-builder`.
 

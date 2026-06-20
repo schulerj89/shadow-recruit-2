@@ -18,6 +18,7 @@ Required evidence:
 - Level geometry data, rendered object bounds, and world-space coordinates for walls, doors, frames, continuity meshes, objectives, enemies, extraction, set dressing, and hero/title camera targets. If the build does not expose enough coordinate evidence to prove a claim, mark the test evidence incomplete instead of passing from screenshots alone.
 - A sorted wall-run interval ledger for every wall line interrupted by doors. The ledger must include walls, door openings, frame bounds, continuity/back-wall bounds, interval min/max edges, door-to-door spans, and unowned spans between adjacent intervals.
 - A screenshot-to-coordinate ledger for every visual complaint. Each row must name the screenshot, visible issue, runtime object IDs, authored IDs, min/max edges, gap/overlap width, and open/closed state.
+- Coordinate proof for anything that looks like a wall gap between doors, a broken door opening, a buried/hovering asset, or a title hero facing problem. Screenshots discover the defect, but coordinate/projection data decides whether it passes.
 - Asset-quality diagnostics covering floor/wall meshes, generated-image texture quality, wall-door seams and gaps, door-over-wall visual priority, objective models, sentries, door panels, extraction marker, and hero placement.
 - Per-zone or whole-level density diagnostics with floor area, cover/blocker footprint, set-dressing footprint, landmark/interactable counts, repeated-material exposure, and sparse coordinate regions.
 - Frame pacing metrics for gameplay changes.
@@ -34,10 +35,20 @@ Report in this order:
 - **P1 asset failures:** missing required GLB/model, invisible objective, sentry below/inside ground, unclear extraction marker, missing or corrupted door panel texture, obvious holes/gaps at wall-door seams, broken wall/floor mesh, door openings that lack wall/portal continuity when the door is open, or title hero staging that shows the back/side so strongly that the player cannot read the recruit's face, suit, or silhouette.
 - **P1 instrumentation failures:** missing world bounds, missing wall-run ledgers, missing title hero facing vectors, missing screen-space hero occupancy, or missing per-zone density numbers are test failures when the screenshot raises that class of concern. Do not convert missing data into a pass.
 - **P1 performance:** no visible 60 FPS path, high p95 frame time, excessive draw calls, frame spikes after loading/unlock.
-- **P1 AAA environment gaps:** a large level with mostly empty floor, repeated bare walls, no readable cover/dressing/landmarks, or missing tactical props is not AAA-quality just because the level is big. Flag sparse rooms and corridors when asset density, material variation, lighting detail, and gameplay dressing do not support the infiltration fantasy.
+- **P1 AAA environment gaps:** a large level with mostly empty floor, repeated bare walls, no readable cover/dressing/landmarks, or missing tactical props is not AAA-quality just because the level is big. Fail sparse rooms and corridors when asset density, material variation, lighting detail, and gameplay dressing do not support the infiltration fantasy from the active gameplay camera.
 - **P2 polish:** bland, flat, stretched, blurry, repetitive, procedural-only, or non-AAA wall/floor/object textures; wall/floor materials that are not generated image textures attached to the relevant mesh; weak composition, UI fit issues, repeated text, music mismatch, low-impact feedback.
 
 Separate "test failed" from "game feels unclear." A passing smoke test can still produce a P1 tester finding.
+
+## Coordinate-First Tester Response
+
+When the user or a screenshot points out something the build should already know mathematically, do not answer from the screenshot alone:
+
+- For apparent gaps between doors, inspect the wall-run ledger first. Name the physical wall line, sorted interval owners, adjacent edge values, and gap width. If two door openings have no owned wall/frame/return/continuity interval between them, fail it even if each door's local seam check passes.
+- For door openings, verify both open and closed states. A closed door can cover an opening, but the open state still needs a wall/portal/continuity surface behind it and a clear priority relationship so the player does not see through a hole.
+- For title hero issues, pair the screenshot with camera position/target, hero world position, forward vector or yaw, facing dot/yaw-to-camera, projected bounds, and screen occupancy. Fail if the recruit is looking away from the player, mostly back-facing, too small, or staged so the face/visor/front torso cannot be read.
+- For empty AAA spaces, pair each screenshot with zone coordinates and density metrics. A scene can pass collision, wall continuity, and FPS while still failing art/design QA because the player view lacks foreground, midground, background, props, landmarks, lighting hierarchy, or tactical cover language.
+- If the current debug state cannot answer the coordinate question, file a P1 instrumentation failure and request the missing debug bounds/projection metric rather than guessing.
 
 ## Artifact Workflow
 
@@ -103,6 +114,7 @@ Never let visual review and coordinate review run as separate approvals:
 - For door priority, capture or inspect both open and closed states. The tester must confirm that an open sliding door visually overrides the wall/portal surface without leaving a hole, and that the closed door does not hide missing surrounding wall geometry.
 - For title screens, inspect the screenshot plus camera target, hero world position, and hero forward/rotation data when exposed. Fail if the torso/head/visor points mostly away from the camera, if the hero-to-camera facing dot is below the project readability threshold, or if the camera is so distant that the recruit identity is unreadable.
 - For title hero visibility, require screen-space evidence. The report should include hero projected bounds or occupancy percentage, camera distance, facing dot/yaw-to-camera, and whether the face/visor/chest silhouette are readable. If the hero is turned away or too small, fail the title composition even when the menu UI works.
+- Treat hero-facing and hero-visibility as separate approvals. A large projected body can still fail when it shows the back, and a correct facing dot can still fail when the camera/title UI hides the face, visor, chest silhouette, or gear identity.
 
 ## AAA Level-Density QA
 
@@ -116,6 +128,7 @@ Judge large levels by production detail, not only size:
 - Fail AAA readiness when the dominant player view is empty floor and repeated walls, even if generated textures are attached. Generated images improve materials, but they do not replace terminals, machinery, cover, decals, lights, cables, props, patrol context, or extraction staging.
 - Do not collapse the density review into a single flattering sentence. Record a scorecard for each sparse room/corridor or for the whole level when per-zone data is unavailable, and mark missing per-zone instrumentation as a follow-up finding.
 - Grade density by what the player can read from the active camera. A large room should not pass because props exist off-screen or at the edges; the screenshot and coordinates must show useful foreground, midground, and background detail.
+- Do not let a whole-level average hide a bad zone. If any primary screenshot or mission beat scores below the AAA threshold, report that zone as not ready even when total floor coverage, global set-dressing ratio, or smoke tests pass.
 - Use a simple scorecard when no project threshold exists: `0` empty blockout, `1` texture-only, `2` sparse props, `3` functional cover/landmarks, `4` strong tactical dressing/material variation, `5` AAA-ready scene with layered silhouettes, lighting, interactables, and narrative detail. Scores below `4` are not AAA-ready.
 
 ## Report Shape

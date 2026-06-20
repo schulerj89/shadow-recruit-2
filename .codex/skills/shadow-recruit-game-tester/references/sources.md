@@ -14,6 +14,8 @@ Research date: 2026-06-20.
   - Frame rate is useful but incomplete; evaluate visible smoothness and frame timing, not only averages.
 - Three.js Box3: https://threejs.org/docs/pages/Box3.html
   - Box3 supports object-derived world bounds for rendered meshes; use it to validate object placement and broad-phase continuity before computing exact edge gaps.
+- Three.js Vector3 projection: https://threejs.org/docs/pages/Vector3.html
+  - Vector3 projection turns world-space hero or object points into camera/NDC space, which supports title hero screen-occupancy and screenshot-to-coordinate checks.
 - Three.js Box2: https://threejs.org/docs/pages/Box2.html
   - Box2 covers 2D axis-aligned bounds on the gameplay plane and is useful for wall/door min/max checks.
 - Unity Cinemachine Position Composer: https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/CinemachinePositionComposer.html

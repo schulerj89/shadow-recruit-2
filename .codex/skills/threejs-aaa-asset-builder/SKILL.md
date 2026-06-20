@@ -56,6 +56,7 @@ Use this section when a large level reads as empty or blockout-quality:
 - Title-screen hero upgrades must show readable recruit identity: face/visor/front torso, gear silhouette, and pose direction. If the model faces away in title screenshots, request a camera/animation/staging change before generating more decoration.
 - Texture upgrades must produce generated image or authored PBR maps that are actually assigned to the wall, floor, door, or prop meshes being reviewed. A strong prompt or source plate does not count if the runtime mesh still renders flat procedural color, stretched panels, missing seams, or obvious repetition at gameplay camera distance.
 - Empty-space fixes should ship as reusable kit pieces with coordinates and budgets: terminals, keycard readers, cable trays, wall machinery, floor decals, overhead lights, vents, crates, extraction beacons, sentry bases, and door trim. Prefer instanced repeats and texture atlases so the 60 FPS path survives.
+- Build asset assignments from the camera problem: name the screenshot, zone coordinates, missing foreground/midground/background layer, and intended runtime mesh or GLB before spending provider credits. A beautiful close-up asset fails if it does not fix the empty gameplay view that triggered the request.
 
 ## Mesh And Rig Rules
 
