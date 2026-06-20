@@ -1,0 +1,222 @@
+[
+  {
+    "screenshot": "tutorial-01-insertion.png",
+    "focus": {
+      "active": true,
+      "target": "hero",
+      "remainingMs": 0,
+      "focusPoint": {
+        "x": 0,
+        "z": -29
+      },
+      "cameraPosition": {
+        "x": 5.57,
+        "y": 6.4,
+        "z": -34.74
+      }
+    },
+    "id": "hero",
+    "index": 0,
+    "title": "Insertion",
+    "target": "hero",
+    "targetKind": "hero",
+    "grade": "pass",
+    "targetExists": true,
+    "textEndsWithCadet": true,
+    "requiredKeywords": [
+      "cadet",
+      "shadow recruit",
+      "move quietly"
+    ],
+    "missingKeywords": [],
+    "targetPoint": {
+      "x": 0,
+      "z": -29
+    },
+    "focusPoint": {
+      "x": 0,
+      "z": -29
+    },
+    "focusDistance": 0,
+    "cameraDistance": 10.24,
+    "notes": [
+      "Tutorial step hero targets hero, uses required callout terms, and ends with Good luck, cadet."
+    ]
+  },
+  {
+    "screenshot": "tutorial-02-keycard.png",
+    "focus": {
+      "active": true,
+      "target": "access-keycard",
+      "remainingMs": 0,
+      "focusPoint": {
+        "x": -31,
+        "z": -25
+      },
+      "cameraPosition": {
+        "x": -25.31,
+        "y": 6.4,
+        "z": -19.37
+      }
+    },
+    "id": "keycard",
+    "index": 1,
+    "title": "First Lock",
+    "target": "access-keycard",
+    "targetKind": "objective",
+    "grade": "pass",
+    "targetExists": true,
+    "textEndsWithCadet": true,
+    "requiredKeywords": [
+      "objective",
+      "keycard",
+      "door"
+    ],
+    "missingKeywords": [],
+    "targetPoint": {
+      "x": -31,
+      "z": -25
+    },
+    "focusPoint": {
+      "x": -31,
+      "z": -25
+    },
+    "focusDistance": 0,
+    "cameraDistance": 10.24,
+    "notes": [
+      "Tutorial step keycard targets access-keycard, uses required callout terms, and ends with Good luck, cadet."
+    ]
+  },
+  {
+    "screenshot": "tutorial-03-terminal.png",
+    "focus": {
+      "active": true,
+      "target": "security-terminal",
+      "remainingMs": 0,
+      "focusPoint": {
+        "x": 30,
+        "z": -3
+      },
+      "cameraPosition": {
+        "x": 35.69,
+        "y": 6.4,
+        "z": 2.63
+      }
+    },
+    "id": "terminal",
+    "index": 2,
+    "title": "Security Stack",
+    "target": "security-terminal",
+    "targetKind": "objective",
+    "grade": "pass",
+    "targetExists": true,
+    "textEndsWithCadet": true,
+    "requiredKeywords": [
+      "terminal",
+      "server-wing door",
+      "interact"
+    ],
+    "missingKeywords": [],
+    "targetPoint": {
+      "x": 30,
+      "z": -3
+    },
+    "focusPoint": {
+      "x": 30,
+      "z": -3
+    },
+    "focusDistance": 0,
+    "cameraDistance": 10.24,
+    "notes": [
+      "Tutorial step terminal targets security-terminal, uses required callout terms, and ends with Good luck, cadet."
+    ]
+  },
+  {
+    "screenshot": "tutorial-04-sentry.png",
+    "focus": {
+      "active": true,
+      "target": "sentry-lobby",
+      "remainingMs": 0,
+      "focusPoint": {
+        "x": 16,
+        "z": -25
+      },
+      "cameraPosition": {
+        "x": 21.69,
+        "y": 6.4,
+        "z": -19.37
+      }
+    },
+    "id": "sentry",
+    "index": 3,
+    "title": "Avoid Contact",
+    "target": "sentry-lobby",
+    "targetKind": "enemy",
+    "grade": "pass",
+    "targetExists": true,
+    "textEndsWithCadet": true,
+    "requiredKeywords": [
+      "avoid sentries",
+      "cover",
+      "patrol"
+    ],
+    "missingKeywords": [],
+    "targetPoint": {
+      "x": 16,
+      "z": -25
+    },
+    "focusPoint": {
+      "x": 16,
+      "z": -25
+    },
+    "focusDistance": 0,
+    "cameraDistance": 10.24,
+    "notes": [
+      "Tutorial step sentry targets sentry-lobby, uses required callout terms, and ends with Good luck, cadet."
+    ]
+  },
+  {
+    "screenshot": "tutorial-05-extraction.png",
+    "focus": {
+      "active": true,
+      "target": "extraction",
+      "remainingMs": 0,
+      "focusPoint": {
+        "x": 0,
+        "z": 33
+      },
+      "cameraPosition": {
+        "x": 5.69,
+        "y": 6.4,
+        "z": 38.63
+      }
+    },
+    "id": "extraction",
+    "index": 4,
+    "title": "Extraction",
+    "target": "extraction",
+    "targetKind": "extraction",
+    "grade": "pass",
+    "targetExists": true,
+    "textEndsWithCadet": true,
+    "requiredKeywords": [
+      "command codes",
+      "final door",
+      "extraction"
+    ],
+    "missingKeywords": [],
+    "targetPoint": {
+      "x": 0,
+      "z": 33
+    },
+    "focusPoint": {
+      "x": 0,
+      "z": 33
+    },
+    "focusDistance": 0,
+    "cameraDistance": 10.2,
+    "notes": [
+      "Tutorial step extraction targets extraction, uses required callout terms, and ends with Good luck, cadet."
+    ]
+  }
+]

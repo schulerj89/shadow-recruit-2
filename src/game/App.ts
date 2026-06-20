@@ -40,6 +40,7 @@ import type {
   SetDressingDefinition,
   SetDressingVisibilityCheck,
   TesterState,
+  TutorialAlignmentCheck,
   TitleComposition,
   TitleTreatmentState,
   TutorialState,
@@ -129,6 +130,7 @@ type ShadowRecruitDebugApi = {
   audioState: () => AudioState;
   loadingState: () => LoadingState;
   tutorialStep: () => TutorialState;
+  tutorialAlignment: () => readonly TutorialAlignmentCheck[];
   cinematicFocus: () => CinematicFocusState;
   selectedHero: () => HeroId;
   playerPosition: () => Vec2;
@@ -1219,23 +1221,21 @@ export class ShadowRecruitApp {
 
   private focusTarget(targetId: string): void {
     this.focusTargetId = targetId;
-    const object = this.anchorObjects.get(targetId);
-    const door = this.doors.find((candidate) => candidate.id === targetId);
-    const position = new THREE.Vector3();
-    if (door) {
-      position.set(door.center.x, 0, door.center.z);
-    } else if (object) {
-      object.getWorldPosition(position);
-    } else if (targetId === 'extraction') {
-      position.set(this.level.extraction.x, 0, this.level.extraction.z);
-    } else {
-      position.set(this.playerPosition.x, 0, this.playerPosition.z);
-    }
+    const position = this.targetWorldPosition(targetId) ?? new THREE.Vector3(this.playerPosition.x, 0, this.playerPosition.z);
     this.focusPoint = { x: roundMetric(position.x), z: roundMetric(position.z) };
 
     const angle = targetId === 'hero' ? -0.8 : 0.78;
     this.camera.position.set(position.x + Math.cos(angle) * 8, 6.4, position.z + Math.sin(angle) * 8);
     this.camera.lookAt(position.x, 0.8, position.z);
+  }
+
+  private targetWorldPosition(targetId: string): THREE.Vector3 | null {
+    const door = this.doors.find((candidate) => candidate.id === targetId);
+    if (door) return new THREE.Vector3(door.center.x, 0, door.center.z);
+    const object = this.anchorObjects.get(targetId);
+    if (object) return object.getWorldPosition(new THREE.Vector3());
+    if (targetId === 'extraction') return new THREE.Vector3(this.level.extraction.x, 0, this.level.extraction.z);
+    return null;
   }
 
   private setPhase(phase: Phase): void {
@@ -2343,6 +2343,59 @@ export class ShadowRecruitApp {
     };
   }
 
+  private tutorialAlignmentChecks(): readonly TutorialAlignmentCheck[] {
+    return this.level.tutorial.map((step, index) => {
+      const targetPosition = this.targetWorldPosition(step.target);
+      const targetPoint = targetPosition ? { x: roundMetric(targetPosition.x), z: roundMetric(targetPosition.z) } : null;
+      const isCurrentTutorialStep = this.phase === 'tutorial' && this.tutorialIndex === index;
+      const focusPoint = isCurrentTutorialStep && this.focusPoint ? { ...this.focusPoint } : null;
+      const focusDistance = targetPoint && focusPoint ? distance(targetPoint, focusPoint) : null;
+      const cameraDistance = targetPosition ? roundMetric(this.camera.position.distanceTo(targetPosition)) : null;
+      const normalizedText = step.text.toLowerCase();
+      const missingKeywords = step.alignmentKeywords.filter((keyword) => !normalizedText.includes(keyword.toLowerCase()));
+      const textEndsWithCadet = /good luck, cadet\.$/i.test(step.text.trim());
+      const targetExists = Boolean(targetPoint);
+      const focusAligned = !isCurrentTutorialStep || (focusDistance !== null && focusDistance <= 0.35);
+      const grade: AssetQualityGrade = targetExists && textEndsWithCadet && missingKeywords.length === 0 && focusAligned ? 'pass' : 'fail';
+      const notes = grade === 'pass'
+        ? [`Tutorial step ${step.id} targets ${step.target}, uses required callout terms, and ends with Good luck, cadet.`]
+        : [
+          targetExists ? `Target ${step.target} exists at ${targetPoint?.x},${targetPoint?.z}.` : `Target ${step.target} is missing from runtime anchors.`,
+          textEndsWithCadet ? 'Step ends with Good luck, cadet.' : 'Step does not end with Good luck, cadet.',
+          missingKeywords.length === 0 ? 'All required callout keywords are present.' : `Missing callout keywords: ${missingKeywords.join(', ')}.`,
+          focusAligned ? 'Active tutorial camera focus matches the target.' : `Active tutorial focus is off-target by ${roundMetric(focusDistance ?? 999)}m.`,
+        ];
+
+      return {
+        id: step.id,
+        index,
+        title: step.title,
+        target: step.target,
+        targetKind: this.tutorialTargetKind(step.target),
+        grade,
+        targetExists,
+        textEndsWithCadet,
+        requiredKeywords: [...step.alignmentKeywords],
+        missingKeywords,
+        targetPoint,
+        focusPoint,
+        focusDistance: focusDistance === null ? null : roundMetric(focusDistance),
+        cameraDistance,
+        notes,
+      };
+    });
+  }
+
+  private tutorialTargetKind(targetId: string): TutorialAlignmentCheck['targetKind'] {
+    if (targetId === 'hero') return 'hero';
+    if (targetId === 'extraction') return 'extraction';
+    if (this.objectives.some((objective) => objective.id === targetId)) return 'objective';
+    if (this.enemies.some((enemy) => enemy.id === targetId)) return 'enemy';
+    if (this.doors.some((door) => door.id === targetId)) return 'door';
+    if (this.anchorObjects.has(targetId)) return 'scene';
+    return 'unknown';
+  }
+
   private loadingState(): LoadingState {
     return {
       active: this.phase === 'loading',
@@ -2366,8 +2419,9 @@ export class ShadowRecruitApp {
   }
 
   private cinematicFocusState(): CinematicFocusState {
+    const active = this.phase === 'cinematic-focus' || this.phase === 'tutorial';
     return {
-      active: this.phase === 'cinematic-focus',
+      active,
       target: this.focusTargetId,
       remainingMs: this.phase === 'cinematic-focus' ? Math.max(0, Math.round(this.focusUntil - performance.now())) : 0,
       focusPoint: this.focusPoint ? { ...this.focusPoint } : null,
@@ -2434,6 +2488,7 @@ export class ShadowRecruitApp {
       assetQuality: this.assetQualityChecks(),
       geometry: this.geometryDiagnostics(),
       titleComposition: this.titleComposition(),
+      tutorialAlignment: this.tutorialAlignmentChecks(),
     };
   }
 
@@ -2660,6 +2715,7 @@ export class ShadowRecruitApp {
       audioState: () => this.audio.snapshot(),
       loadingState: () => this.loadingState(),
       tutorialStep: () => this.tutorialState(),
+      tutorialAlignment: () => this.tutorialAlignmentChecks(),
       cinematicFocus: () => this.cinematicFocusState(),
       selectedHero: () => this.selectedHero,
       playerPosition: () => ({ ...this.playerPosition }),

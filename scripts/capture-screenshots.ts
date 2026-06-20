@@ -10,6 +10,7 @@ const headless = process.env.SCREENSHOT_HEADLESS !== 'false';
 
 const browser = await chromium.launch({ headless });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+const tutorialAlignmentCaptures: unknown[] = [];
 
 try {
   await mkdir(outputDir, { recursive: true });
@@ -59,9 +60,18 @@ try {
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
   for (const name of ['insertion', 'keycard', 'terminal', 'sentry', 'extraction']) {
     const tutorial = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialStep());
-    await page.screenshot({ path: `${outputDir}/tutorial-${String((tutorial?.index ?? 0) + 1).padStart(2, '0')}-${name}.png`, fullPage: true });
+    const focus = await page.evaluate(() => window.__shadowRecruitDebug?.cinematicFocus());
+    const alignment = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialAlignment());
+    const alignmentCheck = alignment?.find((check) => check.id === tutorial?.step?.id);
+    const screenshot = `tutorial-${String((tutorial?.index ?? 0) + 1).padStart(2, '0')}-${name}.png`;
+    if (!tutorial?.step || !focus?.active || focus.target !== tutorial.step.target || !alignmentCheck || alignmentCheck.grade !== 'pass') {
+      throw new Error(`Tutorial screenshot alignment failed: ${JSON.stringify({ tutorial, focus, alignmentCheck })}`);
+    }
+    tutorialAlignmentCaptures.push({ screenshot, focus, ...alignmentCheck });
+    await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
     await page.getByRole('button', { name: /Next|Begin Mission/ }).click();
   }
+  await writeFile(`${qaDir}/tutorial-alignment.json`, JSON.stringify(tutorialAlignmentCaptures, null, 2));
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.teleportPlayerTo({ x: -24, z: -25 }));
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });

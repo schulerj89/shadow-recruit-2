@@ -11,6 +11,7 @@ const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
+const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 const expectedScreenshots = [
   'title.png',
@@ -58,6 +59,7 @@ type Metrics = {
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
   titleComposition?: TitleComposition;
+  tutorialAlignment?: readonly TutorialAlignmentCheck[];
   loading?: LoadingState;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
 };
@@ -79,6 +81,25 @@ type AudioState = {
   activeTrack: 'title' | 'loading' | 'gameplay' | 'complete' | null;
   muted: boolean;
   unlocked: boolean;
+};
+
+type TutorialAlignmentCheck = {
+  screenshot?: string;
+  id: string;
+  index: number;
+  title: string;
+  target: string;
+  targetKind: string;
+  grade: 'pass' | 'review' | 'fail';
+  targetExists: boolean;
+  textEndsWithCadet: boolean;
+  requiredKeywords: readonly string[];
+  missingKeywords: readonly string[];
+  targetPoint: { x: number; z: number } | null;
+  focusPoint: { x: number; z: number } | null;
+  focusDistance: number | null;
+  cameraDistance: number | null;
+  notes: readonly string[];
 };
 
 type TitleComposition = {
@@ -253,6 +274,9 @@ const playthrough = playthroughReport ? JSON.parse(playthroughReport) : null;
 const titleComposition = existsSync(titleCompositionPath)
   ? JSON.parse(await readFile(titleCompositionPath, 'utf8')) as TitleComposition
   : metrics?.titleComposition;
+const tutorialAlignment = existsSync(tutorialAlignmentPath)
+  ? JSON.parse(await readFile(tutorialAlignmentPath, 'utf8')) as readonly TutorialAlignmentCheck[]
+  : metrics?.tutorialAlignment ?? [];
 const completion = playthrough?.finalState?.completion;
 const frame = metrics?.framePacing;
 const baseline = metrics?.browserBaseline;
@@ -270,6 +294,7 @@ const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
+const tutorialFindings = describeTutorialFindings(tutorialAlignment);
 const audioFindings = describeAudioFindings(metricAudio, completionAudio, settings, playthroughSettings);
 const screenshotCoverage = await inspectScreenshotCoverage(screenshotDir);
 const screenshotFindings = describeScreenshotFindings(screenshotCoverage);
@@ -302,6 +327,7 @@ Date: ${date}
 - Audio state: gameplay metrics=${formatAudioState(metricAudio)}; completion playthrough=${formatAudioState(completionAudio)}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
+- Tutorial alignment: ${describeTutorialSummary(tutorialAlignment)}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
@@ -311,6 +337,10 @@ Date: ${date}
 ## Coordinate QA
 
 ${formatGeometryDiagnostics(geometry)}
+
+## Tutorial Alignment QA
+
+${formatTutorialAlignment(tutorialAlignment)}
 
 ## Wall-Run Interval QA
 
@@ -342,6 +372,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 ${frameFinding}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
+${tutorialFindings}
 ${assetFindings}
 ${titleFindings}
 ${geometryFindings}
@@ -392,6 +423,34 @@ function formatAssetGrades(checks: readonly AssetQualityCheck[]): string {
       : '';
     return `- ${check.grade.toUpperCase()} ${check.category}/${check.id}: ${check.label}; visible=${check.visible}; grounded=${check.grounded}.${placement} ${check.notes.join(' ')}`;
   }).join('\n');
+}
+
+function describeTutorialSummary(checks: readonly TutorialAlignmentCheck[]): string {
+  if (checks.length === 0) return 'not captured';
+  const pass = checks.filter((check) => check.grade === 'pass').length;
+  const cadet = checks.every((check) => check.textEndsWithCadet);
+  const targets = checks.map((check) => `${check.id}->${check.target}`).join(', ');
+  return `${pass}/${checks.length} pass; allCadet=${cadet}; targets=${targets}`;
+}
+
+function formatTutorialAlignment(checks: readonly TutorialAlignmentCheck[]): string {
+  if (checks.length === 0) return '- Tutorial alignment diagnostics not captured.';
+  return checks.map((check) => {
+    const target = check.targetPoint ? `${check.targetPoint.x},${check.targetPoint.z}` : 'missing';
+    const focus = check.focusPoint ? `${check.focusPoint.x},${check.focusPoint.z}` : 'missing';
+    const keywords = check.missingKeywords.length > 0
+      ? `missingKeywords=${check.missingKeywords.join(', ')}`
+      : `keywords=${check.requiredKeywords.join(', ')}`;
+    return `- ${check.grade.toUpperCase()} tutorial/${check.id}: screenshot=${check.screenshot ?? 'not captured'}; title="${check.title}"; target=${check.target} (${check.targetKind}); targetPoint=${target}; focusPoint=${focus}; focusDistance=${check.focusDistance ?? 'n/a'}; cameraDistance=${check.cameraDistance ?? 'n/a'}; cadet=${check.textEndsWithCadet}; ${keywords}. ${check.notes.join(' ')}`;
+  }).join('\n');
+}
+
+function describeTutorialFindings(checks: readonly TutorialAlignmentCheck[]): string {
+  if (checks.length === 0) return '- P1: Tutorial alignment diagnostics missing; tester cannot prove General Caldwell copy, screenshots, and camera targets match.';
+  const findings = checks
+    .filter((check) => check.grade !== 'pass')
+    .map((check) => `- P1: Tutorial step ${check.id} failed alignment QA: targetExists=${check.targetExists}; cadet=${check.textEndsWithCadet}; missingKeywords=${check.missingKeywords.join(', ') || 'none'}; focusDistance=${check.focusDistance ?? 'n/a'}.`);
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated tutorial alignment diagnostics.';
 }
 
 function describeAssetFindings(checks: readonly AssetQualityCheck[]): string {

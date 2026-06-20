@@ -111,11 +111,23 @@ try {
   for (let i = 0; i < tutorialSteps.length; i += 1) {
     const expected = tutorialSteps[i];
     const tutorial = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialStep());
+    const focus = await page.evaluate(() => window.__shadowRecruitDebug?.cinematicFocus());
+    const alignment = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialAlignment());
+    const alignmentCheck = alignment?.find((check) => check.id === expected.id);
     if (!tutorial?.step || tutorial.index !== i || tutorial.total !== tutorialSteps.length) {
       throw new Error(`Expected tutorial index ${i}, got ${JSON.stringify(tutorial)}`);
     }
     if (tutorial.step.id !== expected.id || tutorial.step.title !== expected.title || tutorial.step.target !== expected.target) {
       throw new Error(`Unexpected tutorial step: ${JSON.stringify({ expected, tutorial })}`);
+    }
+    if (!focus?.active || focus.target !== expected.target || !focus.focusPoint) {
+      throw new Error(`Expected tutorial camera to focus ${expected.target}, got ${JSON.stringify(focus)}`);
+    }
+    if (!alignmentCheck || alignmentCheck.grade !== 'pass' || alignmentCheck.target !== expected.target || alignmentCheck.missingKeywords.length > 0) {
+      throw new Error(`Tutorial alignment failed: ${JSON.stringify({ expected, alignmentCheck })}`);
+    }
+    if (alignmentCheck.focusDistance !== null && alignmentCheck.focusDistance > 0.35) {
+      throw new Error(`Tutorial camera focus is not aligned to ${expected.target}: ${JSON.stringify(alignmentCheck)}`);
     }
     if (!/good luck, cadet\.$/i.test(tutorial.step.text.trim())) {
       throw new Error(`Tutorial step ${expected.id} must end with Good luck, cadet: ${tutorial.step.text}`);

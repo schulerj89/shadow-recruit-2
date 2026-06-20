@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.3 - 2026-06-20
+
+### Patch
+
+- Added tutorial alignment keywords, runtime diagnostics, screenshot capture evidence, and tester-report checks proving each General Caldwell panel points at the intended target and ends with "Good luck, cadet."
+
 ## 0.13.2 - 2026-06-20
 
 ### Patch

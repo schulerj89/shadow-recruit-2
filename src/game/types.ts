@@ -82,6 +82,7 @@ export type TutorialStep = {
   title: string;
   text: string;
   target: string;
+  alignmentKeywords: readonly string[];
 };
 
 export type LevelDefinition = {
@@ -345,6 +346,24 @@ export type TutorialState = {
   step: TutorialStep | null;
 };
 
+export type TutorialAlignmentCheck = {
+  id: string;
+  index: number;
+  title: string;
+  target: string;
+  targetKind: 'hero' | 'objective' | 'enemy' | 'door' | 'extraction' | 'scene' | 'unknown';
+  grade: AssetQualityGrade;
+  targetExists: boolean;
+  textEndsWithCadet: boolean;
+  requiredKeywords: readonly string[];
+  missingKeywords: readonly string[];
+  targetPoint: Vec2 | null;
+  focusPoint: Vec2 | null;
+  focusDistance: number | null;
+  cameraDistance: number | null;
+  notes: readonly string[];
+};
+
 export type CinematicFocusState = {
   active: boolean;
   target: string | null;
@@ -382,4 +401,5 @@ export type TesterState = {
   assetQuality: readonly AssetQualityCheck[];
   geometry: GeometryDiagnostics;
   titleComposition: TitleComposition;
+  tutorialAlignment: readonly TutorialAlignmentCheck[];
 };
