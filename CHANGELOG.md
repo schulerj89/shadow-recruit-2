@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-06-20
+
+### Patch
+
+- Made the validated Level 1 JSON blockout the runtime geometry source and added a level registry plus geometry validation to the release verify path.
+
 ## 0.1.2 - 2026-06-19
 
 ### Patch

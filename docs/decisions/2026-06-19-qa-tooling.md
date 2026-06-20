@@ -13,6 +13,7 @@ Expose:
 - `ready`
 - `phase`
 - `missionId`
+- `missions`
 - `playerPosition`
 - `playerVisible`
 - `enemies`

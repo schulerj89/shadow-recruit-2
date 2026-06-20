@@ -5,7 +5,7 @@ import doorPanelUrl from '../assets/generated/sliding-door-panel.png?url';
 import { AssetLibrary, type CharacterInstance, disposeObject } from './CharacterAssets';
 import { AudioDirector } from './AudioDirector';
 import { defaultHeroId, heroOptionById, heroOptions, isHeroId, type HeroId } from './heroes';
-import { levelOne } from './levels/levelOne';
+import { defaultLevel, getLevelById, levelCatalog } from './levels';
 import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract } from './math';
 import { loadSettings, saveSettings } from './settings';
 import type {
@@ -13,6 +13,7 @@ import type {
   EnemyRuntime,
   FramePacingSample,
   GameSettings,
+  LevelCatalogEntry,
   LevelDefinition,
   ObjectiveRuntime,
   Phase,
@@ -37,6 +38,7 @@ type ShadowRecruitDebugApi = {
   ready: () => boolean;
   phase: () => Phase;
   missionId: () => string;
+  missions: () => readonly LevelCatalogEntry[];
   selectedHero: () => HeroId;
   playerPosition: () => Vec2;
   playerVisible: () => boolean;
@@ -84,7 +86,7 @@ export class ShadowRecruitApp {
   private readonly doorMeshes = new Map<string, DoorMesh>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
   private readonly doorTexture = new THREE.TextureLoader().load(doorPanelUrl);
-  private readonly level: LevelDefinition = levelOne;
+  private level: LevelDefinition = defaultLevel;
   private settings: GameSettings = loadSettings();
   private readonly audio = new AudioDirector(this.settings);
   private selectedHero: HeroId = defaultHeroId;
@@ -97,7 +99,7 @@ export class ShadowRecruitApp {
   private enemies: EnemyRuntime[] = [];
   private player: CharacterInstance | null = null;
   private titleHero: CharacterInstance | null = null;
-  private playerPosition: Vec2 = { ...levelOne.start };
+  private playerPosition: Vec2 = { ...defaultLevel.start };
   private runStartedAt = 0;
   private alarms = 0;
   private tutorialIndex = 0;
@@ -185,7 +187,7 @@ export class ShadowRecruitApp {
       this.assets.preloadSentry(),
       this.assets.preloadObjectives(),
     ]);
-    this.setLoading('building level one', 0.68);
+    this.setLoading(`building ${this.level.name.toLowerCase()}`, 0.68);
     this.buildPlayableLevel();
     this.setLoading('starting cinematic tutorial', 1);
     this.tutorialIndex = 0;
@@ -941,7 +943,9 @@ export class ShadowRecruitApp {
   }
 
   private async selectMission(missionId: string): Promise<void> {
-    if (missionId !== this.level.id) throw new Error(`Unknown mission: ${missionId}`);
+    const level = getLevelById(missionId);
+    if (!level) throw new Error(`Unknown mission: ${missionId}`);
+    this.level = level;
     await this.startRun(this.selectedHero);
     this.setPhase('playing');
   }
@@ -976,6 +980,7 @@ export class ShadowRecruitApp {
       ready: () => this.ready,
       phase: () => this.phase,
       missionId: () => this.level.id,
+      missions: () => levelCatalog,
       selectedHero: () => this.selectedHero,
       playerPosition: () => ({ ...this.playerPosition }),
       playerVisible: () => Boolean(this.player?.object.visible ?? this.titleHero?.object.visible),

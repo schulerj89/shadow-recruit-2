@@ -1,99 +1,85 @@
-import type { LevelDefinition } from '../types';
+import geometry from '../../../data/levels/level-one.geometry.json';
+import type { DoorDefinition, LevelDefinition, ObjectiveDefinition, RectSpec, Vec2 } from '../types';
 import { vec } from '../math';
+
+type GeometryRect = {
+  id: string;
+  center: readonly number[];
+  size: readonly number[];
+  height?: number;
+};
+
+type GeometryPoint = {
+  id: string;
+  position: readonly number[];
+};
+
+const objectiveOrder = ['access-keycard', 'security-terminal', 'command-codes'] as const;
+type ObjectiveId = typeof objectiveOrder[number];
+
+const objectiveMetadata = {
+  'access-keycard': {
+    id: 'access-keycard',
+    type: 'keycard',
+    label: 'Recover the lobby keycard',
+    radius: 1.55,
+    required: true,
+    unlocks: ['lobby-door'],
+    asset: 'keycard',
+  },
+  'security-terminal': {
+    id: 'security-terminal',
+    type: 'terminal',
+    label: 'Hack the security terminal',
+    radius: 1.75,
+    required: true,
+    unlocks: ['server-door'],
+    asset: 'terminal',
+  },
+  'command-codes': {
+    id: 'command-codes',
+    type: 'codes',
+    label: 'Copy the command codes',
+    radius: 1.55,
+    required: true,
+    unlocks: ['extraction-door'],
+    asset: 'keycard',
+  },
+} satisfies Record<ObjectiveId, Omit<ObjectiveDefinition, 'position'>>;
+
+const doorMetadata = {
+  'lobby-door': {
+    axis: 'x',
+    opensWhen: ['access-keycard'],
+    speed: 1.8,
+  },
+  'server-door': {
+    axis: 'x',
+    opensWhen: ['security-terminal'],
+    speed: 1.8,
+  },
+  'extraction-door': {
+    axis: 'x',
+    opensWhen: ['command-codes'],
+    speed: 1.9,
+  },
+} satisfies Record<string, Pick<DoorDefinition, 'axis' | 'opensWhen' | 'speed'>>;
+type DoorId = keyof typeof doorMetadata;
 
 export const levelOne: LevelDefinition = {
   id: 'blacksite-threshold',
   name: 'Blacksite Threshold',
   chapter: 'Operation Glass Dagger',
   bounds: {
-    min: vec(-42, -34),
-    max: vec(42, 38),
+    min: pointFromArray(geometry.bounds.min),
+    max: pointFromArray(geometry.bounds.max),
   },
-  start: vec(0, -29),
-  extraction: vec(0, 33),
-  walls: [
-    { id: 'outer-north', center: vec(0, 37.5), size: vec(84, 1), height: 3.4 },
-    { id: 'outer-south', center: vec(0, -33.5), size: vec(84, 1), height: 3.4 },
-    { id: 'outer-west', center: vec(-41.5, 2), size: vec(1, 70), height: 3.4 },
-    { id: 'outer-east', center: vec(41.5, 2), size: vec(1, 70), height: 3.4 },
-    { id: 'lobby-divider-west', center: vec(-24.5, -18), size: vec(33, 1), height: 3.2 },
-    { id: 'lobby-divider-east', center: vec(24.5, -18), size: vec(33, 1), height: 3.2 },
-    { id: 'server-divider-west', center: vec(-21.5, 5), size: vec(39, 1), height: 3.2 },
-    { id: 'server-divider-east', center: vec(25, 5), size: vec(10, 1), height: 3.2 },
-    { id: 'command-divider-west', center: vec(-24.5, 20), size: vec(33, 1), height: 3.2 },
-    { id: 'command-divider-east', center: vec(24.5, 20), size: vec(33, 1), height: 3.2 },
-    { id: 'armory-rail', center: vec(-13, 14), size: vec(1, 8), height: 2.4 },
-    { id: 'server-rail', center: vec(13, 12), size: vec(1, 10), height: 2.4 },
-  ],
-  blockers: [
-    { id: 'cargo-stack-a', center: vec(-27, -25), size: vec(5, 4), height: 1.35 },
-    { id: 'cargo-stack-b', center: vec(27, -25), size: vec(5, 4), height: 1.35 },
-    { id: 'antenna-bank', center: vec(-26, -4), size: vec(6, 3), height: 1.75 },
-    { id: 'server-bank-a', center: vec(25, 11), size: vec(5, 8), height: 1.9 },
-    { id: 'server-bank-b', center: vec(-25, 12), size: vec(5, 8), height: 1.9 },
-    { id: 'briefing-table', center: vec(0, 26), size: vec(11, 3), height: 1.0 },
-  ],
-  doors: [
-    {
-      id: 'lobby-door',
-      center: vec(0, -18),
-      size: vec(6, 0.8),
-      height: 3.3,
-      axis: 'x',
-      opensWhen: ['access-keycard'],
-      speed: 1.8,
-    },
-    {
-      id: 'server-door',
-      center: vec(14, 5),
-      size: vec(6, 0.8),
-      height: 3.3,
-      axis: 'x',
-      opensWhen: ['security-terminal'],
-      speed: 1.8,
-    },
-    {
-      id: 'extraction-door',
-      center: vec(0, 20),
-      size: vec(6, 0.8),
-      height: 3.3,
-      axis: 'x',
-      opensWhen: ['command-codes'],
-      speed: 1.9,
-    },
-  ],
-  objectives: [
-    {
-      id: 'access-keycard',
-      type: 'keycard',
-      label: 'Recover the lobby keycard',
-      position: vec(-31, -25),
-      radius: 1.55,
-      required: true,
-      unlocks: ['lobby-door'],
-      asset: 'keycard',
-    },
-    {
-      id: 'security-terminal',
-      type: 'terminal',
-      label: 'Hack the security terminal',
-      position: vec(30, -3),
-      radius: 1.75,
-      required: true,
-      unlocks: ['server-door'],
-      asset: 'terminal',
-    },
-    {
-      id: 'command-codes',
-      type: 'codes',
-      label: 'Copy the command codes',
-      position: vec(-32, 14),
-      radius: 1.55,
-      required: true,
-      unlocks: ['extraction-door'],
-      asset: 'keycard',
-    },
-  ],
+  start: requiredPoint(geometry.spawns, 'player'),
+  extraction: requiredPoint(geometry.objectives, 'extraction'),
+  walls: geometry.walls.map(rectFromGeometry),
+  blockers: geometry.blockers.map(rectFromGeometry),
+  doors: geometry.doors.map(doorFromGeometry),
+  objectives: objectiveOrder.map(objectiveFromGeometry),
   enemies: [
     {
       id: 'sentry-lobby',
@@ -167,4 +153,41 @@ export const levelOne: LevelDefinition = {
   ],
 };
 
-export const levels = [levelOne] as const;
+function pointFromArray(value: readonly number[]): Vec2 {
+  return vec(Number(value[0] ?? 0), Number((value.length >= 3 ? value[2] : value[1]) ?? 0));
+}
+
+function rectFromGeometry(rect: GeometryRect): RectSpec {
+  return {
+    id: rect.id,
+    center: pointFromArray(rect.center),
+    size: pointFromArray(rect.size),
+    ...(rect.height === undefined ? {} : { height: rect.height }),
+  };
+}
+
+function doorFromGeometry(rect: GeometryRect): DoorDefinition {
+  const metadata = isDoorId(rect.id) ? doorMetadata[rect.id] : undefined;
+  if (!metadata) throw new Error(`Missing door metadata for ${rect.id}`);
+  return {
+    ...rectFromGeometry(rect),
+    ...metadata,
+  };
+}
+
+function isDoorId(value: string): value is DoorId {
+  return value in doorMetadata;
+}
+
+function objectiveFromGeometry(id: ObjectiveId): ObjectiveDefinition {
+  return {
+    ...objectiveMetadata[id],
+    position: requiredPoint(geometry.objectives, id),
+  };
+}
+
+function requiredPoint(points: readonly GeometryPoint[], id: string): Vec2 {
+  const point = points.find((item) => item.id === id);
+  if (!point) throw new Error(`Missing geometry point: ${id}`);
+  return pointFromArray(point.position);
+}

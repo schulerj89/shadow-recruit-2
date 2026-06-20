@@ -78,6 +78,14 @@ export type LevelDefinition = {
   tutorial: readonly TutorialStep[];
 };
 
+export type LevelCatalogEntry = {
+  id: string;
+  name: string;
+  chapter: string;
+  objectiveCount: number;
+  enemyCount: number;
+};
+
 export type ObjectiveRuntime = ObjectiveDefinition & {
   collected: boolean;
 };
