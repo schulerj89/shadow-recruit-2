@@ -59,6 +59,8 @@ type AssetQualityOptions = {
   minDepth?: number;
 };
 
+type ShellTextureKind = 'floor' | 'wall' | 'blocker' | 'trim';
+
 const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
   performance: {
     pixelRatioCap: 0.75,
@@ -137,6 +139,116 @@ declare global {
   }
 }
 
+function shellTexturePalette(kind: ShellTextureKind): { base: string; panel: string; line: string; tint: string } {
+  if (kind === 'floor') return { base: '#0f1820', panel: '#1a2830', line: '#5fd7d8', tint: '#c7d9df' };
+  if (kind === 'blocker') return { base: '#24323a', panel: '#35444d', line: '#ffd45a', tint: '#d3dee1' };
+  if (kind === 'trim') return { base: '#14262f', panel: '#223a44', line: '#6fffe2', tint: '#d9f6f2' };
+  return { base: '#202c35', panel: '#32414a', line: '#7ac7da', tint: '#d5e2e8' };
+}
+
+function createShellTexture(kind: ShellTextureKind, base: string, panel: string, line: string): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Unable to create shell material canvas.');
+
+  context.fillStyle = base;
+  context.fillRect(0, 0, size, size);
+
+  if (kind === 'floor') {
+    drawFloorTexture(context, size, panel, line);
+  } else if (kind === 'trim') {
+    drawTrimTexture(context, size, panel, line);
+  } else {
+    drawWallTexture(context, size, panel, line, kind === 'blocker');
+  }
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function drawFloorTexture(context: CanvasRenderingContext2D, size: number, panel: string, line: string): void {
+  context.fillStyle = panel;
+  for (let y = 0; y < size; y += 64) {
+    for (let x = 0; x < size; x += 64) {
+      context.globalAlpha = (x + y) % 128 === 0 ? 0.42 : 0.28;
+      context.fillRect(x + 4, y + 4, 56, 56);
+    }
+  }
+  context.globalAlpha = 0.56;
+  context.strokeStyle = '#05090d';
+  context.lineWidth = 3;
+  for (let i = 0; i <= size; i += 64) {
+    context.beginPath();
+    context.moveTo(i, 0);
+    context.lineTo(i, size);
+    context.moveTo(0, i);
+    context.lineTo(size, i);
+    context.stroke();
+  }
+  context.globalAlpha = 0.7;
+  context.strokeStyle = line;
+  context.lineWidth = 2;
+  for (let i = 24; i < size; i += 96) {
+    context.beginPath();
+    context.moveTo(i, 10);
+    context.lineTo(i + 34, 44);
+    context.stroke();
+  }
+  context.globalAlpha = 1;
+}
+
+function drawWallTexture(context: CanvasRenderingContext2D, size: number, panel: string, line: string, reinforced: boolean): void {
+  context.fillStyle = panel;
+  for (let y = 12; y < size; y += 58) {
+    context.globalAlpha = 0.38;
+    context.fillRect(12, y, size - 24, 38);
+    context.globalAlpha = 0.5;
+    context.strokeStyle = '#0a1117';
+    context.lineWidth = 2;
+    context.strokeRect(12, y, size - 24, 38);
+  }
+  context.globalAlpha = 0.65;
+  context.strokeStyle = line;
+  context.lineWidth = reinforced ? 3 : 2;
+  for (let x = 28; x < size; x += 54) {
+    context.beginPath();
+    context.moveTo(x, 0);
+    context.lineTo(x, size);
+    context.stroke();
+  }
+  context.globalAlpha = 0.72;
+  context.fillStyle = '#b5cbd0';
+  for (let y = 28; y < size; y += 64) {
+    for (let x = 22; x < size; x += 70) {
+      context.fillRect(x, y, 4, 4);
+      context.fillRect(x + 36, y + 18, 4, 4);
+    }
+  }
+  context.globalAlpha = 1;
+}
+
+function drawTrimTexture(context: CanvasRenderingContext2D, size: number, panel: string, line: string): void {
+  context.fillStyle = panel;
+  context.globalAlpha = 0.45;
+  context.fillRect(10, 10, size - 20, size - 20);
+  context.globalAlpha = 0.8;
+  context.strokeStyle = line;
+  context.lineWidth = 4;
+  context.strokeRect(18, 18, size - 36, size - 36);
+  context.globalAlpha = 0.5;
+  context.strokeStyle = '#061016';
+  context.lineWidth = 2;
+  for (let i = 34; i < size; i += 42) {
+    context.beginPath();
+    context.moveTo(i, 0);
+    context.lineTo(i + 18, size);
+    context.stroke();
+  }
+  context.globalAlpha = 1;
+}
+
 export class ShadowRecruitApp {
   private readonly shell: HTMLDivElement;
   private readonly canvas: HTMLCanvasElement;
@@ -156,6 +268,7 @@ export class ShadowRecruitApp {
   private readonly frameDeltas: number[] = [];
   private readonly runtimeObjects: RuntimeObject[] = [];
   private readonly doorMeshes = new Map<string, DoorMesh>();
+  private readonly doorFrameMeshes = new Map<string, THREE.Object3D>();
   private readonly enemyDetectionCones = new Map<string, THREE.Object3D>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
   private readonly boundsScratch = new THREE.Box3();
@@ -325,7 +438,7 @@ export class ShadowRecruitApp {
     const floorSizeZ = this.level.bounds.max.z - this.level.bounds.min.z;
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(floorSizeX, floorSizeZ, quality.floorSegments, quality.floorSegments),
-      new THREE.MeshStandardMaterial({ color: '#111821', roughness: 0.78, metalness: 0.18 }),
+      this.createShellMaterial('floor', floorSizeX / 8, floorSizeZ / 8, 0.1),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = quality.shadowsEnabled;
@@ -335,15 +448,16 @@ export class ShadowRecruitApp {
     this.anchorObjects.set('level-floor', floor);
 
     for (const wall of this.level.walls) {
-      this.addBox(wall, '#26323c', 0.18);
+      this.addBox(wall, 'wall', 0.18);
     }
 
     for (const blocker of this.level.blockers) {
-      this.addBox(blocker, '#35404b', 0.1);
+      this.addBox(blocker, 'blocker', 0.1);
     }
 
     if (includeDoors) {
       for (const door of this.doors) {
+        this.addDoorFrame(door);
         this.addDoor(door);
       }
     }
@@ -354,17 +468,12 @@ export class ShadowRecruitApp {
     this.addLightStrip(0, 33, '#8eff81');
   }
 
-  private addBox(rect: RectSpec, color: string, emissive = 0): THREE.Mesh {
+  private addBox(rect: RectSpec, textureKind: ShellTextureKind, emissive = 0): THREE.Mesh {
     const quality = this.quality();
     const height = rect.height ?? 1;
     const mesh = new THREE.Mesh(
       new THREE.BoxGeometry(rect.size.x, height, rect.size.z),
-      new THREE.MeshStandardMaterial({
-        color,
-        roughness: 0.68,
-        metalness: 0.28,
-        emissive: new THREE.Color(color).multiplyScalar(emissive),
-      }),
+      this.createShellMaterial(textureKind, Math.max(rect.size.x, rect.size.z) / 4, Math.max(height, 1) / 2, emissive),
     );
     mesh.position.set(rect.center.x, height / 2, rect.center.z);
     mesh.castShadow = quality.shadowsEnabled;
@@ -374,6 +483,45 @@ export class ShadowRecruitApp {
     this.runtimeObjects.push({ object: mesh });
     this.anchorObjects.set(rect.id, mesh);
     return mesh;
+  }
+
+  private addDoorFrame(door: DoorRuntime): void {
+    const quality = this.quality();
+    const height = door.height ?? 3.2;
+    const frame = new THREE.Group();
+    frame.name = `${door.id}:frame`;
+    const material = this.createShellMaterial('trim', door.axis === 'x' ? door.size.x / 3 : door.size.z / 3, 1.4, 0.26);
+    const depth = door.axis === 'x' ? door.size.z + 0.58 : door.size.x + 0.58;
+    const sideThickness = 0.32;
+    const headerThickness = 0.36;
+    const thresholdHeight = 0.06;
+
+    const addPart = (name: string, size: THREE.Vector3, position: THREE.Vector3): void => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size.x, size.y, size.z), material.clone());
+      mesh.name = `${door.id}:frame:${name}`;
+      mesh.position.copy(position);
+      mesh.castShadow = quality.shadowsEnabled;
+      mesh.receiveShadow = quality.shadowsEnabled;
+      frame.add(mesh);
+    };
+
+    if (door.axis === 'x') {
+      const jambSize = new THREE.Vector3(sideThickness, height + headerThickness, depth);
+      addPart('left-jamb', jambSize, new THREE.Vector3(door.center.x - door.size.x / 2 - sideThickness / 2, (height + headerThickness) / 2, door.center.z));
+      addPart('right-jamb', jambSize, new THREE.Vector3(door.center.x + door.size.x / 2 + sideThickness / 2, (height + headerThickness) / 2, door.center.z));
+      addPart('header', new THREE.Vector3(door.size.x + sideThickness * 2, headerThickness, depth), new THREE.Vector3(door.center.x, height + headerThickness / 2, door.center.z));
+      addPart('threshold', new THREE.Vector3(door.size.x + sideThickness * 2, thresholdHeight, depth), new THREE.Vector3(door.center.x, thresholdHeight / 2, door.center.z));
+    } else {
+      const jambSize = new THREE.Vector3(depth, height + headerThickness, sideThickness);
+      addPart('near-jamb', jambSize, new THREE.Vector3(door.center.x, (height + headerThickness) / 2, door.center.z - door.size.z / 2 - sideThickness / 2));
+      addPart('far-jamb', jambSize, new THREE.Vector3(door.center.x, (height + headerThickness) / 2, door.center.z + door.size.z / 2 + sideThickness / 2));
+      addPart('header', new THREE.Vector3(depth, headerThickness, door.size.z + sideThickness * 2), new THREE.Vector3(door.center.x, height + headerThickness / 2, door.center.z));
+      addPart('threshold', new THREE.Vector3(depth, thresholdHeight, door.size.z + sideThickness * 2), new THREE.Vector3(door.center.x, thresholdHeight / 2, door.center.z));
+    }
+
+    this.scene.add(frame);
+    this.runtimeObjects.push({ object: frame });
+    this.doorFrameMeshes.set(door.id, frame);
   }
 
   private addDoor(door: DoorRuntime): void {
@@ -422,6 +570,27 @@ export class ShadowRecruitApp {
       mesh.left.position.set(door.center.x, height / 2, door.center.z - closedOffset - slide);
       mesh.right.position.set(door.center.x, height / 2, door.center.z + closedOffset + slide);
     }
+  }
+
+  private createShellMaterial(kind: ShellTextureKind, repeatX = 1, repeatY = 1, emissive = 0): THREE.MeshStandardMaterial {
+    const palette = shellTexturePalette(kind);
+    const texture = createShellTexture(kind, palette.base, palette.panel, palette.line);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(Math.max(1, repeatX), Math.max(1, repeatY));
+    texture.anisotropy = this.quality().textureAnisotropy;
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      color: palette.tint,
+      roughness: kind === 'floor' ? 0.72 : 0.58,
+      metalness: kind === 'floor' ? 0.18 : 0.34,
+      emissive: new THREE.Color(palette.line).multiplyScalar(emissive),
+      emissiveIntensity: emissive > 0 ? 0.5 : 0,
+    });
+    material.name = `sr2-${kind}-material`;
+    return material;
   }
 
   private addLightStrip(x: number, z: number, color: string): void {
@@ -1071,6 +1240,7 @@ export class ShadowRecruitApp {
     });
     this.runtimeObjects.length = 0;
     this.doorMeshes.clear();
+    this.doorFrameMeshes.clear();
     this.enemyDetectionCones.clear();
     this.anchorObjects.clear();
     this.objectives = [];
@@ -1114,10 +1284,10 @@ export class ShadowRecruitApp {
       'level-floor',
       'Floor mesh',
       'level-mesh',
-      'Floor mesh covers the authored level bounds.',
+      'Floor mesh covers the authored level bounds with repeated tactical panel texture detail.',
       'Floor mesh is missing from the scene.',
-      'review',
-      'Floor uses a flat runtime material with no authored texture variation; grade texture quality as bland until it becomes a textured kit asset.',
+      'pass',
+      'Floor material now includes panel variation, linework, and small-scale texture detail for gameplay readability.',
       {
         planarGround: true,
         minWidth: this.level.bounds.max.x - this.level.bounds.min.x - 0.1,
@@ -1128,11 +1298,11 @@ export class ShadowRecruitApp {
       id: 'level-walls',
       label: 'Wall meshes',
       category: 'level-mesh',
-      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'review' : 'fail',
+      grade: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'pass' : 'fail',
       visible: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)),
       grounded: true,
       notes: this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.level.walls.length} wall meshes are present as readable blockout geometry, but the flat material reads bland and needs authored wall texture, trim, and panel variation.`]
+        ? [`${this.level.walls.length} wall meshes use tactical panel textures with bolts, linework, and material variation for clearer facility walls.`]
         : ['One or more wall meshes are missing from the scene.'],
     });
     checks.push({
@@ -1150,12 +1320,12 @@ export class ShadowRecruitApp {
       id: 'door-wall-seams',
       label: 'Door-wall seams',
       category: 'door',
-      grade: this.doorMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'review' : 'fail',
-      visible: this.doorMeshes.size === this.doors.length,
+      grade: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'pass' : 'fail',
+      visible: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length,
       grounded: true,
-      notes: this.doorMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.doors.length} sliding-door openings use blockout wall edges without jamb, trim, or filler meshes; inspect screenshots for visible gaps around every door threshold.`]
-        : ['Door seam review cannot pass because one or more door or wall meshes are missing.'],
+      notes: this.doorMeshes.size === this.doors.length && this.doorFrameMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
+        ? [`${this.doors.length} sliding-door openings include jamb, header, and threshold trim to cover wall-door gaps.`]
+        : ['Door seam review cannot pass because one or more door, frame, or wall meshes are missing.'],
     });
 
     for (const objective of this.objectives) {

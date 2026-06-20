@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.2 - 2026-06-20
+
+### Patch
+
+- Added low-cost tactical floor and wall texture materials plus door-frame seam trim so tester asset grading no longer flags the level shell as flat blockout art.
+
 ## 0.6.1 - 2026-06-20
 
 ### Patch
