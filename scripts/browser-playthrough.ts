@@ -31,6 +31,7 @@ const logs: string[] = [];
 const pageErrors: string[] = [];
 const visitedRoute: Array<Vec2 & { phase: string }> = [];
 const interactions: Array<{ objectiveId: string; doorId: string; focusMs: number }> = [];
+const screenshots: string[] = [];
 
 page.on('console', (message: ConsoleMessage) => {
   logs.push(`[${message.type()}] ${message.text()}`);
@@ -43,7 +44,7 @@ try {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
   await expectPhase('title');
-  await page.screenshot({ path: `${outputDir}/01-title.png`, fullPage: true });
+  await captureScreenshot('01-title.png');
 
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
@@ -73,7 +74,7 @@ try {
   }
 
   await expectPhase('playing');
-  await page.screenshot({ path: `${outputDir}/02-mission-start.png`, fullPage: true });
+  await captureScreenshot('02-mission-start.png');
 
   const pendingObjectives = [...level.objectives];
   for (const point of level.validationRoute) {
@@ -95,7 +96,7 @@ try {
   }
 
   await expectPhase('complete');
-  await page.screenshot({ path: `${outputDir}/06-complete.png`, fullPage: true });
+  await captureScreenshot(`${String(interactions.length + 3).padStart(2, '0')}-complete.png`);
   const finalState = await captureState();
   if (finalState.objectives.collectedRequired !== finalState.objectives.totalRequired || !finalState.objectives.exitUnlocked) {
     throw new Error(`Playthrough did not complete all objectives: ${JSON.stringify(finalState.objectives)}`);
@@ -130,14 +131,7 @@ try {
     routePoints: visitedRoute,
     interactions,
     finalState,
-    screenshots: [
-      `${outputDir}/01-title.png`,
-      `${outputDir}/02-mission-start.png`,
-      `${outputDir}/03-focus-lobby-door.png`,
-      `${outputDir}/04-focus-server-door.png`,
-      `${outputDir}/05-focus-extraction-door.png`,
-      `${outputDir}/06-complete.png`,
-    ],
+    screenshots,
   }, null, 2));
 
   console.info(`[browser-playthrough] completed ${level.id} and wrote ${outputDir}/playthrough-report.json`);
@@ -161,9 +155,15 @@ async function interactWithObjective(objective: ObjectiveDefinition): Promise<vo
   }
 
   const index = interactions.length + 3;
-  await page.screenshot({ path: `${outputDir}/${String(index).padStart(2, '0')}-focus-${doorId}.png`, fullPage: true });
+  await captureScreenshot(`${String(index).padStart(2, '0')}-focus-${doorId}.png`);
   interactions.push({ objectiveId: objective.id, doorId, focusMs: focus.remainingMs });
   await expectPhase('playing');
+}
+
+async function captureScreenshot(fileName: string): Promise<void> {
+  const path = `${outputDir}/${fileName}`;
+  await page.screenshot({ path, fullPage: true });
+  screenshots.push(path);
 }
 
 async function expectPhase(phase: string): Promise<void> {

@@ -14,6 +14,7 @@ const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const committedPlaythroughMatrixPath = `${outputDir}/playthrough-matrix.json`;
+const playthroughEvidenceDir = `${outputDir}/playthroughs`;
 const committedFailureRetryPath = `${outputDir}/failure-retry-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
 const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
@@ -241,12 +242,27 @@ type PlaythroughMatrixEntry = {
   levelId: string;
   reportPath: string;
   status: 'pass' | 'fail';
+  reportCopied?: boolean;
+  committedReportPath?: string;
+  committedScreenshotDir?: string;
+  screenshotCount?: number;
+  missingScreenshots?: readonly string[];
 };
 
 type PlaythroughMatrix = {
   build: string;
   generatedAt?: string;
   levels: readonly PlaythroughMatrixEntry[];
+};
+
+type BrowserPlaythroughReport = {
+  build: string;
+  levelId: string;
+  heroId?: string;
+  routePoints?: readonly unknown[];
+  interactions?: readonly unknown[];
+  finalState?: unknown;
+  screenshots?: readonly string[];
 };
 
 type AudioState = {
@@ -597,6 +613,9 @@ const playthroughMatrixReport = existsSync(playthroughMatrixPath)
   ? await readFile(playthroughMatrixPath, 'utf8')
   : null;
 const playthroughMatrix = playthroughMatrixReport ? JSON.parse(playthroughMatrixReport) as PlaythroughMatrix : null;
+const committedPlaythroughMatrix = playthroughMatrix
+  ? await commitPlaythroughMatrixEvidence(playthroughMatrix, playthroughEvidenceDir)
+  : null;
 const failureRetryReport = existsSync(failureRetryReportPath)
   ? await readFile(failureRetryReportPath, 'utf8')
   : null;
@@ -643,7 +662,7 @@ const operativeCatalog = operativeTraitsArtifact?.catalog ?? [];
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate, fpsScenes);
 const renderBudgetFindings = describeRenderBudgetFindings(renderBudget, fpsScenes);
 const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
-const playthroughMatrixFindings = describePlaythroughMatrixFindings(playthroughMatrix, missionCatalog);
+const playthroughMatrixFindings = describePlaythroughMatrixFindings(committedPlaythroughMatrix, missionCatalog);
 const operativeFindings = describeOperativeFindings(operative, operativeCatalog);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
@@ -665,8 +684,8 @@ if (metrics) {
 if (playthroughReport) {
   await writeFile(committedPlaythroughPath, playthroughReport);
 }
-if (playthroughMatrixReport) {
-  await writeFile(committedPlaythroughMatrixPath, playthroughMatrixReport);
+if (committedPlaythroughMatrix) {
+  await writeFile(committedPlaythroughMatrixPath, JSON.stringify(committedPlaythroughMatrix, null, 2));
 }
 if (failureRetryReport) {
   await writeFile(committedFailureRetryPath, failureRetryReport);
@@ -680,7 +699,7 @@ Date: ${date}
 
 - Smoke screenshots: \`${smokeDir}\`
 - Browser playthrough: \`${committedPlaythroughPath}\` (${playthroughReport ? 'captured' : 'not captured'})
-- Browser playthrough matrix: \`${committedPlaythroughMatrixPath}\` (${playthroughMatrix ? formatPlaythroughMatrixSummary(playthroughMatrix) : 'not captured'})
+- Browser playthrough matrix: \`${committedPlaythroughMatrixPath}\` (${committedPlaythroughMatrix ? formatPlaythroughMatrixSummary(committedPlaythroughMatrix) : 'not captured'})
 - Failure/retry route: \`${committedFailureRetryPath}\` (${failureRetryReport ? 'captured' : 'not captured'})
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
@@ -750,7 +769,7 @@ ${formatMissionCatalog(missionCatalog, selectedMissionId, missionBrief)}
 
 ## Browser Playthrough Matrix
 
-${formatPlaythroughMatrix(playthroughMatrix, missionCatalog)}
+${formatPlaythroughMatrix(committedPlaythroughMatrix, missionCatalog)}
 
 ## Wall-Run Interval QA
 
@@ -922,8 +941,11 @@ function formatPlaythroughMatrix(
   const catalogIds = new Set(catalog.map((mission) => mission.id));
   const rows = matrix.levels.map((entry) => {
     const known = catalogIds.size === 0 || catalogIds.has(entry.levelId);
-    const status = entry.status === 'pass' && known ? 'PASS' : 'FAIL';
-    return `- ${status} playthrough/${entry.levelId}: status=${entry.status}; report=${entry.reportPath}; catalogKnown=${known}`;
+    const copied = Boolean(entry.reportCopied && entry.committedReportPath);
+    const screenshots = entry.screenshotCount ?? 0;
+    const missing = entry.missingScreenshots?.length ?? 0;
+    const status = entry.status === 'pass' && known && copied && screenshots > 0 && missing === 0 ? 'PASS' : 'FAIL';
+    return `- ${status} playthrough/${entry.levelId}: status=${entry.status}; source=${entry.reportPath}; committed=${entry.committedReportPath ?? 'missing'}; screenshots=${screenshots}; missingScreenshots=${missing}; catalogKnown=${known}`;
   });
   return [
     `- Matrix build=${matrix.build}; generatedAt=${matrix.generatedAt ?? 'not captured'}; ${formatPlaythroughMatrixSummary(matrix)}`,
@@ -952,11 +974,79 @@ function describePlaythroughMatrixFindings(
     if (entry.status !== 'pass') {
       findings.push(`- P1: Browser playthrough matrix failed for ${entry.levelId}: status=${entry.status}; report=${entry.reportPath}.`);
     }
+    if (!entry.reportCopied || !entry.committedReportPath) {
+      findings.push(`- P1: Browser playthrough report for ${entry.levelId} was not copied into committed QA evidence from ${entry.reportPath}.`);
+    }
+    if ((entry.screenshotCount ?? 0) <= 0) {
+      findings.push(`- P1: Browser playthrough screenshots for ${entry.levelId} were not copied into committed QA evidence.`);
+    }
+    if (entry.missingScreenshots?.length) {
+      findings.push(`- P1: Browser playthrough ${entry.levelId} is missing screenshot files: ${entry.missingScreenshots.join(', ')}.`);
+    }
     if (catalog.length > 0 && !catalog.some((mission) => mission.id === entry.levelId)) {
       findings.push(`- P1: Browser playthrough matrix includes ${entry.levelId}, but it is not exposed in the mission catalog.`);
     }
   }
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated browser playthrough matrix.';
+}
+
+async function commitPlaythroughMatrixEvidence(
+  matrix: PlaythroughMatrix,
+  targetRoot: string,
+): Promise<PlaythroughMatrix> {
+  const committedLevels: PlaythroughMatrixEntry[] = [];
+
+  for (const entry of matrix.levels) {
+    const levelDir = `${targetRoot}/${entry.levelId}`;
+    const screenshotDir = `${levelDir}/screenshots`;
+    const committedReportPath = `${levelDir}/playthrough-report.json`;
+    const missingScreenshots: string[] = [];
+    const committedScreenshots: string[] = [];
+
+    if (!existsSync(entry.reportPath)) {
+      committedLevels.push({
+        ...entry,
+        reportCopied: false,
+        committedReportPath,
+        committedScreenshotDir: screenshotDir,
+        screenshotCount: 0,
+        missingScreenshots: [`missing report: ${entry.reportPath}`],
+      });
+      continue;
+    }
+
+    await mkdir(screenshotDir, { recursive: true });
+    const report = JSON.parse(await readFile(entry.reportPath, 'utf8')) as BrowserPlaythroughReport;
+
+    for (const screenshot of report.screenshots ?? []) {
+      if (!existsSync(screenshot)) {
+        missingScreenshots.push(screenshot);
+        continue;
+      }
+      const target = `${screenshotDir}/${basename(screenshot)}`;
+      await copyFile(screenshot, target);
+      committedScreenshots.push(target);
+    }
+
+    const committedReport: BrowserPlaythroughReport = {
+      ...report,
+      screenshots: committedScreenshots,
+    };
+    await writeFile(committedReportPath, JSON.stringify(committedReport, null, 2));
+    committedLevels.push({
+      ...entry,
+      reportCopied: true,
+      committedReportPath,
+      committedScreenshotDir: screenshotDir,
+      screenshotCount: committedScreenshots.length,
+      missingScreenshots,
+    });
+  }
+
+  return {
+    ...matrix,
+    levels: committedLevels,
+  };
 }
 
 function describeMissionCatalogFindings(

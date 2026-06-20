@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.21.1 - 2026-06-20
+
+### Patch
+
+- Copied each registered mission's browser playthrough report and screenshots into committed QA evidence, so the playthrough matrix links to inspectable artifacts for every mission instead of ignored local `artifacts/` paths.
+- Tightened the game-tester report so a mission playthrough matrix row fails when its report or screenshots are not copied into committed QA evidence.
+
 ## 0.21.0 - 2026-06-20
 
 ### Minor
