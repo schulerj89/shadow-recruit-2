@@ -138,7 +138,7 @@ type ShadowRecruitDebugApi = {
   titleComposition: () => TitleComposition;
   setTitleOrbitAngle: (angle: number) => void;
   clearTitleOrbitAngle: () => void;
-  enemies: () => readonly { id: string; position: Vec2 }[];
+  enemies: () => readonly { id: string; position: Vec2; start: Vec2; detectionRadius: number }[];
   assetQuality: () => readonly AssetQualityCheck[];
   objectives: () => { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: () => readonly { id: string; open: boolean; progress: number }[];
@@ -2803,7 +2803,12 @@ export class ShadowRecruitApp {
       titleComposition: () => this.titleComposition(),
       setTitleOrbitAngle: (angle) => this.setTitleOrbitAngle(angle),
       clearTitleOrbitAngle: () => this.clearTitleOrbitAngle(),
-      enemies: () => this.enemies.map((enemy) => ({ id: enemy.id, position: { ...enemy.position } })),
+      enemies: () => this.enemies.map((enemy) => ({
+        id: enemy.id,
+        position: { ...enemy.position },
+        start: { ...enemy.start },
+        detectionRadius: enemy.detectionRadius,
+      })),
       assetQuality: () => this.assetQualityChecks(),
       objectives: () => this.getObjectiveProgress(),
       doors: () => this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),

@@ -6,10 +6,12 @@ const date = process.env.QA_DATE ?? '2026-06-20';
 const outputDir = process.env.TESTER_REPORT_DIR ?? `docs/qa/${date}/v${packageInfo.version}`;
 const smokeDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
 const playthroughReportPath = process.env.PLAYTHROUGH_REPORT_PATH ?? `artifacts/playthrough/v${packageInfo.version}/playthrough-report.json`;
+const failureRetryReportPath = process.env.FAILURE_RETRY_REPORT_PATH ?? `artifacts/failure-retry/v${packageInfo.version}/failure-retry-report.json`;
 const fpsMetricsPath = process.env.FPS_METRICS_PATH ?? `artifacts/fps/v${packageInfo.version}/metrics.json`;
 const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
+const committedFailureRetryPath = `${outputDir}/failure-retry-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
@@ -33,6 +35,9 @@ const expectedScreenshots = [
   'gameplay-command-codes.png',
   'focus-extraction-door.png',
   'complete.png',
+  'caught-sentry.png',
+  'retry-loading.png',
+  'retry-tutorial-reset.png',
 ] as const;
 
 type Metrics = {
@@ -87,6 +92,31 @@ type LoadingState = {
   label: string;
   value: number;
   history: readonly LoadingStep[];
+};
+
+type FailureRetryStateSummary = {
+  phase: string;
+  alerts: number;
+  playerPosition: { x: number; z: number };
+  playerStartDistance: number;
+  objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
+  doors: readonly { id: string; open: boolean; progress: number }[];
+  audio: AudioState;
+  sentryAssetLoaded: boolean;
+  enemyQualityCount: number;
+  panelText: string;
+  loadingHistoryCount: number;
+};
+
+type FailureRetryReport = {
+  build: string;
+  levelId: string;
+  contactEnemy?: { id: string; position: { x: number; z: number }; detectionRadius?: number };
+  caught: FailureRetryStateSummary;
+  retry: FailureRetryStateSummary;
+  screenshots: readonly string[];
+  pageErrors: readonly string[];
+  consoleIssues: readonly string[];
 };
 
 type AudioState = {
@@ -314,6 +344,10 @@ const playthroughReport = existsSync(playthroughReportPath)
   ? await readFile(playthroughReportPath, 'utf8')
   : null;
 const playthrough = playthroughReport ? JSON.parse(playthroughReport) : null;
+const failureRetryReport = existsSync(failureRetryReportPath)
+  ? await readFile(failureRetryReportPath, 'utf8')
+  : null;
+const failureRetry = failureRetryReport ? JSON.parse(failureRetryReport) as FailureRetryReport : null;
 const missionCatalogArtifact = existsSync(missionCatalogPath)
   ? JSON.parse(await readFile(missionCatalogPath, 'utf8')) as MissionCatalogArtifact
   : null;
@@ -348,6 +382,7 @@ const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
 const tutorialFindings = describeTutorialFindings(tutorialAlignment);
 const audioFindings = describeAudioFindings(metricAudio, completionAudio, settings, playthroughSettings);
+const failureRetryFindings = describeFailureRetryFindings(failureRetry);
 const screenshotCoverage = await inspectScreenshotCoverage(screenshotDir);
 const screenshotFindings = describeScreenshotFindings(screenshotCoverage);
 
@@ -358,6 +393,9 @@ if (metrics) {
 if (playthroughReport) {
   await writeFile(committedPlaythroughPath, playthroughReport);
 }
+if (failureRetryReport) {
+  await writeFile(committedFailureRetryPath, failureRetryReport);
+}
 await writeFile(reportPath, `# Shadow Recruit 2 Game Tester Report
 
 Build: v${packageInfo.version}
@@ -367,6 +405,7 @@ Date: ${date}
 
 - Smoke screenshots: \`${smokeDir}\`
 - Browser playthrough: \`${committedPlaythroughPath}\` (${playthroughReport ? 'captured' : 'not captured'})
+- Failure/retry route: \`${committedFailureRetryPath}\` (${failureRetryReport ? 'captured' : 'not captured'})
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
 - Mission catalog evidence: \`${missionCatalogPath}\` (${missionCatalogArtifact ? 'captured' : 'not captured'})
@@ -387,6 +426,7 @@ Date: ${date}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); aaaReady=${describeAaaDensitySummary(geometry)}; zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
+- Failure/retry evidence: ${formatFailureRetrySummary(failureRetry)}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
 
 ## Coordinate QA
@@ -413,6 +453,10 @@ ${formatAssetGrades(assetQuality)}
 
 ${formatAssetAudit(assetAudit)}
 
+## Failure And Retry QA
+
+${formatFailureRetry(failureRetry)}
+
 ## Screenshot Coverage
 
 ${formatScreenshotCoverage(screenshotCoverage)}
@@ -424,6 +468,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and every step ends with "Good luck, cadet."
 - Level: verify keycard, terminal, command codes, sentries, extraction, wall/floor meshes, wall/floor texture quality, and all three door-focus screenshots are readable and properly grounded.
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
+- Failure/retry: verify intentional sentry contact shows the operation-failed overlay, increments alerts, keeps the sentry GLB proven, and Retry returns to a clean mission start without carrying objectives, open doors, or alert count forward.
 - Coordinate QA: verify door/wall continuity by edge coordinates, not screenshot impression alone. Wall gaps must name door ID, wall IDs, frame/continuity bounds, and measured gap widths.
 - Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the gameplay camera to the current player position.
 - Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
@@ -437,6 +482,7 @@ ${frameFinding}
 ${missionCatalogFindings}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
+${failureRetryFindings}
 ${assetAuditFindings}
 ${tutorialFindings}
 ${assetFindings}
@@ -864,6 +910,60 @@ function describeScreenshotFindings(coverage: ScreenshotCoverage): string {
   const findings = coverage.missing.map((file) => `- P1: Expected QA screenshot missing: ${file}.`);
   findings.push(...coverage.unexpected.map((file) => `- P2: Unexpected QA screenshot was generated and should be reviewed or added to the expected set: ${file}.`));
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated screenshot coverage.';
+}
+
+function formatFailureRetrySummary(report: FailureRetryReport | null): string {
+  if (!report) return 'not captured';
+  return `level=${report.levelId}; contactEnemy=${report.contactEnemy?.id ?? 'missing'}; caughtPhase=${report.caught.phase}; caughtAlerts=${report.caught.alerts}; retryPhase=${report.retry.phase}; retryAlerts=${report.retry.alerts}; retryObjectives=${report.retry.objectives.collectedRequired}/${report.retry.objectives.totalRequired}; screenshots=${report.screenshots.length}`;
+}
+
+function formatFailureRetry(report: FailureRetryReport | null): string {
+  if (!report) return '- Failure/retry diagnostics not captured.';
+  const contact = report.contactEnemy
+    ? `enemy=${report.contactEnemy.id}; pos=${formatPoint(report.contactEnemy.position)}${report.contactEnemy.detectionRadius === undefined ? '' : `; radius=${report.contactEnemy.detectionRadius}`}`
+    : 'enemy=missing';
+  const caughtDoors = report.caught.doors.map((door) => `${door.id}:${door.open ? 'open' : 'closed'}:${door.progress}`).join(', ');
+  const retryDoors = report.retry.doors.map((door) => `${door.id}:${door.open ? 'open' : 'closed'}:${door.progress}`).join(', ');
+  return [
+    `- ${report.caught.phase === 'caught' && report.caught.alerts > 0 ? 'PASS' : 'FAIL'} caught-state: ${contact}; phase=${report.caught.phase}; alerts=${report.caught.alerts}; player=${formatPoint(report.caught.playerPosition)}; sentryAssetLoaded=${report.caught.sentryAssetLoaded}; enemyQualityPasses=${report.caught.enemyQualityCount}; panel=${JSON.stringify(report.caught.panelText)}; doors=${caughtDoors}`,
+    `- ${report.retry.phase === 'tutorial' && report.retry.alerts === 0 && report.retry.objectives.collectedRequired === 0 && !report.retry.objectives.exitUnlocked ? 'PASS' : 'FAIL'} retry-reset: phase=${report.retry.phase}; alerts=${report.retry.alerts}; startDistance=${report.retry.playerStartDistance}; objectives=${report.retry.objectives.collectedRequired}/${report.retry.objectives.totalRequired}; exitUnlocked=${report.retry.objectives.exitUnlocked}; audio=${formatAudioState(report.retry.audio)}; loadingHistory=${report.retry.loadingHistoryCount}; doors=${retryDoors}`,
+    `- ${report.pageErrors.length === 0 && report.consoleIssues.length === 0 ? 'PASS' : 'FAIL'} failure-route-console: pageErrors=${report.pageErrors.length}; consoleIssues=${report.consoleIssues.length}`,
+    `- PASS failure-route-screenshots: ${report.screenshots.join(', ')}`,
+  ].join('\n');
+}
+
+function describeFailureRetryFindings(report: FailureRetryReport | null): string {
+  if (!report) {
+    return '- P1: Failure/retry route diagnostics missing; tester cannot prove sentry contact, operation-failed overlay, or retry reset.';
+  }
+  const findings: string[] = [];
+  if (report.caught.phase !== 'caught' || report.caught.alerts < 1) {
+    findings.push(`- P1: Sentry contact did not prove caught phase plus alert count: phase=${report.caught.phase}; alerts=${report.caught.alerts}.`);
+  }
+  if (!/operation failed/i.test(report.caught.panelText) || !/sentry contact/i.test(report.caught.panelText) || !/retry/i.test(report.caught.panelText)) {
+    findings.push(`- P1: Caught panel copy does not clearly communicate failure and retry: ${JSON.stringify(report.caught.panelText)}.`);
+  }
+  if (!report.caught.sentryAssetLoaded || report.caught.enemyQualityCount < 1) {
+    findings.push(`- P1: Failure route does not prove sentry GLB/asset grading at contact: sentryAssetLoaded=${report.caught.sentryAssetLoaded}; enemyQualityCount=${report.caught.enemyQualityCount}.`);
+  }
+  if (
+    report.retry.phase !== 'tutorial' ||
+    report.retry.alerts !== 0 ||
+    report.retry.objectives.collectedRequired !== 0 ||
+    report.retry.objectives.exitUnlocked ||
+    report.retry.playerStartDistance > 0.1 ||
+    report.retry.doors.some((door) => door.open || door.progress > 0.01)
+  ) {
+    findings.push(`- P1: Retry did not reset to a clean mission tutorial state: ${JSON.stringify(report.retry)}.`);
+  }
+  if (report.pageErrors.length > 0 || report.consoleIssues.length > 0) {
+    findings.push(`- P1: Failure/retry route logged browser issues: ${JSON.stringify({ pageErrors: report.pageErrors, consoleIssues: report.consoleIssues })}.`);
+  }
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated failure/retry diagnostics.';
+}
+
+function formatPoint(point: { x: number; z: number }): string {
+  return `(${point.x},${point.z})`;
 }
 
 function formatKb(bytes: number): string {

@@ -26,6 +26,7 @@ Required evidence:
 - Runtime blocker/cover provenance diagnostics for every gameplay blocker that is visible to the player. Collision proxies may stay simple, but the visual object must be an approved GLB/generated asset with loaded bounds; primitive boxes used as visible cover are P1 production-art failures.
 - Per-zone or whole-level density diagnostics with floor area, cover/blocker footprint, set-dressing footprint, landmark/interactable counts, repeated-material exposure, and sparse coordinate regions.
 - Active-camera density diagnostics for each primary screenshot. Grade near, mid, and far bands separately by visible floor/wall emptiness, prop silhouettes, cover, landmarks, interactables, decals, lighting, cables/pipes, and objective context.
+- Failure/retry diagnostics for sentry contact. The tester must prove a sentry can fail the mission, the operation-failed overlay is readable, alerts increment, Retry rebuilds a clean run, objectives and doors reset, and the clean success-path playthrough still completes with zero alerts.
 - Frame pacing metrics for gameplay changes.
 - Any console/page errors.
 
@@ -91,6 +92,7 @@ This starts a local Vite server unless `TESTER_URL` is provided, drives the game
 ```powershell
 npm run test:playthrough
 npm run test:browser
+npm run test:failure-retry
 npm run test:fps
 npm run screenshots
 npm run tester:report

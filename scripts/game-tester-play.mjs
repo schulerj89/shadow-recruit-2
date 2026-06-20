@@ -34,6 +34,7 @@ try {
     SMOKE_URL: baseUrl,
     PLAYTHROUGH_URL: baseUrl,
     SCREENSHOT_URL: baseUrl,
+    FAILURE_RETRY_URL: baseUrl,
     FPS_URL: baseUrl,
   };
 

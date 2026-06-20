@@ -100,6 +100,7 @@ try {
   await captureDoorFocus('command-codes', 'extraction-door');
   await page.evaluate(() => window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 }));
   await page.screenshot({ path: `${outputDir}/complete.png`, fullPage: true });
+  await captureFailureRetry(selectedMission);
   console.info(`[screenshots] wrote screenshots to ${outputDir}`);
 } finally {
   await browser.close();
@@ -115,6 +116,32 @@ async function captureDoorFocus(objectiveId: string, doorId: string): Promise<vo
   );
   await page.screenshot({ path: `${outputDir}/focus-${doorId}.png`, fullPage: true });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
+}
+
+async function captureFailureRetry(missionId: string): Promise<void> {
+  await page.evaluate((id) => window.__shadowRecruitDebug?.startGame(undefined, id), missionId);
+  await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
+  await page.getByRole('button', { name: 'Skip' }).click();
+  await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
+  const contactEnemy = await page.evaluate(() => window.__shadowRecruitDebug?.enemies()[0]);
+  if (!contactEnemy) throw new Error('No sentry exposed through debug API for failure/retry screenshots.');
+  await page.evaluate((point) => window.__shadowRecruitDebug?.teleportPlayerTo(point), contactEnemy.position);
+  await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'caught', undefined, { timeout: 30000 });
+  await page.screenshot({ path: `${outputDir}/caught-sentry.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Retry' }).click();
+  await page.waitForSelector('[data-testid="loading-panel"]', { timeout: 12000 });
+  await page.screenshot({ path: `${outputDir}/retry-loading.png`, fullPage: true });
+  await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
+  const retryState = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
+  if (
+    retryState?.phase !== 'tutorial' ||
+    retryState.completion.alerts !== 0 ||
+    retryState.objectives.collectedRequired !== 0 ||
+    retryState.objectives.exitUnlocked
+  ) {
+    throw new Error(`Retry screenshot state did not reset cleanly: ${JSON.stringify(retryState)}`);
+  }
+  await page.screenshot({ path: `${outputDir}/retry-tutorial-reset.png`, fullPage: true });
 }
 
 function escapeRegex(value: string): string {

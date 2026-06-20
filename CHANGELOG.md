@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.16.1 - 2026-06-20
+
+### Patch
+
+- Added automated sentry failure/retry QA that intentionally triggers contact, captures the operation-failed overlay, proves Retry resets the mission cleanly, and feeds the evidence into the game-tester report and committed screenshots.
+
 ## 0.16.0 - 2026-06-20
 
 ### Minor
