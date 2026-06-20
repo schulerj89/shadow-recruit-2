@@ -25,17 +25,33 @@
   "setDressing": [
     { "id": "south-cable-trench-west", "asset": "cable-tray", "center": [-22, -31], "size": [28, 1.2], "height": 0.16 },
     { "id": "south-cable-trench-east", "asset": "cable-tray", "center": [22, -31], "size": [28, 1.2], "height": 0.16 },
+    { "id": "entry-south-machinery-west", "asset": "wall-machinery", "center": [-15, -32.35], "size": [24, 1], "height": 0.9 },
+    { "id": "entry-south-machinery-east", "asset": "wall-machinery", "center": [15, -32.35], "size": [24, 1], "height": 0.9 },
+    { "id": "entry-floor-light-spine", "asset": "cable-tray", "center": [0, -21], "size": [42, 1.1], "height": 0.18 },
+    { "id": "entry-foreground-decal-west", "asset": "cable-tray", "center": [-16, -28], "size": [18, 1.2], "height": 0.16 },
+    { "id": "entry-foreground-decal-east", "asset": "cable-tray", "center": [16, -28], "size": [18, 1.2], "height": 0.16 },
     { "id": "lobby-wall-machinery-west", "asset": "wall-machinery", "center": [-24, -16.35], "size": [28, 1.25], "height": 1.15 },
     { "id": "lobby-wall-machinery-east", "asset": "wall-machinery", "center": [24, -16.35], "size": [28, 1.25], "height": 1.15 },
     { "id": "west-utility-pipe-run", "asset": "cable-tray", "center": [-39, -10], "size": [1.4, 36], "height": 0.42 },
     { "id": "east-utility-pipe-run", "asset": "cable-tray", "center": [39, -8], "size": [1.4, 36], "height": 0.42 },
     { "id": "security-floor-cable-spine", "asset": "cable-tray", "center": [0, -2], "size": [34, 1.1], "height": 0.18 },
+    { "id": "security-west-service-stack", "asset": "wall-machinery", "center": [-39.2, -8], "size": [1.2, 18], "height": 1.05 },
+    { "id": "security-east-service-stack", "asset": "wall-machinery", "center": [39.2, -8], "size": [1.2, 18], "height": 1.05 },
+    { "id": "security-warning-floor-stripe", "asset": "cable-tray", "center": [0, -15.2], "size": [40, 1], "height": 0.16 },
+    { "id": "security-ceiling-cable-west", "asset": "cable-tray", "center": [-20, -12], "size": [30, 1.2], "height": 0.2 },
+    { "id": "security-ceiling-cable-east", "asset": "cable-tray", "center": [20, -12], "size": [30, 1.2], "height": 0.2 },
+    { "id": "security-center-server-run", "asset": "wall-machinery", "center": [0, 2], "size": [34, 1.5], "height": 0.95 },
+    { "id": "security-terminal-power-bus", "asset": "cable-tray", "center": [27, -8], "size": [12, 1.2], "height": 0.18 },
     { "id": "server-cable-run-west", "asset": "cable-tray", "center": [-27, 6.35], "size": [24, 1.15], "height": 0.2 },
     { "id": "server-cable-run-east", "asset": "cable-tray", "center": [28, 6.35], "size": [20, 1.15], "height": 0.2 },
+    { "id": "server-midfloor-power-tray", "asset": "cable-tray", "center": [0, 11], "size": [30, 1.2], "height": 0.18 },
+    { "id": "server-north-hazard-strip", "asset": "cable-tray", "center": [0, 18.8], "size": [30, 1], "height": 0.16 },
     { "id": "server-overhead-rack-west", "asset": "wall-machinery", "center": [-29, 17.4], "size": [20, 1.3], "height": 0.75 },
     { "id": "server-overhead-rack-east", "asset": "wall-machinery", "center": [29, 17.4], "size": [20, 1.3], "height": 0.75 },
     { "id": "command-console-west", "asset": "wall-machinery", "center": [-23, 21.8], "size": [24, 1.5], "height": 0.95 },
     { "id": "command-console-east", "asset": "wall-machinery", "center": [23, 21.8], "size": [24, 1.5], "height": 0.95 },
+    { "id": "command-floor-guidance-west", "asset": "cable-tray", "center": [-18, 28], "size": [24, 1.2], "height": 0.16 },
+    { "id": "command-floor-guidance-east", "asset": "cable-tray", "center": [18, 28], "size": [24, 1.2], "height": 0.16 },
     { "id": "extraction-machinery-west", "asset": "extraction-beacon", "center": [-24, 35], "size": [24, 2], "height": 0.85 },
     { "id": "extraction-machinery-east", "asset": "extraction-beacon", "center": [24, 35], "size": [24, 2], "height": 0.85 },
     { "id": "north-cable-spine", "asset": "cable-tray", "center": [0, 36.2], "size": [30, 1], "height": 0.22 }
@@ -46,28 +62,28 @@
       "label": "Entry Lobby",
       "bounds": { "min": [-42, -34], "max": [42, -18] },
       "screenshot": "gameplay-level-one.png",
-      "expectedLandmarks": ["access-keycard", "lobby-door", "cargo-stack-a", "cargo-stack-b", "sentry-lobby"]
+      "expectedLandmarks": ["access-keycard", "lobby-door", "cargo-stack-a", "cargo-stack-b", "sentry-lobby", "entry-floor-light-spine", "entry-south-machinery-west", "entry-south-machinery-east"]
     },
     {
       "id": "security-stack",
       "label": "Security Stack",
       "bounds": { "min": [-42, -18], "max": [42, 5] },
       "screenshot": "tutorial-03-terminal.png",
-      "expectedLandmarks": ["security-terminal", "antenna-bank", "security-floor-cable-spine", "server-door"]
+      "expectedLandmarks": ["security-terminal", "antenna-bank", "security-floor-cable-spine", "server-door", "security-west-service-stack", "security-east-service-stack", "security-warning-floor-stripe"]
     },
     {
       "id": "server-wing",
       "label": "Server Wing",
       "bounds": { "min": [-42, 5], "max": [42, 20] },
       "screenshot": "gameplay-command-codes.png",
-      "expectedLandmarks": ["command-codes", "server-bank-a", "server-bank-b", "sentry-server"]
+      "expectedLandmarks": ["command-codes", "server-bank-a", "server-bank-b", "sentry-server", "server-midfloor-power-tray", "server-north-hazard-strip"]
     },
     {
       "id": "command-extraction",
       "label": "Command And Extraction",
       "bounds": { "min": [-42, 20], "max": [42, 38] },
       "screenshot": "complete.png",
-      "expectedLandmarks": ["extraction", "briefing-table", "extraction-machinery-west", "extraction-machinery-east", "sentry-command"]
+      "expectedLandmarks": ["extraction", "briefing-table", "extraction-machinery-west", "extraction-machinery-east", "sentry-command", "command-floor-guidance-west", "command-floor-guidance-east"]
     }
   ],
   "doors": [

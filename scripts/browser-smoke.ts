@@ -7,6 +7,8 @@ import { defaultLevel } from '../src/game/levels';
 const baseUrl = process.env.SMOKE_URL ?? 'http://127.0.0.1:5173/';
 const screenshotDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
 const headless = process.env.SMOKE_HEADLESS !== 'false';
+const aaaReadyLevelFootprintRatio = 0.18;
+const aaaReadyZoneFootprintRatio = 0.2;
 
 type RuntimeAssetAuditState = {
   id: string;
@@ -251,19 +253,23 @@ try {
   ) {
     throw new Error(`Expected every authored set-dressing GLB placement to be loaded, visible, grounded, and coordinate-covered, got ${JSON.stringify(setDressingVisibility)}`);
   }
-  if (state.geometry.levelDensity.grade === 'fail' || state.geometry.levelDensity.setDressingCount < 10) {
-    throw new Error(`Expected coordinate-backed level set dressing to clear the density gate, got ${JSON.stringify(state.geometry.levelDensity)}`);
+  if (
+    state.geometry.levelDensity.grade === 'fail' ||
+    state.geometry.levelDensity.setDressingCount < 10 ||
+    state.geometry.levelDensity.setDressingRatio < aaaReadyLevelFootprintRatio
+  ) {
+    throw new Error(`Expected coordinate-backed level set dressing to clear the AAA density gate, got ${JSON.stringify(state.geometry.levelDensity)}`);
   }
   if (
     state.geometry.levelDensity.zones.length < 4 ||
     state.geometry.levelDensity.zones.some((zone) =>
       zone.grade !== 'pass' ||
       zone.landmarkCount < zone.expectedLandmarks.length ||
-      zone.totalFootprintRatio < 0.1 ||
+      zone.totalFootprintRatio < aaaReadyZoneFootprintRatio ||
       zone.interactableCount < 1
     )
   ) {
-    throw new Error(`Expected every named density zone to pass with landmarks and interactables, got ${JSON.stringify(state.geometry.levelDensity.zones)}`);
+    throw new Error(`Expected every named density zone to pass AAA readiness with landmarks and interactables, got ${JSON.stringify(state.geometry.levelDensity.zones)}`);
   }
   if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {
     throw new Error(`Expected persisted settings in tester state, got ${JSON.stringify(state.settings)}`);

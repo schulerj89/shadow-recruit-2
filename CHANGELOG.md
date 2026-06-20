@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.15.3 - 2026-06-20
+
+### Patch
+
+- Added coordinate-authored non-solid GLB set dressing across all four Level 1 zones so gameplay-camera density clears the AAA readiness targets while preserving collision and route validation.
+- Tightened browser smoke density assertions to match the tester report's 18% whole-level and 20% per-zone AAA-readiness gates.
+
 ## 0.15.2 - 2026-06-20
 
 ### Patch
