@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.25.2 - 2026-06-20
+
+### Patch
+
+- Modernized the title command menu with a slimmer tactical action stack, live status chips, and stronger focus/readability styling while preserving the static door-and-hero composition.
+- Reworked the settings panel into a modal-style configuration surface with accessible switches, a segmented performance-profile control, and matching browser-smoke coverage.
+
 ## 0.25.1 - 2026-06-20
 
 ### Patch

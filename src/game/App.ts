@@ -1303,19 +1303,41 @@ export class ShadowRecruitApp {
     if (this.phase === 'title') {
       this.overlay.innerHTML = `
         <div class="title-layout" data-testid="title-panel">
-          <section class="title-mark" data-testid="title-mark">
+          <section class="title-mark" data-testid="title-mark" aria-labelledby="title-wordmark">
             <div class="title-kicker" data-testid="title-kicker">Operation Blackglass</div>
-            <h1 class="title-logo" data-testid="title-wordmark" aria-label="Shadow Recruit 2"><span>Shadow</span><span>Recruit</span><span>2</span></h1>
+            <h1 id="title-wordmark" class="title-logo" data-testid="title-wordmark" aria-label="Shadow Recruit 2"><span>Shadow</span><span>Recruit</span><span>2</span></h1>
             <p class="title-copy" data-testid="title-copy">A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.</p>
           </section>
-          <section class="command-panel">
+          <section class="command-panel command-panel--title" aria-label="Ready room menu">
+            <div class="menu-status-strip" aria-label="Mission status">
+              <span>Door staged</span>
+              <span>Ghost channel live</span>
+            </div>
             <div class="screen-kicker">Ready room</div>
-            <h2 class="panel-title">Prepare the insertion.</h2>
+            <h2 class="panel-title">Prepare the insertion</h2>
             <p class="panel-copy">The recruit holds at the blacksite door. Tune field options, then begin the cinematic tutorial.</p>
-            <div class="button-row is-stacked">
-              <button type="button" data-action="start">Start</button>
-              <button type="button" data-action="hero-select">Change Hero</button>
-              <button type="button" data-action="settings">Settings</button>
+            <div class="menu-actions">
+              <button type="button" class="menu-action menu-action--primary" data-action="start" aria-label="Start">
+                <span class="menu-action__index" aria-hidden="true">01</span>
+                <span class="menu-action__content">
+                  <strong>Start</strong>
+                  <small>Open the mission roster</small>
+                </span>
+              </button>
+              <button type="button" class="menu-action" data-action="hero-select" aria-label="Change Hero">
+                <span class="menu-action__index" aria-hidden="true">02</span>
+                <span class="menu-action__content">
+                  <strong>Change Hero</strong>
+                  <small>Review recruit traits</small>
+                </span>
+              </button>
+              <button type="button" class="menu-action" data-action="settings" aria-label="Settings">
+                <span class="menu-action__index" aria-hidden="true">03</span>
+                <span class="menu-action__content">
+                  <strong>Settings</strong>
+                  <small>Audio, debug, frame budget</small>
+                </span>
+              </button>
             </div>
           </section>
         </div>`;
@@ -1361,28 +1383,59 @@ export class ShadowRecruitApp {
         </section>`;
     } else if (this.phase === 'settings') {
       this.overlay.innerHTML = `
-        <section class="screen-panel settings-screen" data-testid="settings-panel">
-          <div class="screen-kicker">Settings</div>
-          <h2>Mission configuration</h2>
+        <section class="screen-panel settings-screen" data-testid="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+          <header class="settings-header">
+            <div>
+              <div class="screen-kicker">Settings</div>
+              <h2 id="settings-title">Mission configuration</h2>
+            </div>
+            <div class="settings-profile-chip" data-testid="settings-profile-chip">${this.settings.performanceProfile}</div>
+          </header>
+          <div class="settings-summary" aria-label="Current configuration">
+            <span>${this.settings.muted ? 'Audio muted' : 'Audio armed'}</span>
+            <span>${this.settings.debug ? 'Debug visible' : 'Debug hidden'}</span>
+            <span>${this.settings.performanceProfile} profile</span>
+          </div>
           <div class="settings-grid">
             <label class="setting-row">
-              <span>Debug overlays</span>
-              <input type="checkbox" data-setting="debug" ${this.settings.debug ? 'checked' : ''} />
+              <span class="setting-copy">
+                <strong>Debug overlays</strong>
+                <small>Show runtime coordinates, frame pacing, and renderer counters.</small>
+              </span>
+              <span class="switch-control">
+                <input type="checkbox" data-setting="debug" aria-label="Debug overlays" ${this.settings.debug ? 'checked' : ''} />
+                <span class="switch-track" aria-hidden="true"></span>
+              </span>
             </label>
             <label class="setting-row">
-              <span>Mute audio</span>
-              <input type="checkbox" data-setting="muted" ${this.settings.muted ? 'checked' : ''} />
+              <span class="setting-copy">
+                <strong>Mute audio</strong>
+                <small>Disable music and mission cues while preserving gameplay flow.</small>
+              </span>
+              <span class="switch-control">
+                <input type="checkbox" data-setting="muted" aria-label="Mute audio" ${this.settings.muted ? 'checked' : ''} />
+                <span class="switch-track" aria-hidden="true"></span>
+              </span>
             </label>
-            <label class="setting-row">
-              <span>Performance profile</span>
-              <select data-setting="performanceProfile">
-                <option value="performance" ${this.settings.performanceProfile === 'performance' ? 'selected' : ''}>Performance</option>
-                <option value="balanced" ${this.settings.performanceProfile === 'balanced' ? 'selected' : ''}>Balanced</option>
-                <option value="cinematic" ${this.settings.performanceProfile === 'cinematic' ? 'selected' : ''}>Cinematic</option>
-              </select>
-            </label>
+            <div class="setting-row setting-row--profiles">
+              <span class="setting-copy" id="performance-profile-label">
+                <strong>Performance profile</strong>
+                <small>Choose the rendering budget before entering the blacksite.</small>
+              </span>
+              <div class="segmented-control" role="radiogroup" aria-labelledby="performance-profile-label">
+                ${(['performance', 'balanced', 'cinematic'] as const).map((profile) => `
+                  <label class="segment-option">
+                    <input type="radio" name="performanceProfile" value="${profile}" data-setting="performanceProfile" ${this.settings.performanceProfile === profile ? 'checked' : ''} />
+                    <span>
+                      <strong>${profile[0].toUpperCase()}${profile.slice(1)}</strong>
+                      <small>${profile === 'performance' ? '60 FPS priority' : profile === 'balanced' ? 'Quality with headroom' : 'Maximum staging'}</small>
+                    </span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
           </div>
-          <div class="button-row">
+          <div class="button-row settings-actions">
             <button type="button" data-action="close-settings">Back</button>
           </div>
         </section>`;
@@ -1545,6 +1598,10 @@ export class ShadowRecruitApp {
       if (!setting) return;
       if (setting === 'debug' && target instanceof HTMLInputElement) this.settings.debug = target.checked;
       if (setting === 'muted' && target instanceof HTMLInputElement) this.settings.muted = target.checked;
+      if (setting === 'performanceProfile' && target instanceof HTMLInputElement && target.checked) {
+        this.setPerformanceProfile(target.value);
+        return;
+      }
       if (setting === 'performanceProfile' && target instanceof HTMLSelectElement) {
         this.setPerformanceProfile(target.value === 'performance' || target.value === 'cinematic' ? target.value : 'balanced');
         return;

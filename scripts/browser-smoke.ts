@@ -109,7 +109,7 @@ try {
   await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });
   await page.getByLabel('Debug overlays').check();
   await page.getByLabel('Mute audio').check();
-  await page.getByLabel('Performance profile').selectOption('performance');
+  await page.getByRole('radio', { name: /Performance/ }).check();
   await page.screenshot({ path: `${screenshotDir}/02-settings.png`, fullPage: true });
   const settings = await page.evaluate(() => window.__shadowRecruitDebug?.settings());
   if (!settings?.debug || !settings.muted || settings.performanceProfile !== 'performance') {
