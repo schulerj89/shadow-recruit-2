@@ -36,6 +36,12 @@ try {
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
   await page.screenshot({ path: `${outputDir}/hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: 'Start Level' }).click();
+  await page.waitForSelector('[data-testid="loading-panel"]', { timeout: 12000 });
+  const loadingState = await page.evaluate(() => window.__shadowRecruitDebug?.loadingState());
+  if (!loadingState?.active || loadingState.value <= 0 || loadingState.history.length === 0) {
+    throw new Error(`Expected observable loading state before tutorial, got ${JSON.stringify(loadingState)}`);
+  }
+  await page.screenshot({ path: `${outputDir}/loading-level-one.png`, fullPage: true });
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
   for (const name of ['insertion', 'keycard', 'terminal', 'sentry', 'extraction']) {
     const tutorial = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialStep());

@@ -17,6 +17,7 @@ const expectedScreenshots = [
   'title-orbit-preview.png',
   'settings.png',
   'hero-select.png',
+  'loading-level-one.png',
   'tutorial-01-insertion.png',
   'tutorial-02-keycard.png',
   'tutorial-03-terminal.png',
@@ -56,7 +57,21 @@ type Metrics = {
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
   titleComposition?: TitleComposition;
+  loading?: LoadingState;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
+};
+
+type LoadingStep = {
+  label: string;
+  value: number;
+  elapsedMs: number;
+};
+
+type LoadingState = {
+  active: boolean;
+  label: string;
+  value: number;
+  history: readonly LoadingStep[];
 };
 
 type TitleComposition = {
@@ -188,6 +203,7 @@ const renderer = metrics?.renderer;
 const memory = metrics?.memory;
 const assetQuality = metrics?.assetQuality ?? [];
 const geometry = metrics?.geometry ?? (playthrough?.finalState?.geometry as GeometryDiagnostics | undefined);
+const loading = metrics?.loading ?? (playthrough?.finalState?.loading as LoadingState | undefined);
 const settings = metrics?.settings;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 const assetFindings = describeAssetFindings(assetQuality);
@@ -222,6 +238,7 @@ Date: ${date}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
+- Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
@@ -259,6 +276,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 
 - P0: None recorded by generated report.
 ${frameFinding}
+${describeLoadingFindings(loading)}
 ${assetFindings}
 ${titleFindings}
 ${geometryFindings}
@@ -318,6 +336,20 @@ function describeAssetFindings(checks: readonly AssetQualityCheck[]): string {
   const findings = failed.map((check) => `- P1: Asset ${check.id} failed grading: ${check.notes.join(' ')}`);
   findings.push(...review.map((check) => `- P2: Asset ${check.id} needs art/readability review: ${check.notes.join(' ')}`));
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated asset grading.';
+}
+
+function describeLoadingFindings(loading: LoadingState | undefined): string {
+  if (!loading) return '- P1: Loading diagnostics missing.';
+  if (loading.history.length < 3) {
+    return `- P1: Loading diagnostics are too thin: only ${loading.history.length} step(s) captured.`;
+  }
+  if (!loading.history.some((step) => step.label.includes('tactical dressing'))) {
+    return `- P1: Loading history did not capture tactical dressing preload: ${loading.history.map((step) => step.label).join(' -> ')}.`;
+  }
+  if (loading.value < 1) {
+    return `- P2: Latest loading state did not reach ready/start value: ${loading.label} ${(loading.value * 100).toFixed(0)}%.`;
+  }
+  return '- P1: None from generated loading diagnostics.';
 }
 
 function describeTitleFindings(composition: TitleComposition | undefined): string {

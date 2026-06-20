@@ -75,6 +75,12 @@ try {
   }
   await page.screenshot({ path: `${screenshotDir}/03-hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: 'Start Level' }).click();
+  await page.waitForSelector('[data-testid="loading-panel"]', { timeout: 12000 });
+  const loadingState = await page.evaluate(() => window.__shadowRecruitDebug?.loadingState());
+  if (!loadingState?.active || loadingState.value <= 0 || loadingState.history.length === 0) {
+    throw new Error(`Expected observable loading state before tutorial, got ${JSON.stringify(loadingState)}`);
+  }
+  await page.screenshot({ path: `${screenshotDir}/03b-loading-level-one.png`, fullPage: true });
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
 
   const tutorialSteps = [
@@ -118,6 +124,9 @@ try {
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
     throw new Error(`Expected completed objectives, got ${JSON.stringify(state)}`);
+  }
+  if (state.loading.history.length < 3 || !state.loading.history.some((step) => step.label.includes('tactical dressing'))) {
+    throw new Error(`Expected tester state to retain mission loading history, got ${JSON.stringify(state.loading)}`);
   }
   if (!state.completion.active || !state.completion.triumphantCue || state.completion.objectivesCompleted !== 3 || state.completion.objectivesTotal !== 3 || state.completion.alerts !== 0) {
     throw new Error(`Expected completion stats with triumphant cue, got ${JSON.stringify(state.completion)}`);

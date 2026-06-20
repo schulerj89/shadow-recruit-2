@@ -258,6 +258,19 @@ export type TitleComposition = {
   notes: readonly string[];
 };
 
+export type LoadingStep = {
+  label: string;
+  value: number;
+  elapsedMs: number;
+};
+
+export type LoadingState = {
+  active: boolean;
+  label: string;
+  value: number;
+  history: readonly LoadingStep[];
+};
+
 export type TutorialState = {
   index: number;
   total: number;
@@ -287,6 +300,7 @@ export type TesterState = {
   levelId: string;
   selectedHero: string;
   settings: GameSettings;
+  loading: LoadingState;
   tutorial: TutorialState;
   cinematicFocus: CinematicFocusState;
   completion: CompletionStats;

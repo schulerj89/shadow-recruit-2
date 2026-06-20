@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.1 - 2026-06-20
+
+### Patch
+
+- Added loading-screen diagnostics and QA screenshots so mission loading progress is visible, retained in tester state, and covered by smoke/tester reports.
+
 ## 0.12.0 - 2026-06-20
 
 ### Minor

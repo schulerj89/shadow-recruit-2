@@ -24,6 +24,8 @@ import type {
   LevelCatalogEntry,
   LevelDefinition,
   LevelDensityCheck,
+  LoadingState,
+  LoadingStep,
   MemoryMetrics,
   ObjectiveRuntime,
   PerformanceProfile,
@@ -72,6 +74,8 @@ type AssetQualityOptions = {
 
 type ShellTextureKind = 'floor' | 'wall' | 'blocker' | 'trim';
 
+const minimumLoadingScreenMs = 650;
+
 const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
   performance: {
     pixelRatioCap: 0.75,
@@ -117,6 +121,7 @@ type ShadowRecruitDebugApi = {
   missionId: () => string;
   missions: () => readonly LevelCatalogEntry[];
   settings: () => GameSettings;
+  loadingState: () => LoadingState;
   tutorialStep: () => TutorialState;
   cinematicFocus: () => CinematicFocusState;
   selectedHero: () => HeroId;
@@ -303,6 +308,8 @@ export class ShadowRecruitApp {
   private previousPhase: Phase = 'title';
   private ready = false;
   private loading = { label: 'booting', value: 0 };
+  private loadingStartedAt = 0;
+  private loadingHistory: LoadingStep[] = [];
   private objectives: ObjectiveRuntime[] = [];
   private doors: DoorRuntime[] = [];
   private enemies: EnemyRuntime[] = [];
@@ -372,6 +379,7 @@ export class ShadowRecruitApp {
     this.buildTitleScene();
     this.ready = true;
     this.setLoading('ready', 1);
+    await this.holdLoadingScreen();
     this.setPhase('title');
     await this.audio.play('title');
   }
@@ -415,6 +423,7 @@ export class ShadowRecruitApp {
     this.setLoading(`building ${this.level.name.toLowerCase()}`, 0.68);
     this.buildPlayableLevel();
     this.setLoading('starting cinematic tutorial', 1);
+    await this.holdLoadingScreen();
     this.tutorialIndex = 0;
     this.setPhase('tutorial');
     this.focusTarget(this.level.tutorial[0].target);
@@ -1224,7 +1233,12 @@ export class ShadowRecruitApp {
   }
 
   private setPhase(phase: Phase): void {
+    const enteringLoading = phase === 'loading' && this.phase !== 'loading';
     this.phase = phase;
+    if (enteringLoading) {
+      this.loadingStartedAt = performance.now();
+      this.loadingHistory = [];
+    }
     if (phase === 'playing' && this.runStartedAt === 0) {
       this.runStartedAt = performance.now();
     }
@@ -1234,7 +1248,19 @@ export class ShadowRecruitApp {
 
   private setLoading(label: string, value: number): void {
     this.loading = { label, value };
+    this.loadingHistory.push({
+      label,
+      value: roundMetric(value),
+      elapsedMs: Math.max(0, Math.round(performance.now() - this.loadingStartedAt)),
+    });
     this.renderOverlay();
+  }
+
+  private async holdLoadingScreen(): Promise<void> {
+    const remainingMs = minimumLoadingScreenMs - (performance.now() - this.loadingStartedAt);
+    if (remainingMs > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, remainingMs));
+    }
   }
 
   private openSettings(): void {
@@ -2225,6 +2251,15 @@ export class ShadowRecruitApp {
     };
   }
 
+  private loadingState(): LoadingState {
+    return {
+      active: this.phase === 'loading',
+      label: this.loading.label,
+      value: roundMetric(this.loading.value),
+      history: this.loadingHistory.map((step) => ({ ...step })),
+    };
+  }
+
   private completionStats(): CompletionStats {
     const progress = this.getObjectiveProgress();
     return {
@@ -2293,6 +2328,7 @@ export class ShadowRecruitApp {
       levelId: this.level.id,
       selectedHero: this.selectedHero,
       settings: { ...this.settings },
+      loading: this.loadingState(),
       tutorial: this.tutorialState(),
       cinematicFocus: this.cinematicFocusState(),
       completion: this.completionStats(),
@@ -2371,6 +2407,7 @@ export class ShadowRecruitApp {
       missionId: () => this.level.id,
       missions: () => levelCatalog,
       settings: () => ({ ...this.settings }),
+      loadingState: () => this.loadingState(),
       tutorialStep: () => this.tutorialState(),
       cinematicFocus: () => this.cinematicFocusState(),
       selectedHero: () => this.selectedHero,
