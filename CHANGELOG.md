@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-06-20
+
+### Minor
+
+- Added level-id driven playthrough tooling so scripted and browser validation can target future missions with `PLAYTHROUGH_LEVEL_ID`.
+
 ## 0.4.1 - 2026-06-20
 
 ### Patch

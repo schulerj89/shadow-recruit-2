@@ -115,7 +115,7 @@ type ShadowRecruitDebugApi = {
   forceFailure: () => void;
   forceSuccess: () => void;
   resetMission: () => Promise<void>;
-  startGame: (heroId?: string) => Promise<void>;
+  startGame: (heroId?: string, missionId?: string) => Promise<void>;
   setPerformanceProfile: (profile: string) => void;
   completeMission: () => void;
   resetFramePacing: () => void;
@@ -244,8 +244,11 @@ export class ShadowRecruitApp {
     this.camera.lookAt(this.titleCameraTarget);
   }
 
-  private async startRun(heroId = this.selectedHero): Promise<void> {
+  private async startRun(heroId = this.selectedHero, missionId = this.level.id): Promise<void> {
     if (isHeroId(heroId)) this.selectedHero = heroId;
+    const level = getLevelById(missionId);
+    if (!level) throw new Error(`Unknown mission: ${missionId}`);
+    this.level = level;
     this.audio.unlock();
     this.setPhase('loading');
     await this.audio.play('loading');
@@ -1185,7 +1188,7 @@ export class ShadowRecruitApp {
       forceFailure: () => this.setPhase('caught'),
       forceSuccess: () => this.completeMission(),
       resetMission: () => this.startRun(this.selectedHero),
-      startGame: (heroId) => this.startRun(isHeroId(heroId) ? heroId : this.selectedHero),
+      startGame: (heroId, missionId) => this.startRun(isHeroId(heroId) ? heroId : this.selectedHero, missionId),
       setPerformanceProfile: (profile) => this.setPerformanceProfile(profile),
       completeMission: () => this.completeMission(),
       resetFramePacing: () => {

@@ -1,10 +1,19 @@
-import { levels } from '../src/game/levels';
+import { getLevelById, levels } from '../src/game/levels';
 import { distance, pointInBounds, pointInRect } from '../src/game/math';
 import type { LevelDefinition } from '../src/game/types';
 
 let failures = 0;
+const requestedLevelId = process.env.PLAYTHROUGH_LEVEL_ID;
+const levelsToValidate = requestedLevelId ? [getLevelById(requestedLevelId)] : levels;
 
-for (const level of levels) {
+if (levelsToValidate.some((level) => !level)) {
+  console.error(`[playthrough] Unknown PLAYTHROUGH_LEVEL_ID: ${requestedLevelId}`);
+  process.exit(1);
+}
+
+const selectedLevels = levelsToValidate.filter((level): level is LevelDefinition => Boolean(level));
+
+for (const level of selectedLevels) {
   validateRoute(level);
   validateUnlockOrder(level);
 }
@@ -13,7 +22,7 @@ if (failures > 0) {
   console.error(`[playthrough] ${failures} validation failure(s)`);
   process.exitCode = 1;
 } else {
-  console.info(`[playthrough] ${levels.map((level) => level.id).join(', ')} route, collision, objectives, doors, and extraction validated`);
+  console.info(`[playthrough] ${selectedLevels.map((level) => level.id).join(', ')} route, collision, objectives, doors, and extraction validated`);
 }
 
 function validateRoute(level: LevelDefinition): void {

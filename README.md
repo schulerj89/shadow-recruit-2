@@ -37,6 +37,8 @@ npm run tester:report
 
 `npm run test:fps` measures the low-cost `performance` profile by default. Override with `FPS_PROFILE=balanced` or `FPS_PROFILE=cinematic` when comparing richer profiles on a machine that can prove a visible 60 FPS browser baseline.
 
+`npm run test:playthrough` validates every authored level by default. `npm run playthrough:browser` defaults to Level One, and both commands can target one mission with `PLAYTHROUGH_LEVEL_ID=blacksite-threshold`.
+
 Skill edits should also run:
 
 ```powershell

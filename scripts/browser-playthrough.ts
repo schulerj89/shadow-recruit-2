@@ -1,11 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium, type ConsoleMessage } from 'playwright';
 import packageInfo from '../package.json';
-import { levelOne } from '../src/game/levels/levelOne';
+import { defaultLevel, getLevelById } from '../src/game/levels';
 import { distance } from '../src/game/math';
 import type { ObjectiveDefinition, TesterState, Vec2 } from '../src/game/types';
 
 const baseUrl = process.env.PLAYTHROUGH_URL ?? 'http://127.0.0.1:5173/';
+const requestedLevelId = process.env.PLAYTHROUGH_LEVEL_ID ?? defaultLevel.id;
+const level = getLevelById(requestedLevelId);
+if (!level) throw new Error(`Unknown PLAYTHROUGH_LEVEL_ID: ${requestedLevelId}`);
 const outputDir = process.env.PLAYTHROUGH_OUTPUT_DIR ?? `artifacts/playthrough/v${packageInfo.version}`;
 const headless = process.env.PLAYTHROUGH_HEADLESS !== 'false';
 
@@ -31,10 +34,14 @@ try {
 
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
-  await page.getByRole('button', { name: 'Start Level' }).click();
+  if (level.id === defaultLevel.id) {
+    await page.getByRole('button', { name: 'Start Level' }).click();
+  } else {
+    await page.evaluate((missionId) => window.__shadowRecruitDebug?.startGame(undefined, missionId), level.id);
+  }
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
 
-  for (const step of levelOne.tutorial) {
+  for (const step of level.tutorial) {
     const tutorial = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialStep());
     if (!tutorial?.step || tutorial.step.id !== step.id || tutorial.step.target !== step.target) {
       throw new Error(`Unexpected tutorial step while starting playthrough: ${JSON.stringify({ expected: step, tutorial })}`);
@@ -45,8 +52,8 @@ try {
   await expectPhase('playing');
   await page.screenshot({ path: `${outputDir}/02-mission-start.png`, fullPage: true });
 
-  const pendingObjectives = [...levelOne.objectives];
-  for (const point of levelOne.validationRoute) {
+  const pendingObjectives = [...level.objectives];
+  for (const point of level.validationRoute) {
     await teleport(point);
     await page.waitForTimeout(80);
     const phase = await page.evaluate(() => window.__shadowRecruitDebug?.phase());
@@ -83,7 +90,7 @@ try {
 
   await writeFile(`${outputDir}/playthrough-report.json`, JSON.stringify({
     build: `v${packageInfo.version}`,
-    levelId: levelOne.id,
+    levelId: level.id,
     routePoints: visitedRoute,
     interactions,
     finalState,
@@ -97,7 +104,7 @@ try {
     ],
   }, null, 2));
 
-  console.info(`[browser-playthrough] completed ${levelOne.id} and wrote ${outputDir}/playthrough-report.json`);
+  console.info(`[browser-playthrough] completed ${level.id} and wrote ${outputDir}/playthrough-report.json`);
 } finally {
   await browser.close();
 }
