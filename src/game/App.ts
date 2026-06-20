@@ -37,6 +37,7 @@ import type {
   TitleComposition,
   TutorialState,
   Vec2,
+  WallRunInterval,
 } from './types';
 
 type DoorMesh = {
@@ -1798,6 +1799,7 @@ export class ShadowRecruitApp {
       objectBounds: this.sceneObjectBounds(),
       setDressingVisibility: this.setDressingVisibilityChecks(),
       doorContinuity: this.doorContinuityChecks(),
+      wallRunContinuity: this.wallRunContinuityChecks(),
       levelDensity: this.levelDensityCheck(),
     };
   }
@@ -1965,6 +1967,102 @@ export class ShadowRecruitApp {
     });
   }
 
+  private wallRunContinuityChecks(): GeometryDiagnostics['wallRunContinuity'] {
+    const epsilon = 0.08;
+    const runs = new Map<string, { axis: 'x' | 'z'; line: number; doors: DoorRuntime[] }>();
+
+    for (const door of this.doors) {
+      const line = roundMetric(door.axis === 'x' ? door.center.z : door.center.x);
+      const key = `${door.axis}:${line}`;
+      const existing = runs.get(key);
+      if (existing) {
+        existing.doors.push(door);
+      } else {
+        runs.set(key, { axis: door.axis, line, doors: [door] });
+      }
+    }
+
+    return [...runs.values()].map((run) => {
+      const intervals = this.wallRunIntervals(run.axis, run.line, run.doors).sort((a, b) => a.min - b.min || a.max - b.max);
+      const gaps: DoorCoordinateGap[] = [];
+      let coveredMax = intervals[0]?.max ?? 0;
+      let coveredBy = intervals[0]?.id ?? 'none';
+
+      for (let index = 1; index < intervals.length; index += 1) {
+        const interval = intervals[index];
+        const gap = roundMetric(interval.min - coveredMax);
+        if (gap > epsilon) {
+          gaps.push({
+            id: `${run.axis}:${run.line}:gap-${gaps.length + 1}`,
+            label: 'Unowned span between wall-run intervals',
+            axis: run.axis,
+            fromId: coveredBy,
+            toId: interval.id,
+            fromEdge: roundMetric(coveredMax),
+            toEdge: roundMetric(interval.min),
+            gap,
+          });
+        }
+        if (interval.max > coveredMax) {
+          coveredMax = interval.max;
+          coveredBy = interval.id;
+        }
+      }
+
+      const notes = gaps.length > 0
+        ? gaps.map((gap) => `${gap.label}: ${gap.fromId} -> ${gap.toId} is ${gap.gap}m on ${gap.axis}.`)
+        : [`${run.axis}-axis wall run at line ${run.line} has ${intervals.length} sorted intervals with no unowned span above ${epsilon}m.`];
+
+      return {
+        id: `${run.axis}:${run.line}`,
+        axis: run.axis,
+        line: run.line,
+        grade: gaps.length > 0 || intervals.length === 0 ? 'fail' : 'pass',
+        epsilon,
+        intervals,
+        gaps,
+        notes,
+      };
+    });
+  }
+
+  private wallRunIntervals(axis: 'x' | 'z', line: number, doors: DoorRuntime[]): WallRunInterval[] {
+    const perpendicular = axis === 'x' ? 'z' : 'x';
+    const intervals: WallRunInterval[] = [];
+
+    for (const wall of this.level.walls) {
+      const bounds = this.rectBounds(wall);
+      if (this.rectRunAxis(wall) === axis && this.boundsTouchLine(perpendicular, bounds, line)) {
+        intervals.push(this.wallRunInterval(wall.id, 'wall', axis, bounds));
+      }
+    }
+
+    for (const door of doors) {
+      const openingBounds = this.rectBounds(door);
+      intervals.push(this.wallRunInterval(door.id, 'door-opening', axis, openingBounds));
+      const frameBounds = this.doorFrameMeshes.get(door.id) ? this.objectBounds(this.doorFrameMeshes.get(door.id)!) : undefined;
+      if (frameBounds) intervals.push(this.wallRunInterval(`${door.id}:frame`, 'door-frame', axis, frameBounds));
+      const continuityBounds = this.doorContinuityMeshes.get(door.id) ? this.objectBounds(this.doorContinuityMeshes.get(door.id)!) : undefined;
+      if (continuityBounds) intervals.push(this.wallRunInterval(`${door.id}:wall-continuity`, 'door-continuity', axis, continuityBounds));
+    }
+
+    return intervals;
+  }
+
+  private wallRunInterval(id: string, kind: WallRunInterval['kind'], axis: 'x' | 'z', bounds: Bounds3): WallRunInterval {
+    return {
+      id,
+      kind,
+      min: roundMetric(this.minAlong(axis, bounds)),
+      max: roundMetric(this.maxAlong(axis, bounds)),
+      bounds,
+    };
+  }
+
+  private rectRunAxis(rect: RectSpec): 'x' | 'z' {
+    return rect.size.x >= rect.size.z ? 'x' : 'z';
+  }
+
   private neighboringWalls(door: DoorRuntime): { before?: RectSpec; after?: RectSpec } {
     const perpendicular = door.axis === 'x' ? 'z' : 'x';
     const along = door.axis;
@@ -2093,6 +2191,10 @@ export class ShadowRecruitApp {
 
   private overlapOn(axis: 'x' | 'z', a: Bounds3, b: Bounds3): number {
     return Math.min(this.maxAlong(axis, a), this.maxAlong(axis, b)) - Math.max(this.minAlong(axis, a), this.minAlong(axis, b));
+  }
+
+  private boundsTouchLine(axis: 'x' | 'z', bounds: Bounds3, line: number): boolean {
+    return this.minAlong(axis, bounds) <= line + 0.08 && this.maxAlong(axis, bounds) >= line - 0.08;
   }
 
   private coverageMin(

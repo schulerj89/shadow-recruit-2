@@ -16,7 +16,9 @@ Required evidence:
 - Nonblank canvas proof.
 - Debug-state snapshot from `window.__shadowRecruitDebug.captureTesterState()`.
 - Level geometry data, rendered object bounds, and world-space coordinates for walls, doors, frames, continuity meshes, objectives, enemies, extraction, set dressing, and hero/title camera targets. If the build does not expose enough coordinate evidence to prove a claim, mark the test evidence incomplete instead of passing from screenshots alone.
+- A sorted wall-run interval ledger for every wall line interrupted by doors. The ledger must include walls, door openings, frame bounds, continuity/back-wall bounds, interval min/max edges, and unowned spans between adjacent intervals.
 - Asset-quality diagnostics covering floor/wall meshes, generated-image texture quality, wall-door seams and gaps, door-over-wall visual priority, objective models, sentries, door panels, extraction marker, and hero placement.
+- Per-zone or whole-level density diagnostics with floor area, cover/blocker footprint, set-dressing footprint, landmark/interactable counts, and sparse coordinate regions.
 - Frame pacing metrics for gameplay changes.
 - Any console/page errors.
 
@@ -27,6 +29,7 @@ Report in this order:
 - **P0 blockers:** crashes, blank canvas, impossible progression, missing required asset, broken start/tutorial/complete flow.
 - **P1 readability:** unclear objective, enemy, door, extraction, camera target, tutorial text mismatch, bad hero framing.
 - **P1 coordinate/readability failures:** screenshot-visible wall gaps, door openings, floating or buried assets, or suspicious seams must be cross-checked against coordinates. Fail when door extents, wall segment endpoints, frame bounds, or continuity mesh bounds leave a positive unintentional gap beyond tolerance, even if the screenshot is ambiguous.
+- **P1 wall-run failures:** fail any wall line where the sorted interval ledger shows a positive unowned span between nearby doors, adjacent wall segments, frame returns, or continuity/back-wall pieces. This includes spans between two door openings, not only gaps immediately beside one door.
 - **P1 asset failures:** missing required GLB/model, invisible objective, sentry below/inside ground, unclear extraction marker, missing or corrupted door panel texture, obvious holes/gaps at wall-door seams, broken wall/floor mesh, door openings that lack wall/portal continuity when the door is open, or title hero staging that shows the back/side so strongly that the player cannot read the recruit's face, suit, or silhouette.
 - **P1 performance:** no visible 60 FPS path, high p95 frame time, excessive draw calls, frame spikes after loading/unlock.
 - **P1 AAA environment gaps:** a large level with mostly empty floor, repeated bare walls, no readable cover/dressing/landmarks, or missing tactical props is not AAA-quality just because the level is big. Flag sparse rooms and corridors when asset density, material variation, lighting detail, and gameplay dressing do not support the infiltration fantasy.
@@ -65,9 +68,10 @@ Use screenshots to spot defects, then use coordinates to prove them:
 - Convert every authored wall, blocker, door, frame, and continuity mesh to world-space min/max bounds. For axis-aligned rectangles, use `min = center - size / 2` and `max = center + size / 2`; for rendered meshes, use `Box3.setFromObject` or equivalent debug bounds.
 - For each door, identify the wall line it interrupts. The wall pieces, frame, and continuity/back-wall pieces must either touch within epsilon or intentionally overlap behind the opening so the door visually takes priority. A positive gap wider than epsilon between door edge and adjacent wall/frame/continuity bounds is a P1.
 - For an `x`-axis door, compare the door's left/right X edges and near/far Z faces with neighboring wall segment endpoints, frame jambs, returns, and back-wall continuity. For a `z`-axis door, perform the same checks with X/Z swapped.
-- For multiple doors or wall pieces on the same line, sort all wall, frame, continuity, and door intervals along the interrupted axis. Check every adjacent interval pair, including the space between two nearby door openings, and fail positive unowned spans that should be covered by wall, frame, return, or continuity geometry.
+- For multiple doors or wall pieces on the same line, sort all wall, frame, continuity, and door intervals along the interrupted axis. Check every adjacent interval pair, including the space between two nearby door openings, and fail positive unowned spans that should be covered by wall, frame, return, or continuity geometry. The report must include the sorted interval ledger, not only the failing gap.
+- Treat local door checks and wall-run checks as different approvals: a door can pass its immediate left/right neighbors while the wall run still fails because the span between two doors or between two wall fragments is unowned.
 - Treat "wall gap by door" screenshots as unverified until the report names the door ID, wall IDs, edge values, gap width, and whether the open/closed door state changes the visible priority.
-- If runtime debug state lacks per-object world bounds for doors, walls, frames, and continuity meshes, file a P1 instrumentation gap. A tester cannot approve wall continuity without coordinate evidence.
+- If runtime debug state lacks per-object world bounds for doors, walls, frames, continuity meshes, or wall-run interval ledgers, file a P1 instrumentation gap. A tester cannot approve wall continuity without coordinate evidence.
 
 ## Screenshot And Coordinate Fusion Gate
 
@@ -76,7 +80,7 @@ Never let visual review and coordinate review run as separate approvals:
 - When a screenshot suggests a gap, overlap, buried asset, floating asset, empty room, or title-camera mistake, the report must pair the screenshot name with the matching runtime object IDs and min/max coordinates.
 - When coordinates show a defect that the screenshot angle hides, still fail it and request a QA screenshot from a better camera or debug overlay. A defect does not become acceptable because the default camera missed it.
 - For door priority, capture or inspect both open and closed states. The tester must confirm that an open sliding door visually overrides the wall/portal surface without leaving a hole, and that the closed door does not hide missing surrounding wall geometry.
-- For title screens, inspect the screenshot plus camera target, hero world position, and hero forward/rotation data when exposed. Fail if the torso/head/visor points mostly away from the camera or if the camera is so distant that the recruit identity is unreadable.
+- For title screens, inspect the screenshot plus camera target, hero world position, and hero forward/rotation data when exposed. Fail if the torso/head/visor points mostly away from the camera, if the hero-to-camera facing dot is below the project readability threshold, or if the camera is so distant that the recruit identity is unreadable.
 
 ## AAA Level-Density QA
 
@@ -88,6 +92,7 @@ Judge large levels by production detail, not only size:
 - For every asset-density finding, name the screenshot plus the sparse coordinate area or room IDs so the level creator and asset builder can act on it.
 - Treat a "large" level as suspicious until density is measured. Require per-zone or whole-level data for floor area, blocker/cover footprint, set-dressing footprint, landmark count, interactable count, and repeated-material exposure. If the runtime lacks those metrics, file a P1 instrumentation gap.
 - Fail AAA readiness when the dominant player view is empty floor and repeated walls, even if generated textures are attached. Generated images improve materials, but they do not replace terminals, machinery, cover, decals, lights, cables, props, patrol context, or extraction staging.
+- Do not collapse the density review into a single flattering sentence. Record a scorecard for each sparse room/corridor or for the whole level when per-zone data is unavailable, and mark missing per-zone instrumentation as a follow-up finding.
 
 ## Report Shape
 
@@ -106,6 +111,7 @@ Evidence
 Tester Feedback
 - Readability blockers.
 - Coordinate QA: wall-door bounds, seam/gap edge deltas, frame/continuity mesh bounds, grounded object bounds, title hero orientation, and any missing debug instrumentation.
+- Wall-run interval QA: sorted interval ledger per interrupted wall line, adjacent interval gaps, door-to-door spans, and whether every positive span is owned by a wall, frame, return, continuity mesh, or door surface.
 - Asset grading: wall/floor mesh quality, generated wall/floor/object texture richness, material variation, AAA prop density, empty-space ratio, door-wall seam/gap quality, whether a wall/portal still visually exists behind an opening door, objective-model clarity, terminal/keycard/codes readability, extraction visibility, sentry grounding, door-panel texture clarity.
 - Control/camera feel.
 - Objective clarity.

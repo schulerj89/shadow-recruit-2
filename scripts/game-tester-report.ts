@@ -120,6 +120,25 @@ type DoorCoordinateCheck = {
   notes: readonly string[];
 };
 
+type WallRunInterval = {
+  id: string;
+  kind: 'wall' | 'door-opening' | 'door-frame' | 'door-continuity';
+  min: number;
+  max: number;
+  bounds: Bounds3;
+};
+
+type WallRunContinuityCheck = {
+  id: string;
+  axis: 'x' | 'z';
+  line: number;
+  grade: 'pass' | 'review' | 'fail';
+  epsilon: number;
+  intervals: readonly WallRunInterval[];
+  gaps: readonly DoorCoordinateGap[];
+  notes: readonly string[];
+};
+
 type SetDressingVisibilityCheck = {
   id: string;
   asset: string;
@@ -137,6 +156,7 @@ type GeometryDiagnostics = {
   objectBounds: readonly { id: string; category: string; visible: boolean; bounds: Bounds3 }[];
   setDressingVisibility?: readonly SetDressingVisibilityCheck[];
   doorContinuity: readonly DoorCoordinateCheck[];
+  wallRunContinuity?: readonly WallRunContinuityCheck[];
   levelDensity: {
     grade: 'pass' | 'review' | 'fail';
     floorArea: number;
@@ -203,13 +223,17 @@ Date: ${date}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
-- Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
+- Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
 
 ## Coordinate QA
 
 ${formatGeometryDiagnostics(geometry)}
+
+## Wall-Run Interval QA
+
+${formatWallRunContinuity(geometry)}
 
 ## Asset Grading
 
@@ -326,6 +350,18 @@ function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): s
   ].join('\n');
 }
 
+function formatWallRunContinuity(geometry: GeometryDiagnostics | undefined): string {
+  if (!geometry) return '- Wall-run continuity diagnostics not captured.';
+  if (!geometry.wallRunContinuity?.length) return '- FAIL wall-run/instrumentation: no sorted wall-run interval ledger was captured.';
+  return geometry.wallRunContinuity.map((check) => {
+    const intervals = check.intervals.map((interval) => `${interval.id}[${interval.kind}] ${formatMeters(interval.min)}..${formatMeters(interval.max)}`).join('; ');
+    const gaps = check.gaps.length > 0
+      ? check.gaps.map((gap) => `${gap.fromId}->${gap.toId} ${formatMeters(gap.gap)} (${gap.axis} ${gap.fromEdge}->${gap.toEdge})`).join('; ')
+      : `no unowned spans above ${formatMeters(check.epsilon)}`;
+    return `- ${check.grade.toUpperCase()} wall-run/${check.id}: axis=${check.axis}; line=${check.line}; intervals=${intervals}; gaps=${gaps}`;
+  }).join('\n');
+}
+
 function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): string {
   if (!geometry) return '- P1: Coordinate geometry diagnostics missing.';
   const findings: string[] = [];
@@ -334,6 +370,17 @@ function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): st
       findings.push(`- P1: Door-wall coordinate gaps for ${check.id}: ${check.gaps.map((gap) => `${gap.fromId}->${gap.toId} ${formatMeters(gap.gap)} on ${gap.axis}`).join('; ')}.`);
     } else if (check.grade === 'review') {
       findings.push(`- P2: Door-wall coordinate review for ${check.id}: ${check.notes.join(' ')}`);
+    }
+  }
+  if (!geometry.wallRunContinuity?.length) {
+    findings.push('- P1: Wall-run interval diagnostics missing; tester cannot prove spaces between doors and wall segments are connected.');
+  } else {
+    for (const check of geometry.wallRunContinuity) {
+      if (check.grade === 'fail') {
+        findings.push(`- P1: Wall-run coordinate gaps for ${check.id}: ${check.gaps.map((gap) => `${gap.fromId}->${gap.toId} ${formatMeters(gap.gap)} on ${gap.axis}`).join('; ')}.`);
+      } else if (check.grade === 'review') {
+        findings.push(`- P2: Wall-run coordinate review for ${check.id}: ${check.notes.join(' ')}`);
+      }
     }
   }
   for (const check of geometry.setDressingVisibility ?? []) {

@@ -201,6 +201,25 @@ export type DoorCoordinateCheck = {
   notes: readonly string[];
 };
 
+export type WallRunInterval = {
+  id: string;
+  kind: 'wall' | 'door-opening' | 'door-frame' | 'door-continuity';
+  min: number;
+  max: number;
+  bounds: Bounds3;
+};
+
+export type WallRunContinuityCheck = {
+  id: string;
+  axis: 'x' | 'z';
+  line: number;
+  grade: AssetQualityGrade;
+  epsilon: number;
+  intervals: readonly WallRunInterval[];
+  gaps: readonly DoorCoordinateGap[];
+  notes: readonly string[];
+};
+
 export type LevelDensityCheck = {
   grade: AssetQualityGrade;
   floorArea: number;
@@ -217,6 +236,7 @@ export type GeometryDiagnostics = {
   objectBounds: readonly SceneObjectBounds[];
   setDressingVisibility: readonly SetDressingVisibilityCheck[];
   doorContinuity: readonly DoorCoordinateCheck[];
+  wallRunContinuity: readonly WallRunContinuityCheck[];
   levelDensity: LevelDensityCheck;
 };
 

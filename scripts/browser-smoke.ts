@@ -139,6 +139,12 @@ try {
   if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {
     throw new Error(`Expected coordinate geometry diagnostics for doors and scene objects, got ${JSON.stringify(state.geometry)}`);
   }
+  if (
+    state.geometry.wallRunContinuity.length < state.geometry.doorContinuity.length ||
+    state.geometry.wallRunContinuity.some((check) => check.grade !== 'pass' || check.intervals.length < 3 || check.gaps.length > 0)
+  ) {
+    throw new Error(`Expected sorted wall-run continuity ledgers with no unowned door/wall spans, got ${JSON.stringify(state.geometry.wallRunContinuity)}`);
+  }
   const setDressingVisibility = state.geometry.setDressingVisibility;
   if (
     setDressingVisibility.length !== state.geometry.levelDensity.setDressingCount ||

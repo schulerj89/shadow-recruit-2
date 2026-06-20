@@ -1,4 +1,4 @@
 interface:
   display_name: "Shadow Recruit Game Tester"
-  short_description: "Reviews screenshots plus geometry evidence"
-  default_prompt: "Use $shadow-recruit-game-tester to review Shadow Recruit 2 screenshots, smoke results, FPS metrics, playthrough artifacts, asset grades, coordinate gaps, title hero framing, and AAA level-density issues."
+  short_description: "Reviews screenshots, wall-run coordinates, and asset density"
+  default_prompt: "Use $shadow-recruit-game-tester to review Shadow Recruit 2 screenshots, smoke results, FPS metrics, playthrough artifacts, asset grades, wall-run interval gaps, title hero facing, and AAA level-density issues."

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.11.1 - 2026-06-20
+
+### Patch
+
+- Added wall-run interval diagnostics and tester-skill rules so QA can prove spaces between doors, walls, frames, and continuity meshes by coordinates instead of relying on screenshots alone.
+- Tightened game-designer and geometry-validator skills around title hero facing, large-level density evidence, and wall-run continuity handoffs.
+
 ## 0.11.0 - 2026-06-20
 
 ### Minor
