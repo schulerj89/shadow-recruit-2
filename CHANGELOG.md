@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.22.0 - 2026-06-20
+
+### Minor
+
+- Added a committed mission-readiness matrix to the game-tester report, grading every registered mission for catalog exposure, browser playthrough evidence, route bounds, objective/door unlock wiring, density zones, landmarks, and static wall-run door-span ownership.
+- Added mission-readiness findings so future large levels fail QA when they lack scalable geometry, density, wall-run, or playthrough evidence instead of only relying on the selected mission's runtime capture.
+
 ## 0.21.1 - 2026-06-20
 
 ### Patch

@@ -2,6 +2,8 @@ import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/pro
 import { existsSync } from 'node:fs';
 import { basename } from 'node:path';
 import packageInfo from '../package.json';
+import { levels } from '../src/game/levels';
+import type { DoorDefinition as GameDoorDefinition, LevelDefinition as GameLevelDefinition, LevelZoneDefinition as GameLevelZoneDefinition, RectSpec as GameRectSpec, Vec2 as GameVec2 } from '../src/game/types';
 
 const date = process.env.QA_DATE ?? '2026-06-20';
 const outputDir = process.env.TESTER_REPORT_DIR ?? `docs/qa/${date}/v${packageInfo.version}`;
@@ -21,11 +23,13 @@ const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
 const gameplayViewDensityPath = `${outputDir}/gameplay-view-density.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
+const missionReadinessPath = `${outputDir}/mission-readiness.json`;
 const operativeTraitsPath = `${outputDir}/operative-traits.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 const fpsSceneDir = `${outputDir}/fps`;
 const aaaReadyZoneFootprintRatio = 0.2;
 const aaaReadyLevelFootprintRatio = 0.18;
+const wallRunEpsilon = 0.08;
 const expectedScreenshots = [
   'title.png',
   'title-orbit-preview.png',
@@ -253,6 +257,123 @@ type PlaythroughMatrix = {
   build: string;
   generatedAt?: string;
   levels: readonly PlaythroughMatrixEntry[];
+};
+
+type MissionReadinessArtifact = {
+  build: string;
+  generatedAt: string;
+  thresholds: {
+    levelFootprintRatio: number;
+    zoneFootprintRatio: number;
+    wallRunEpsilon: number;
+  };
+  summary: {
+    missions: number;
+    pass: number;
+    review: number;
+    fail: number;
+  };
+  missions: readonly MissionReadinessEntry[];
+};
+
+type MissionReadinessEntry = {
+  levelId: string;
+  name: string;
+  chapter: string;
+  grade: 'pass' | 'review' | 'fail';
+  catalogKnown: boolean;
+  dimensions: {
+    width: number;
+    depth: number;
+    floorArea: number;
+  };
+  counts: {
+    walls: number;
+    doors: number;
+    blockers: number;
+    setDressing: number;
+    zones: number;
+    requiredObjectives: number;
+    enemies: number;
+    validationRoutePoints: number;
+    tutorialSteps: number;
+  };
+  density: {
+    grade: 'pass' | 'review' | 'fail';
+    footprintArea: number;
+    footprintRatio: number;
+    zones: readonly MissionZoneReadiness[];
+  };
+  wallRuns: readonly MissionWallRunReadiness[];
+  playthrough: {
+    grade: 'pass' | 'review' | 'fail';
+    status: 'pass' | 'fail' | 'missing';
+    committedReportPath?: string;
+    screenshotCount: number;
+    missingScreenshots: readonly string[];
+  };
+  route: {
+    grade: 'pass' | 'review' | 'fail';
+    outOfBoundsPoints: readonly GameVec2[];
+  };
+  unlocks: {
+    grade: 'pass' | 'review' | 'fail';
+    missingDoors: readonly string[];
+    missingObjectives: readonly string[];
+  };
+  findings: readonly string[];
+};
+
+type MissionZoneReadiness = {
+  id: string;
+  label: string;
+  grade: 'pass' | 'review' | 'fail';
+  floorArea: number;
+  footprintArea: number;
+  footprintRatio: number;
+  landmarkCount: number;
+  expectedLandmarkCount: number;
+  interactableCount: number;
+  screenshot?: string;
+  findings: readonly string[];
+};
+
+type MissionWallRunReadiness = {
+  id: string;
+  axis: 'x' | 'z';
+  line: number;
+  grade: 'pass' | 'review' | 'fail';
+  doors: readonly string[];
+  wallIntervals: readonly MissionInterval[];
+  doorIntervals: readonly MissionInterval[];
+  doorToWallGaps: readonly MissionDoorWallGap[];
+  doorToDoorSpans: readonly MissionDoorSpanOwnership[];
+  findings: readonly string[];
+};
+
+type MissionInterval = {
+  id: string;
+  min: number;
+  max: number;
+};
+
+type MissionDoorWallGap = {
+  doorId: string;
+  side: 'before' | 'after';
+  fromId?: string;
+  toId?: string;
+  gap: number;
+};
+
+type MissionDoorSpanOwnership = {
+  previousDoorId: string;
+  nextDoorId: string;
+  spanMin: number;
+  spanMax: number;
+  spanWidth: number;
+  ownerIds: readonly string[];
+  largestGap: number;
+  grade: 'pass' | 'review' | 'fail';
 };
 
 type BrowserPlaythroughReport = {
@@ -659,9 +780,11 @@ const selectedMissionId = missionCatalogArtifact?.selectedMissionId ?? metrics?.
 const missionBrief = missionCatalogArtifact?.missionBrief;
 const operative = (operativeTraitsArtifact?.selected ?? metrics?.operative ?? playthrough?.finalState?.operative) as OperativeReportState | undefined;
 const operativeCatalog = operativeTraitsArtifact?.catalog ?? [];
+const missionReadiness = buildMissionReadiness(levels, missionCatalog, committedPlaythroughMatrix);
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate, fpsScenes);
 const renderBudgetFindings = describeRenderBudgetFindings(renderBudget, fpsScenes);
 const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
+const missionReadinessFindings = describeMissionReadinessFindings(missionReadiness);
 const playthroughMatrixFindings = describePlaythroughMatrixFindings(committedPlaythroughMatrix, missionCatalog);
 const operativeFindings = describeOperativeFindings(operative, operativeCatalog);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
@@ -690,6 +813,7 @@ if (committedPlaythroughMatrix) {
 if (failureRetryReport) {
   await writeFile(committedFailureRetryPath, failureRetryReport);
 }
+await writeFile(missionReadinessPath, JSON.stringify(missionReadiness, null, 2));
 await writeFile(reportPath, `# Shadow Recruit 2 Game Tester Report
 
 Build: v${packageInfo.version}
@@ -704,6 +828,7 @@ Date: ${date}
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
 - Mission catalog evidence: \`${missionCatalogPath}\` (${missionCatalogArtifact ? 'captured' : 'not captured'})
+- Mission readiness matrix: \`${missionReadinessPath}\` (${formatMissionReadinessSummary(missionReadiness)})
 - Operative trait evidence: \`${operativeTraitsPath}\` (${operativeTraitsArtifact ? 'captured' : 'not captured'})
 - Gameplay view density evidence: \`${gameplayViewDensityPath}\` (${gameplayViewDensity ? 'captured' : 'not captured'})
 - Screenshot coverage: ${screenshotCoverage.present.length}/${expectedScreenshots.length} expected captures present (${formatKb(screenshotCoverage.totalBytes)})
@@ -767,6 +892,10 @@ ${formatOperativeTraits(operative, operativeCatalog)}
 
 ${formatMissionCatalog(missionCatalog, selectedMissionId, missionBrief)}
 
+## Mission Readiness Matrix
+
+${formatMissionReadiness(missionReadiness)}
+
 ## Browser Playthrough Matrix
 
 ${formatPlaythroughMatrix(committedPlaythroughMatrix, missionCatalog)}
@@ -813,6 +942,7 @@ ${frameFinding}
 ${renderBudgetFindings}
 ${operativeFindings}
 ${missionCatalogFindings}
+${missionReadinessFindings}
 ${playthroughMatrixFindings}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
@@ -1072,6 +1202,477 @@ function describeMissionCatalogFindings(
     if (mission.enemyCount <= 0) findings.push(`- P1: Mission ${mission.id} exposes no sentry/enemy count in the catalog.`);
   }
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated mission catalog diagnostics.';
+}
+
+function buildMissionReadiness(
+  registeredLevels: readonly GameLevelDefinition[],
+  catalog: readonly LevelCatalogEntry[],
+  matrix: PlaythroughMatrix | null,
+): MissionReadinessArtifact {
+  const catalogIds = new Set(catalog.map((mission) => mission.id));
+  const matrixById = new Map((matrix?.levels ?? []).map((entry) => [entry.levelId, entry]));
+  const missions = registeredLevels.map((level) => buildMissionReadinessEntry(level, catalogIds, matrixById));
+  const summary = {
+    missions: missions.length,
+    pass: missions.filter((mission) => mission.grade === 'pass').length,
+    review: missions.filter((mission) => mission.grade === 'review').length,
+    fail: missions.filter((mission) => mission.grade === 'fail').length,
+  };
+
+  return {
+    build: `v${packageInfo.version}`,
+    generatedAt: new Date().toISOString(),
+    thresholds: {
+      levelFootprintRatio: aaaReadyLevelFootprintRatio,
+      zoneFootprintRatio: aaaReadyZoneFootprintRatio,
+      wallRunEpsilon,
+    },
+    summary,
+    missions,
+  };
+}
+
+function buildMissionReadinessEntry(
+  level: GameLevelDefinition,
+  catalogIds: ReadonlySet<string>,
+  matrixById: ReadonlyMap<string, PlaythroughMatrixEntry>,
+): MissionReadinessEntry {
+  const catalogKnown = catalogIds.has(level.id);
+  const density = summarizeMissionDensity(level);
+  const wallRuns = summarizeMissionWallRuns(level);
+  const route = summarizeMissionRoute(level);
+  const unlocks = summarizeMissionUnlocks(level);
+  const playthrough = summarizeMissionPlaythrough(matrixById.get(level.id));
+  const dimensions = {
+    width: roundMetric(level.bounds.max.x - level.bounds.min.x),
+    depth: roundMetric(level.bounds.max.z - level.bounds.min.z),
+    floorArea: roundMetric(areaFromMissionBounds(level.bounds)),
+  };
+  const counts = {
+    walls: level.walls.length,
+    doors: level.doors.length,
+    blockers: level.blockers.length,
+    setDressing: level.setDressing.length,
+    zones: level.zones.length,
+    requiredObjectives: level.objectives.filter((objective) => objective.required).length,
+    enemies: level.enemies.length,
+    validationRoutePoints: level.validationRoute.length,
+    tutorialSteps: level.tutorial.length,
+  };
+  const findings: string[] = [];
+
+  if (!catalogKnown) findings.push('mission is registered in code but missing from the player-facing catalog');
+  if (counts.doors === 0) findings.push('mission has no authored sliding-door gates');
+  if (counts.requiredObjectives === 0) findings.push('mission has no required objectives');
+  if (counts.enemies === 0) findings.push('mission has no sentry/enemy pressure');
+  if (counts.tutorialSteps < 4) findings.push(`mission tutorial has only ${counts.tutorialSteps} step(s)`);
+  if (counts.zones === 0) findings.push('mission has no density zones');
+  if (!pointInMissionBounds(level.start, level.bounds)) findings.push('player start is outside level bounds');
+  if (!pointInMissionBounds(level.extraction, level.bounds)) findings.push('extraction point is outside level bounds');
+  findings.push(...density.zones.flatMap((zone) => zone.findings.map((finding) => `${zone.id}: ${finding}`)));
+  if (density.grade === 'fail') findings.push(`mission tactical footprint ${(density.footprintRatio * 100).toFixed(1)}% is below target ${(aaaReadyLevelFootprintRatio * 100).toFixed(0)}%`);
+  for (const wallRun of wallRuns) {
+    findings.push(...wallRun.findings.map((finding) => `${wallRun.id}: ${finding}`));
+  }
+  if (playthrough.grade !== 'pass') {
+    findings.push(`browser playthrough evidence is ${playthrough.status}`);
+  }
+  findings.push(...route.outOfBoundsPoints.map((point) => `validation route point ${point.x},${point.z} is outside level bounds`));
+  findings.push(...unlocks.missingDoors.map((doorId) => `objective unlock references missing door ${doorId}`));
+  findings.push(...unlocks.missingObjectives.map((objectiveId) => `door opensWhen references missing objective ${objectiveId}`));
+
+  const grades = [
+    density.grade,
+    playthrough.grade,
+    route.grade,
+    unlocks.grade,
+    ...wallRuns.map((wallRun) => wallRun.grade),
+    catalogKnown ? 'pass' : 'fail',
+    counts.doors > 0 && counts.requiredObjectives > 0 && counts.enemies > 0 && counts.tutorialSteps >= 4 ? 'pass' : 'fail',
+  ] as const;
+  const grade = grades.includes('fail') ? 'fail' : grades.includes('review') ? 'review' : 'pass';
+
+  return {
+    levelId: level.id,
+    name: level.name,
+    chapter: level.chapter,
+    grade,
+    catalogKnown,
+    dimensions,
+    counts,
+    density,
+    wallRuns,
+    playthrough,
+    route,
+    unlocks,
+    findings,
+  };
+}
+
+function summarizeMissionDensity(level: GameLevelDefinition): MissionReadinessEntry['density'] {
+  const floorArea = areaFromMissionBounds(level.bounds);
+  const footprintArea = totalMissionFootprint(level, {
+    id: '__level',
+    label: 'Whole Level',
+    bounds: level.bounds,
+    expectedLandmarks: [],
+  });
+  const footprintRatio = ratioOf(footprintArea, floorArea);
+  const zones = level.zones.map((zone) => summarizeMissionZone(level, zone));
+  const grade = footprintRatio < aaaReadyLevelFootprintRatio || zones.some((zone) => zone.grade === 'fail')
+    ? 'fail'
+    : zones.some((zone) => zone.grade === 'review')
+      ? 'review'
+      : 'pass';
+
+  return {
+    grade,
+    footprintArea: roundMetric(footprintArea),
+    footprintRatio: roundMetric(footprintRatio),
+    zones,
+  };
+}
+
+function summarizeMissionZone(
+  level: GameLevelDefinition,
+  zone: GameLevelZoneDefinition,
+): MissionZoneReadiness {
+  const floorArea = areaFromMissionBounds(zone.bounds);
+  const footprintArea = totalMissionFootprint(level, zone);
+  const footprintRatio = ratioOf(footprintArea, floorArea);
+  const landmarkCount = zone.expectedLandmarks.filter((id) => missionLandmarkPresent(level, id, zone)).length;
+  const interactableCount = level.objectives.filter((objective) => pointInMissionBounds(objective.position, zone.bounds)).length
+    + level.doors.filter((door) => pointInMissionBounds(door.center, zone.bounds)).length
+    + (pointInMissionBounds(level.extraction, zone.bounds) ? 1 : 0);
+  const findings: string[] = [];
+
+  if (footprintRatio < aaaReadyZoneFootprintRatio) {
+    findings.push(`zone footprint ${(footprintRatio * 100).toFixed(1)}% is below target ${(aaaReadyZoneFootprintRatio * 100).toFixed(0)}%`);
+  }
+  if (landmarkCount < zone.expectedLandmarks.length) {
+    findings.push(`landmarks present ${landmarkCount}/${zone.expectedLandmarks.length}`);
+  }
+  if (interactableCount < 1) {
+    findings.push('zone has no objective, door, or extraction milestone');
+  }
+
+  return {
+    id: zone.id,
+    label: zone.label,
+    grade: findings.length > 0 ? 'fail' : 'pass',
+    floorArea: roundMetric(floorArea),
+    footprintArea: roundMetric(footprintArea),
+    footprintRatio: roundMetric(footprintRatio),
+    landmarkCount,
+    expectedLandmarkCount: zone.expectedLandmarks.length,
+    interactableCount,
+    ...(zone.screenshot ? { screenshot: zone.screenshot } : {}),
+    findings,
+  };
+}
+
+function summarizeMissionWallRuns(level: GameLevelDefinition): MissionWallRunReadiness[] {
+  const seen = new Set<string>();
+  const wallRuns: MissionWallRunReadiness[] = [];
+
+  for (const door of level.doors) {
+    const key = `${door.axis}:${roundMetric(fixedLine(door, door.axis))}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    wallRuns.push(summarizeMissionDoorWallRun(level, door));
+  }
+
+  return wallRuns;
+}
+
+function summarizeMissionDoorWallRun(
+  level: GameLevelDefinition,
+  seedDoor: GameDoorDefinition,
+): MissionWallRunReadiness {
+  const axis = seedDoor.axis;
+  const line = fixedLine(seedDoor, axis);
+  const doors = level.doors.filter((door) => door.axis === axis && Math.abs(fixedLine(door, axis) - line) <= wallRunEpsilon);
+  const doorIntervals = doors.map((door) => ({ id: door.id, ...rectMissionInterval(door, axis) })).sort(sortInterval);
+  const wallIntervals = level.walls
+    .filter((wall) => wallMatchesDoorLine(wall, seedDoor))
+    .map((wall) => ({ id: wall.id, ...rectMissionInterval(wall, axis) }))
+    .sort(sortInterval);
+  const doorToWallGaps = doorIntervals.flatMap((door) => measureDoorWallGaps(door, wallIntervals));
+  const doorToDoorSpans = measureDoorToDoorSpans(doorIntervals, wallIntervals);
+  const findings: string[] = [];
+
+  if (wallIntervals.length === 0) {
+    findings.push('no wall intervals share this physical door line');
+  }
+  for (const gap of doorToWallGaps) {
+    if (gap.gap > wallRunEpsilon) {
+      findings.push(`${gap.doorId} ${gap.side} wall gap is ${formatMeters(roundMetric(gap.gap))}`);
+    }
+  }
+  for (const span of doorToDoorSpans) {
+    if (span.grade === 'fail') {
+      findings.push(`${span.previousDoorId}->${span.nextDoorId} span ${formatMeters(span.spanWidth)} has unowned gap ${formatMeters(span.largestGap)}`);
+    }
+  }
+
+  return {
+    id: `${axis}:${roundMetric(line)}`,
+    axis,
+    line: roundMetric(line),
+    grade: findings.length > 0 ? 'fail' : 'pass',
+    doors: doorIntervals.map((door) => door.id),
+    wallIntervals,
+    doorIntervals,
+    doorToWallGaps,
+    doorToDoorSpans,
+    findings,
+  };
+}
+
+function summarizeMissionRoute(level: GameLevelDefinition): MissionReadinessEntry['route'] {
+  const outOfBoundsPoints = level.validationRoute.filter((point) => !pointInMissionBounds(point, level.bounds));
+  return {
+    grade: outOfBoundsPoints.length > 0 || level.validationRoute.length < 2 ? 'fail' : 'pass',
+    outOfBoundsPoints,
+  };
+}
+
+function summarizeMissionUnlocks(level: GameLevelDefinition): MissionReadinessEntry['unlocks'] {
+  const doorIds = new Set(level.doors.map((door) => door.id));
+  const objectiveIds = new Set(level.objectives.map((objective) => objective.id));
+  const missingDoors = [...new Set(level.objectives.flatMap((objective) => objective.unlocks).filter((doorId) => !doorIds.has(doorId)))];
+  const missingObjectives = [...new Set(level.doors.flatMap((door) => door.opensWhen).filter((objectiveId) => !objectiveIds.has(objectiveId)))];
+  return {
+    grade: missingDoors.length > 0 || missingObjectives.length > 0 ? 'fail' : 'pass',
+    missingDoors,
+    missingObjectives,
+  };
+}
+
+function summarizeMissionPlaythrough(entry: PlaythroughMatrixEntry | undefined): MissionReadinessEntry['playthrough'] {
+  const missingScreenshots = entry?.missingScreenshots ?? [];
+  const screenshotCount = entry?.screenshotCount ?? 0;
+  const grade = entry?.status === 'pass' && entry.reportCopied && entry.committedReportPath && screenshotCount > 0 && missingScreenshots.length === 0
+    ? 'pass'
+    : 'fail';
+  return {
+    grade,
+    status: entry?.status ?? 'missing',
+    ...(entry?.committedReportPath ? { committedReportPath: entry.committedReportPath } : {}),
+    screenshotCount,
+    missingScreenshots,
+  };
+}
+
+function formatMissionReadinessSummary(artifact: MissionReadinessArtifact): string {
+  return `${artifact.summary.pass}/${artifact.summary.missions} pass; ${artifact.summary.review} review; ${artifact.summary.fail} fail`;
+}
+
+function formatMissionReadiness(artifact: MissionReadinessArtifact): string {
+  if (artifact.missions.length === 0) return '- Mission readiness diagnostics not captured.';
+  const rows: string[] = [
+    `- Mission readiness build=${artifact.build}; ${formatMissionReadinessSummary(artifact)}; densityTargets=level ${formatRatio(artifact.thresholds.levelFootprintRatio)}, zone ${formatRatio(artifact.thresholds.zoneFootprintRatio)}; wallRunEpsilon=${formatMeters(artifact.thresholds.wallRunEpsilon)}`,
+  ];
+
+  for (const mission of artifact.missions) {
+    rows.push(`- ${mission.grade.toUpperCase()} mission-ready/${mission.levelId}: catalogKnown=${mission.catalogKnown}; size=${mission.dimensions.width}x${mission.dimensions.depth}m; objectives=${mission.counts.requiredObjectives}; doors=${mission.counts.doors}; enemies=${mission.counts.enemies}; zones=${mission.counts.zones}; setDressing=${mission.counts.setDressing}; density=${mission.density.grade}:${formatRatio(mission.density.footprintRatio)}; wallRuns=${mission.wallRuns.filter((wallRun) => wallRun.grade === 'pass').length}/${mission.wallRuns.length}; playthrough=${mission.playthrough.grade}:${mission.playthrough.status}; screenshots=${mission.playthrough.screenshotCount}; route=${mission.route.grade}; unlocks=${mission.unlocks.grade}; findings=${mission.findings.length}`);
+    for (const zone of mission.density.zones) {
+      rows.push(`- ${zone.grade.toUpperCase()} mission-zone/${mission.levelId}/${zone.id}: ${zone.label}; footprint=${formatRatio(zone.footprintRatio)}; landmarks=${zone.landmarkCount}/${zone.expectedLandmarkCount}; interactables=${zone.interactableCount}; screenshot=${zone.screenshot ?? 'not mapped'}; findings=${zone.findings.join('; ') || 'none'}`);
+    }
+    for (const wallRun of mission.wallRuns) {
+      const gaps = wallRun.doorToWallGaps.filter((gap) => gap.gap > wallRunEpsilon).map((gap) => `${gap.doorId}:${gap.side}:${formatMeters(roundMetric(gap.gap))}`).join('; ') || 'none';
+      const spans = wallRun.doorToDoorSpans.map((span) => `${span.previousDoorId}->${span.nextDoorId}:${span.grade}:span=${formatMeters(span.spanWidth)}:gap=${formatMeters(span.largestGap)}:owners=${span.ownerIds.join(',') || 'missing'}`).join('; ') || 'no adjacent door pairs';
+      rows.push(`- ${wallRun.grade.toUpperCase()} mission-wall-run/${mission.levelId}/${wallRun.id}: doors=${wallRun.doors.join(', ')}; walls=${wallRun.wallIntervals.map((interval) => interval.id).join(', ') || 'missing'}; gaps=${gaps}; spans=${spans}`);
+    }
+  }
+
+  return rows.join('\n');
+}
+
+function describeMissionReadinessFindings(artifact: MissionReadinessArtifact): string {
+  if (artifact.missions.length === 0) {
+    return '- P1: Mission readiness matrix missing; tester cannot prove registered missions are scalable large-level candidates.';
+  }
+  const findings: string[] = [];
+  for (const mission of artifact.missions) {
+    if (mission.grade === 'fail') {
+      findings.push(`- P1: Mission readiness failed for ${mission.levelId}: ${mission.findings.join('; ') || 'see mission-readiness matrix'}.`);
+    } else if (mission.grade === 'review') {
+      findings.push(`- P2: Mission readiness needs review for ${mission.levelId}: ${mission.findings.join('; ') || 'see mission-readiness matrix'}.`);
+    }
+  }
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated mission readiness matrix.';
+}
+
+function totalMissionFootprint(level: GameLevelDefinition, zone: GameLevelZoneDefinition): number {
+  const blockerArea = level.blockers.reduce((sum, blocker) => sum + rectMissionZoneOverlapArea(blocker, zone), 0);
+  const setDressingArea = level.setDressing.reduce((sum, dressing) => sum + rectMissionZoneOverlapArea(dressing, zone), 0);
+  const objectiveArea = level.objectives
+    .filter((objective) => pointInMissionBounds(objective.position, zone.bounds))
+    .reduce((sum, objective) => sum + Math.PI * objective.radius * objective.radius, 0);
+  const enemyArea = level.enemies
+    .filter((enemy) => pointInMissionBounds(enemy.start, zone.bounds))
+    .reduce((sum, enemy) => sum + Math.PI * enemy.detectionRadius * enemy.detectionRadius, 0);
+  const extractionArea = pointInMissionBounds(level.extraction, zone.bounds) ? Math.PI * 2.5 * 2.5 : 0;
+  return blockerArea + setDressingArea + objectiveArea + enemyArea + extractionArea;
+}
+
+function rectMissionZoneOverlapArea(rect: GameRectSpec, zone: GameLevelZoneDefinition): number {
+  const minX = rect.center.x - rect.size.x / 2;
+  const maxX = rect.center.x + rect.size.x / 2;
+  const minZ = rect.center.z - rect.size.z / 2;
+  const maxZ = rect.center.z + rect.size.z / 2;
+  const overlapX = Math.max(0, Math.min(maxX, zone.bounds.max.x) - Math.max(minX, zone.bounds.min.x));
+  const overlapZ = Math.max(0, Math.min(maxZ, zone.bounds.max.z) - Math.max(minZ, zone.bounds.min.z));
+  return overlapX * overlapZ;
+}
+
+function missionLandmarkPresent(
+  level: GameLevelDefinition,
+  id: string,
+  zone: GameLevelZoneDefinition,
+): boolean {
+  return level.blockers.some((blocker) => blocker.id === id && rectMissionZoneOverlapArea(blocker, zone) > 0)
+    || level.setDressing.some((dressing) => dressing.id === id && rectMissionZoneOverlapArea(dressing, zone) > 0)
+    || level.objectives.some((objective) => objective.id === id && pointInMissionBounds(objective.position, zone.bounds))
+    || level.doors.some((door) => door.id === id && pointInMissionBounds(door.center, zone.bounds))
+    || level.enemies.some((enemy) => enemy.id === id && pointInMissionBounds(enemy.start, zone.bounds))
+    || (id === 'extraction' && pointInMissionBounds(level.extraction, zone.bounds));
+}
+
+function measureDoorWallGaps(
+  door: MissionInterval,
+  walls: readonly MissionInterval[],
+): MissionDoorWallGap[] {
+  const before = [...walls].filter((wall) => wall.max <= door.min + wallRunEpsilon).sort((a, b) => b.max - a.max)[0];
+  const after = [...walls].filter((wall) => wall.min >= door.max - wallRunEpsilon).sort((a, b) => a.min - b.min)[0];
+  return [
+    {
+      doorId: door.id,
+      side: 'before',
+      fromId: before?.id,
+      toId: door.id,
+      gap: before ? roundMetric(Math.max(0, door.min - before.max)) : 99999,
+    },
+    {
+      doorId: door.id,
+      side: 'after',
+      fromId: door.id,
+      toId: after?.id,
+      gap: after ? roundMetric(Math.max(0, after.min - door.max)) : 99999,
+    },
+  ];
+}
+
+function measureDoorToDoorSpans(
+  doors: readonly MissionInterval[],
+  walls: readonly MissionInterval[],
+): MissionDoorSpanOwnership[] {
+  const spans: MissionDoorSpanOwnership[] = [];
+  for (let index = 0; index < doors.length - 1; index += 1) {
+    const previousDoor = doors[index];
+    const nextDoor = doors[index + 1];
+    const spanMin = previousDoor.max;
+    const spanMax = nextDoor.min;
+    const spanWidth = Math.max(0, spanMax - spanMin);
+    const coverage = measureIntervalCoverage(spanMin, spanMax, walls);
+    spans.push({
+      previousDoorId: previousDoor.id,
+      nextDoorId: nextDoor.id,
+      spanMin: roundMetric(spanMin),
+      spanMax: roundMetric(spanMax),
+      spanWidth: roundMetric(spanWidth),
+      ownerIds: coverage.ownerIds,
+      largestGap: roundMetric(coverage.largestGap),
+      grade: coverage.ownerIds.length > 0 && coverage.largestGap <= wallRunEpsilon ? 'pass' : 'fail',
+    });
+  }
+  return spans;
+}
+
+function measureIntervalCoverage(
+  spanMin: number,
+  spanMax: number,
+  owners: readonly MissionInterval[],
+): { ownerIds: readonly string[]; largestGap: number } {
+  if (spanMax <= spanMin + wallRunEpsilon) return { ownerIds: [], largestGap: 0 };
+
+  const overlapping = owners
+    .filter((owner) => owner.max > spanMin + wallRunEpsilon && owner.min < spanMax - wallRunEpsilon)
+    .sort(sortInterval);
+  const ownerIds = overlapping.map((owner) => owner.id);
+  let cursor = spanMin;
+  let largestGap = 0;
+
+  for (const owner of overlapping) {
+    if (owner.min > cursor + wallRunEpsilon) {
+      largestGap = Math.max(largestGap, owner.min - cursor);
+    }
+    cursor = Math.max(cursor, owner.max);
+    if (cursor >= spanMax - wallRunEpsilon) break;
+  }
+  if (cursor < spanMax - wallRunEpsilon) {
+    largestGap = Math.max(largestGap, spanMax - cursor);
+  }
+
+  return { ownerIds, largestGap };
+}
+
+function wallMatchesDoorLine(wall: GameRectSpec, door: GameDoorDefinition): boolean {
+  if (door.axis === 'x') {
+    return wall.size.x >= wall.size.z && rangesOverlap(rectAxisRange(wall, 'z'), rectAxisRange(door, 'z'), wallRunEpsilon);
+  }
+  return wall.size.z >= wall.size.x && rangesOverlap(rectAxisRange(wall, 'x'), rectAxisRange(door, 'x'), wallRunEpsilon);
+}
+
+function fixedLine(rect: GameRectSpec, axis: 'x' | 'z'): number {
+  return axis === 'x' ? rect.center.z : rect.center.x;
+}
+
+function rectMissionInterval(rect: GameRectSpec, axis: 'x' | 'z'): { min: number; max: number } {
+  const range = rectAxisRange(rect, axis);
+  return {
+    min: roundMetric(range.min),
+    max: roundMetric(range.max),
+  };
+}
+
+function rectAxisRange(rect: GameRectSpec, axis: 'x' | 'z'): { min: number; max: number } {
+  const center = axis === 'x' ? rect.center.x : rect.center.z;
+  const size = axis === 'x' ? rect.size.x : rect.size.z;
+  return {
+    min: center - size / 2,
+    max: center + size / 2,
+  };
+}
+
+function rangesOverlap(
+  a: { min: number; max: number },
+  b: { min: number; max: number },
+  epsilon: number,
+): boolean {
+  return Math.min(a.max, b.max) - Math.max(a.min, b.min) > epsilon;
+}
+
+function sortInterval(a: MissionInterval, b: MissionInterval): number {
+  return a.min - b.min || a.max - b.max || a.id.localeCompare(b.id);
+}
+
+function areaFromMissionBounds(bounds: { min: GameVec2; max: GameVec2 }): number {
+  return Math.max(0, bounds.max.x - bounds.min.x) * Math.max(0, bounds.max.z - bounds.min.z);
+}
+
+function pointInMissionBounds(point: GameVec2, bounds: { min: GameVec2; max: GameVec2 }): boolean {
+  return point.x >= bounds.min.x && point.x <= bounds.max.x && point.z >= bounds.min.z && point.z <= bounds.max.z;
+}
+
+function ratioOf(value: number, total: number): number {
+  return total > 0 ? value / total : 0;
+}
+
+function roundMetric(value: number): number {
+  if (!Number.isFinite(value)) return value;
+  return Number(value.toFixed(4));
 }
 
 function describeFrameFinding(
