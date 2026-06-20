@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.0 - 2026-06-20
+
+### Minor
+
+- Added a `tester:play` command that starts a local Vite build, runs the full browser playthrough, screenshot, FPS, and tester-report stack against one URL, and shuts down the server afterward.
+
 ## 0.11.1 - 2026-06-20
 
 ### Patch

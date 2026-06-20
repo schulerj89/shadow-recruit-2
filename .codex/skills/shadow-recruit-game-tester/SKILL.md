@@ -39,7 +39,15 @@ Separate "test failed" from "game feels unclear." A passing smoke test can still
 
 ## Artifact Workflow
 
-1. Run or inspect:
+1. Prefer the end-to-end play command when the user asks for a game tester pass:
+
+```powershell
+npm run tester:play
+```
+
+This starts a local Vite server unless `TESTER_URL` is provided, drives the game through browser smoke, scripted browser playthrough, screenshots, FPS metrics, and `tester:report`, then stops the server.
+
+2. If a server is already running or a narrow rerun is needed, run or inspect:
 
 ```powershell
 npm run test:playthrough
@@ -49,10 +57,10 @@ npm run screenshots
 npm run tester:report
 ```
 
-2. Inspect screenshots together with metrics. Do not rely on logs alone.
-3. Inspect coordinates together with screenshots. For wall/door issues, load the level geometry JSON and debug bounds, compute min/max edges from center/size, and name the exact IDs and edge deltas in the report.
-4. Update or produce `docs/qa/<date>/v<version>/game-tester-report.md`.
-5. Route fixes:
+3. Inspect screenshots together with metrics. Do not rely on logs alone.
+4. Inspect coordinates together with screenshots. For wall/door issues, load the level geometry JSON and debug bounds, compute min/max edges from center/size, and name the exact IDs and edge deltas in the report.
+5. Update or produce `docs/qa/<date>/v<version>/game-tester-report.md`.
+6. Route fixes:
    - Rendering/performance to `$threejs-webgpu-webgl-expert`.
    - Memory/leaks to `$threejs-memory`.
    - Gameplay state to `$threejs-gameplay-systems`.

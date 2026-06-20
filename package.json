@@ -1,6 +1,6 @@
 {
   "name": "shadow-recruit-2",
-  "version": "0.11.1",
+  "version": "0.12.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,6 +18,7 @@
     "test:fps": "tsx scripts/fps-gate.ts",
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "tester:report": "tsx scripts/game-tester-report.ts",
+    "tester:play": "node scripts/game-tester-play.mjs",
     "verify": "npm run level:doctor && npm run test:geometry && npm run test:playthrough && npm run build && npm run test:browser"
   },
   "dependencies": {
