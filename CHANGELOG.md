@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.2 - 2026-06-20
+
+### Patch
+
+- Updated every General Caldwell tutorial briefing to end with "Good luck, cadet." and tightened browser smoke coverage to enforce the tutorial copy contract on every step.
+
 ## 0.7.1 - 2026-06-20
 
 ### Patch

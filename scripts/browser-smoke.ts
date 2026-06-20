@@ -74,8 +74,8 @@ try {
     if (tutorial.step.id !== expected.id || tutorial.step.title !== expected.title || tutorial.step.target !== expected.target) {
       throw new Error(`Unexpected tutorial step: ${JSON.stringify({ expected, tutorial })}`);
     }
-    if (expected.id === 'extraction' && !/good luck, cadet/i.test(tutorial.step.text)) {
-      throw new Error(`Final tutorial step must end with Good luck, cadet: ${tutorial.step.text}`);
+    if (!/good luck, cadet\.$/i.test(tutorial.step.text.trim())) {
+      throw new Error(`Tutorial step ${expected.id} must end with Good luck, cadet: ${tutorial.step.text}`);
     }
     await page.screenshot({ path: `${screenshotDir}/${String(i + 4).padStart(2, '0')}-tutorial-${expected.id}.png`, fullPage: true });
     const button = page.getByRole('button', { name: /Next|Begin Mission/ });

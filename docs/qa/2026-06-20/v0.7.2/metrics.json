@@ -1,0 +1,341 @@
+{
+  "phase": "playing",
+  "levelId": "blacksite-threshold",
+  "selectedHero": "shadow-operative",
+  "settings": {
+    "debug": false,
+    "muted": false,
+    "performanceProfile": "performance"
+  },
+  "tutorial": {
+    "index": 0,
+    "total": 5,
+    "step": {
+      "id": "hero",
+      "title": "Insertion",
+      "target": "hero",
+      "text": "Cadet, this is your first Shadow Recruit field operation. Move quietly, keep your suit low, and read the room before you cross open ground. Good luck, cadet."
+    }
+  },
+  "cinematicFocus": {
+    "active": false,
+    "target": "hero",
+    "remainingMs": 0
+  },
+  "playerPosition": {
+    "x": 0,
+    "z": -29
+  },
+  "objectives": {
+    "collectedRequired": 0,
+    "totalRequired": 3,
+    "exitUnlocked": false
+  },
+  "doors": [
+    {
+      "id": "lobby-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "server-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "extraction-door",
+      "open": false,
+      "progress": 0
+    }
+  ],
+  "renderer": {
+    "performanceProfile": "performance",
+    "shadowsEnabled": false,
+    "shadowMapSize": 0,
+    "drawCalls": 5,
+    "triangles": 95999,
+    "geometries": 32,
+    "textures": 20,
+    "pixelRatio": 0.75
+  },
+  "framePacing": {
+    "fps": 56.179775431396656,
+    "frameMs": 17.799999952316284,
+    "latestFrameMs": 18.100000023841858,
+    "p95FrameMs": 18.200000047683716,
+    "samples": 240
+  },
+  "memory": {
+    "runtimeObjects": 42,
+    "loadedAssets": 5,
+    "characterAssets": 2,
+    "staticAssets": 3,
+    "loadedAssetIds": [
+      "hero:shadow-operative",
+      "sentry",
+      "codes",
+      "keycard",
+      "terminal"
+    ]
+  },
+  "assetQuality": [
+    {
+      "id": "level-floor",
+      "label": "Floor mesh",
+      "category": "level-mesh",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 0,
+        "height": 0,
+        "width": 84,
+        "depth": 72
+      },
+      "notes": [
+        "Floor mesh covers the authored level bounds with a generated tactical floor-panel image texture.",
+        "Floor uses src/assets/generated/tactical-floor-panel.png as a repeated runtime texture."
+      ]
+    },
+    {
+      "id": "level-walls",
+      "label": "Wall meshes",
+      "category": "level-mesh",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "12 wall meshes are present and use src/assets/generated/blacksite-wall-panel.png as the repeated generated wall texture."
+      ]
+    },
+    {
+      "id": "sliding-doors",
+      "label": "Sliding door panels",
+      "category": "door",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "3 sliding door assemblies are present and use the generated door-panel texture."
+      ]
+    },
+    {
+      "id": "door-wall-seams",
+      "label": "Door-wall seams",
+      "category": "door",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "3 sliding-door openings have door frames plus wall/portal continuity meshes behind the door layer, so the door panels visually take priority without reading as missing wall gaps."
+      ]
+    },
+    {
+      "id": "access-keycard",
+      "label": "Recover the lobby keycard",
+      "category": "objective",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": -31,
+        "y": 0,
+        "z": -25
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 0.9,
+        "height": 0.9,
+        "width": 1.49,
+        "depth": 0.02
+      },
+      "notes": [
+        "keycard GLB is visible, grounded, and available for interaction."
+      ]
+    },
+    {
+      "id": "security-terminal",
+      "label": "Hack the security terminal",
+      "category": "objective",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 30,
+        "y": 0,
+        "z": -3
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.55,
+        "height": 1.55,
+        "width": 1.16,
+        "depth": 2.45
+      },
+      "notes": [
+        "terminal GLB is visible, grounded, and available for interaction."
+      ]
+    },
+    {
+      "id": "command-codes",
+      "label": "Copy the command codes",
+      "category": "objective",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": -32,
+        "y": 0,
+        "z": 14
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1,
+        "height": 1,
+        "width": 1.81,
+        "depth": 1.28
+      },
+      "notes": [
+        "codes GLB is visible, grounded, and available for interaction."
+      ]
+    },
+    {
+      "id": "sentry-lobby",
+      "label": "Lobby sentry",
+      "category": "enemy",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 5.84,
+        "y": 0,
+        "z": -24.15
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.57,
+        "height": 1.55,
+        "width": 1.58,
+        "depth": 1.58
+      },
+      "notes": [
+        "Sentry GLB is visible above the floor and aligned to its patrol route."
+      ]
+    },
+    {
+      "id": "sentry-server",
+      "label": "Server sentry",
+      "category": "enemy",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 26.99,
+        "y": 0,
+        "z": 14.07
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.57,
+        "height": 1.55,
+        "width": 1.75,
+        "depth": 1.75
+      },
+      "notes": [
+        "Sentry GLB is visible above the floor and aligned to its patrol route."
+      ]
+    },
+    {
+      "id": "sentry-command",
+      "label": "Command sentry",
+      "category": "enemy",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": -4.29,
+        "y": 0,
+        "z": 25
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.57,
+        "height": 1.55,
+        "width": 1.46,
+        "depth": 1.46
+      },
+      "notes": [
+        "Sentry GLB is visible above the floor and aligned to its patrol route."
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Playable hero",
+      "category": "hero",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -29
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.47,
+        "height": 1.45,
+        "width": 1.17,
+        "depth": 0.79
+      },
+      "notes": [
+        "Hero GLB is visible and grounded at the current player position."
+      ]
+    },
+    {
+      "id": "extraction",
+      "label": "Extraction point",
+      "category": "extraction",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0.08,
+        "z": 33
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 0.16,
+        "height": 0.15,
+        "width": 4.96,
+        "depth": 4.96
+      },
+      "notes": [
+        "Extraction marker is visible and readable as the level-completion target."
+      ]
+    }
+  ],
+  "browserBaseline": {
+    "fps": 56.179775280898305,
+    "frameMs": 17.800000000000182,
+    "latestFrameMs": 17.600000000000364,
+    "p95FrameMs": 18.199999999999818,
+    "samples": 240
+  },
+  "fpsGate": {
+    "performanceProfile": "performance",
+    "targetFrameMs": 16.7,
+    "toleranceMs": 0.4,
+    "maxP95FrameMs": 20,
+    "strictTargetMet": false,
+    "browserCanProve60": false,
+    "tracksBaseline": true,
+    "status": "environment-limited"
+  }
+}
