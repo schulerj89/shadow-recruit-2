@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.2 - 2026-06-20
+
+### Patch
+
+- Improved hero-selection layout so the staged 3D hero preview remains visible while changing recruits.
+
 ## 0.3.1 - 2026-06-20
 
 ### Patch

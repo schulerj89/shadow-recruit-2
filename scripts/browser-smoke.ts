@@ -46,6 +46,14 @@ try {
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
   await page.getByText('Echo Vanguard').click();
+  const selectedHero = await page.evaluate(() => window.__shadowRecruitDebug?.selectedHero());
+  if (selectedHero !== 'echo-vanguard') {
+    throw new Error(`Expected Echo Vanguard selection, got ${selectedHero}`);
+  }
+  const selectedHeroVisible = await page.evaluate(() => window.__shadowRecruitDebug?.playerVisible());
+  if (!selectedHeroVisible) {
+    throw new Error('Expected selected hero preview to remain visible.');
+  }
   await page.screenshot({ path: `${screenshotDir}/03-hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: 'Start Level' }).click();
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });

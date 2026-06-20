@@ -181,7 +181,12 @@ input[type="checkbox"] {
   flex-direction: column;
 }
 
-.hero-select,
+.hero-select {
+  width: min(620px, 44vw);
+  justify-self: start;
+  margin-left: 20px;
+}
+
 .settings-screen {
   width: min(1040px, 94vw);
 }
@@ -192,7 +197,7 @@ input[type="checkbox"] {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
 }
@@ -444,6 +449,12 @@ input[type="checkbox"] {
   .hero-grid,
   .stats-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-select {
+    width: min(1040px, 94vw);
+    justify-self: center;
+    margin-left: 0;
   }
 
   .briefing-panel {
