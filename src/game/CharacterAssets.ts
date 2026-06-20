@@ -94,7 +94,7 @@ export class AssetLibrary {
     const loader = await this.loader();
     const hero = heroOptionById(heroId);
     const [idleGltf, runGltf] = await Promise.all([loader.loadAsync(hero.idleUrl), loader.loadAsync(hero.runUrl)]);
-    normalizeCharacterScene(idleGltf.scene, 1.45, -0.46);
+    normalizeCharacterScene(idleGltf.scene, 1.45, 0.02);
     prepareMaterials(idleGltf.scene, hero.accentColor);
     this.characterAssets.set(key, {
       scene: idleGltf.scene,

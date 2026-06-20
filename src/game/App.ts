@@ -1413,7 +1413,7 @@ export class ShadowRecruitApp {
         && Math.abs(this.boundsScratch.min.y) <= 0.12
         && Math.abs(this.boundsScratch.max.y) <= 0.12
         && horizontalCoverage
-      : position.y >= -0.05 && this.boundsScratch.max.y > 0.12 && this.boundsScratch.min.y > -0.8;
+      : position.y >= -0.05 && this.boundsScratch.max.y > 0.12 && this.boundsScratch.min.y >= -0.05;
     const notes: string[] = [];
     let grade: AssetQualityGrade = visible && grounded ? artGrade : 'fail';
 

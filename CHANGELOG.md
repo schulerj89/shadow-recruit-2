@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.3 - 2026-06-20
+
+### Patch
+
+- Tightened asset-grounding QA so character and objective meshes cannot pass grading while extending below the floor, and corrected the playable hero visual offset.
+
 ## 0.6.2 - 2026-06-20
 
 ### Patch
