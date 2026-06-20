@@ -110,7 +110,7 @@ export class AssetLibrary {
 
     const loader = await this.loader();
     const gltf = await loader.loadAsync(sentryUrl);
-    normalizeCharacterScene(gltf.scene, 1.55, -0.52);
+    normalizeCharacterScene(gltf.scene, 1.55, 0.02);
     prepareMaterials(gltf.scene, '#ff7046');
     this.characterAssets.set('sentry', { scene: gltf.scene, clips: {} });
   }
@@ -137,9 +137,12 @@ export class AssetLibrary {
     const source = this.staticAssets.get(assetId);
     if (!source) throw new Error(`Objective asset not loaded: ${assetId}`);
 
-    const object = source.clone(true);
+    const visual = source.clone(true);
+    visual.name = `${name}:visual`;
+    const object = new THREE.Group();
     object.name = name;
-    object.traverse((child) => {
+    object.add(visual);
+    visual.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
@@ -176,9 +179,12 @@ export class AssetLibrary {
   }
 
   private cloneCharacter(asset: CharacterAsset, name: string): CharacterInstance {
-    const object = cloneSkeleton(asset.scene);
+    const visual = cloneSkeleton(asset.scene);
+    visual.name = `${name}:visual`;
+    const object = new THREE.Group();
     object.name = name;
-    object.traverse((child) => {
+    object.add(visual);
+    visual.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
@@ -187,7 +193,7 @@ export class AssetLibrary {
 
     return {
       object,
-      animator: asset.clips.idle || asset.clips.run ? new CharacterAnimator(object, asset.clips) : null,
+      animator: asset.clips.idle || asset.clips.run ? new CharacterAnimator(visual, asset.clips) : null,
     };
   }
 

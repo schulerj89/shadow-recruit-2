@@ -156,6 +156,7 @@ export class ShadowRecruitApp {
   private readonly frameDeltas: number[] = [];
   private readonly runtimeObjects: RuntimeObject[] = [];
   private readonly doorMeshes = new Map<string, DoorMesh>();
+  private readonly enemyDetectionCones = new Map<string, THREE.Object3D>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
   private readonly boundsScratch = new THREE.Box3();
   private readonly doorTexture = new THREE.TextureLoader().load(doorPanelUrl);
@@ -486,9 +487,12 @@ export class ShadowRecruitApp {
         new THREE.ConeGeometry(enemy.detectionRadius, 0.04, this.quality().detectionConeSegments),
         new THREE.MeshBasicMaterial({ color: '#ff5a65', transparent: true, opacity: 0.14, depthWrite: false }),
       );
+      cone.name = `${enemy.id}:detection-cone`;
       cone.rotation.x = -Math.PI / 2;
-      cone.position.y = 0.03;
-      instance.object.add(cone);
+      cone.position.set(enemy.position.x, 0.03, enemy.position.z);
+      this.scene.add(cone);
+      this.runtimeObjects.push({ object: cone, disposeResources: true });
+      this.enemyDetectionCones.set(enemy.id, cone);
     }
   }
 
@@ -616,6 +620,8 @@ export class ShadowRecruitApp {
         object.position.set(enemy.position.x, 0, enemy.position.z);
         object.rotation.y = Math.atan2(enemy.forward.x, enemy.forward.z);
       }
+      const cone = this.enemyDetectionCones.get(enemy.id);
+      if (cone) cone.position.set(enemy.position.x, 0.03, enemy.position.z);
 
       if (distance(enemy.position, this.playerPosition) <= enemy.detectionRadius && this.phase === 'playing') {
         this.alarms += 1;
@@ -1065,6 +1071,7 @@ export class ShadowRecruitApp {
     });
     this.runtimeObjects.length = 0;
     this.doorMeshes.clear();
+    this.enemyDetectionCones.clear();
     this.anchorObjects.clear();
     this.objectives = [];
     this.doors = [];
@@ -1110,7 +1117,7 @@ export class ShadowRecruitApp {
       'Floor mesh covers the authored level bounds.',
       'Floor mesh is missing from the scene.',
       'review',
-      'Floor uses runtime mesh/material; schedule an art pass if it should become a textured kit asset.',
+      'Floor uses a flat runtime material with no authored texture variation; grade texture quality as bland until it becomes a textured kit asset.',
       {
         planarGround: true,
         minWidth: this.level.bounds.max.x - this.level.bounds.min.x - 0.1,
@@ -1125,7 +1132,7 @@ export class ShadowRecruitApp {
       visible: this.level.walls.every((wall) => this.anchorObjects.has(wall.id)),
       grounded: true,
       notes: this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
-        ? [`${this.level.walls.length} wall meshes are present as readable blockout geometry; replace with authored wall/floor kit assets when art direction is ready.`]
+        ? [`${this.level.walls.length} wall meshes are present as readable blockout geometry, but the flat material reads bland and needs authored wall texture, trim, and panel variation.`]
         : ['One or more wall meshes are missing from the scene.'],
     });
     checks.push({
@@ -1138,6 +1145,17 @@ export class ShadowRecruitApp {
       notes: this.doorMeshes.size === this.doors.length
         ? [`${this.doorMeshes.size} sliding door assemblies are present and use the generated door-panel texture.`]
         : [`Expected ${this.doors.length} door assemblies, found ${this.doorMeshes.size}.`],
+    });
+    checks.push({
+      id: 'door-wall-seams',
+      label: 'Door-wall seams',
+      category: 'door',
+      grade: this.doorMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id)) ? 'review' : 'fail',
+      visible: this.doorMeshes.size === this.doors.length,
+      grounded: true,
+      notes: this.doorMeshes.size === this.doors.length && this.level.walls.every((wall) => this.anchorObjects.has(wall.id))
+        ? [`${this.doors.length} sliding-door openings use blockout wall edges without jamb, trim, or filler meshes; inspect screenshots for visible gaps around every door threshold.`]
+        : ['Door seam review cannot pass because one or more door or wall meshes are missing.'],
     });
 
     for (const objective of this.objectives) {

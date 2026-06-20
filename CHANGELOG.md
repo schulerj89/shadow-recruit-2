@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.6.1 - 2026-06-20
+
+### Patch
+
+- Separated sentry detection cones from sentry visual asset bounds and preserved normalized GLB visual offsets under gameplay roots so game-tester grading measures grounded enemy and objective meshes instead of helper geometry.
+- Expanded game-tester texture-quality grading for bland wall/floor materials and wall-door seam or gap review.
+
 ## 0.6.0 - 2026-06-20
 
 ### Minor
