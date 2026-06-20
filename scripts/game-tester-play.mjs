@@ -42,7 +42,6 @@ try {
   await runNpmScript('verify', env);
   await runNpmScript('playthrough:browser', env);
   await runNpmScript('screenshots', env);
-  await runNpmScript('test:fps', env);
   await runNpmScript('tester:report', env);
   console.info('[tester-play] complete');
 } finally {

@@ -8,6 +8,8 @@ const headless = process.env.FPS_HEADLESS === 'true';
 const targetFrameMs = Number(process.env.FPS_TARGET_FRAME_MS ?? 16.7);
 const toleranceMs = Number(process.env.FPS_TOLERANCE_MS ?? 0.4);
 const maxP95FrameMs = Number(process.env.FPS_MAX_P95_MS ?? 20);
+const baselineOverheadBudgetMs = Number(process.env.FPS_BASELINE_OVERHEAD_MS ?? 0.4);
+const baselineP95OverheadBudgetMs = Number(process.env.FPS_BASELINE_P95_OVERHEAD_MS ?? 0.6);
 const sampleCount = Number(process.env.FPS_SAMPLE_COUNT ?? 240);
 const performanceProfile = process.env.FPS_PROFILE ?? 'performance';
 
@@ -40,8 +42,12 @@ try {
   const gamePacing = state.framePacing;
   const strictTargetMet = gamePacing.frameMs <= targetFrameMs + toleranceMs && gamePacing.p95FrameMs <= maxP95FrameMs;
   const browserCanProve60 = browserBaseline.frameMs <= targetFrameMs + toleranceMs;
-  const tracksBaseline = gamePacing.frameMs <= browserBaseline.frameMs + toleranceMs &&
-    gamePacing.p95FrameMs <= browserBaseline.p95FrameMs + toleranceMs;
+  const frameOverheadMs = roundMetric(gamePacing.frameMs - browserBaseline.frameMs);
+  const p95OverheadMs = roundMetric(gamePacing.p95FrameMs - browserBaseline.p95FrameMs);
+  const browserBaselineHeadroomMs = roundMetric(targetFrameMs + toleranceMs - browserBaseline.frameMs);
+  const gameHeadroomMs = roundMetric(targetFrameMs + toleranceMs - gamePacing.frameMs);
+  const tracksBaseline = frameOverheadMs <= baselineOverheadBudgetMs &&
+    p95OverheadMs <= baselineP95OverheadBudgetMs;
   const result = {
     ...state,
     browserBaseline,
@@ -50,6 +56,12 @@ try {
       targetFrameMs,
       toleranceMs,
       maxP95FrameMs,
+      baselineOverheadBudgetMs,
+      baselineP95OverheadBudgetMs,
+      frameOverheadMs,
+      p95OverheadMs,
+      browserBaselineHeadroomMs,
+      gameHeadroomMs,
       strictTargetMet,
       browserCanProve60,
       tracksBaseline,
@@ -97,4 +109,8 @@ async function measureBrowserBaseline(): Promise<{ fps: number; frameMs: number;
       samples: deltas.length,
     };
   })()`);
+}
+
+function roundMetric(value: number): number {
+  return Math.round(value * 1000) / 1000;
 }

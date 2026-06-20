@@ -49,6 +49,12 @@ type Metrics = {
     targetFrameMs: number;
     toleranceMs: number;
     maxP95FrameMs: number;
+    baselineOverheadBudgetMs?: number;
+    baselineP95OverheadBudgetMs?: number;
+    frameOverheadMs?: number;
+    p95OverheadMs?: number;
+    browserBaselineHeadroomMs?: number;
+    gameHeadroomMs?: number;
     strictTargetMet: boolean;
     browserCanProve60: boolean;
     tracksBaseline: boolean;
@@ -63,6 +69,7 @@ type Metrics = {
     triangles: number;
     geometries: number;
     textures: number;
+    pixelRatio?: number;
   };
   memory?: {
     loadedAssets: number;
@@ -414,8 +421,8 @@ Date: ${date}
 - Mission catalog: ${formatMissionCatalogSummary(missionCatalog, selectedMissionId, missionBrief)}
 - Game frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms median, ${(frame.latestFrameMs ?? frame.frameMs).toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
-- FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
-- Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
+- FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}; overhead=${formatMs(fpsGate.frameOverheadMs)} median/${formatMs(fpsGate.p95OverheadMs)} p95; headroom=${formatMs(fpsGate.gameHeadroomMs)} game/${formatMs(fpsGate.browserBaselineHeadroomMs)} browser` : 'not captured'}
+- Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, pixelRatio=${renderer.pixelRatio ?? 'unknown'}, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Runtime asset audit: ${assetAudit.length > 0 ? describeAssetAuditSummary(assetAudit) : 'not captured'}
 - Audio state: gameplay metrics=${formatAudioState(metricAudio)}; completion playthrough=${formatAudioState(completionAudio)}
@@ -551,7 +558,7 @@ function describeFrameFinding(
   if (fpsGate?.status === 'pass') return '- P1: None from generated FPS metrics.';
   if (fpsGate?.status === 'environment-limited' && baseline) {
     const profile = fpsGate.performanceProfile ? ` on the ${fpsGate.performanceProfile} profile` : '';
-    return `- P1: Current headed browser baseline measured ${baseline.fps.toFixed(1)} FPS / ${baseline.frameMs.toFixed(1)} ms median and cannot prove strict 16.7 ms${profile}. The game tracks that baseline within tolerance, so rerun on a true 60 Hz visible browser before marking the 60 FPS gate fully proven.`;
+    return `- P1: Current headed browser baseline measured ${baseline.fps.toFixed(1)} FPS / ${baseline.frameMs.toFixed(1)} ms median and cannot prove strict 16.7 ms${profile}. The game tracks that baseline within the calibrated overhead budget (${formatMs(fpsGate.frameOverheadMs)} median / ${formatMs(fpsGate.p95OverheadMs)} p95), so rerun on a true 60 Hz visible browser before marking the 60 FPS gate fully proven.`;
   }
   return `- P1: Game FPS gate failed at ${frame.fps.toFixed(1)} FPS / ${frame.frameMs.toFixed(1)} ms median / ${frame.p95FrameMs.toFixed(1)} ms p95 against the configured frame budget.`;
 }
@@ -564,7 +571,7 @@ function describePerformance(
   if (!frame) return 'FPS metrics were not captured.';
   if (fpsGate?.status === 'pass') return 'game frame pacing passed the configured 60 FPS gate.';
   if (fpsGate?.status === 'environment-limited' && baseline) {
-    return `game pacing matches the ${baseline.fps.toFixed(1)} FPS browser baseline, but this environment cannot prove strict 16.7 ms frame cadence.`;
+    return `game pacing matches the ${baseline.fps.toFixed(1)} FPS browser baseline with ${formatMs(fpsGate.frameOverheadMs)} median / ${formatMs(fpsGate.p95OverheadMs)} p95 overhead, but this environment cannot prove strict 16.7 ms frame cadence.`;
   }
   return 'game frame pacing failed the configured FPS gate and needs optimization or a lower-quality fallback.';
 }
@@ -763,6 +770,10 @@ function formatScreenBounds(bounds: ScreenBounds | undefined): string {
 
 function formatRatio(value: number | undefined): string {
   return typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : 'missing';
+}
+
+function formatMs(value: number | undefined): string {
+  return typeof value === 'number' ? `${value.toFixed(1)} ms` : 'missing';
 }
 
 function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): string {

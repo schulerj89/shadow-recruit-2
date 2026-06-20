@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.16.2 - 2026-06-20
+
+### Patch
+
+- Added calibrated FPS overhead metrics to the performance gate and tester report so environment-limited browser runs still fail gameplay regressions instead of only reporting raw FPS.
+- Moved the FPS gate into `verify` and exposed renderer pixel ratio in tester reports so the performance-profile proof is part of the standard release gate.
+- Documented the 60 FPS calibration policy for local browsers that cannot prove strict 16.7 ms cadence.
+
 ## 0.16.1 - 2026-06-20
 
 ### Patch
