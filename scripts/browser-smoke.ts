@@ -109,6 +109,9 @@ try {
   if (state.memory.loadedAssets < 6 || !state.memory.loadedAssetIds.includes('sentry') || !state.memory.loadedAssetIds.includes('codes')) {
     throw new Error(`Expected loaded GLB asset metrics, got ${JSON.stringify(state.memory)}`);
   }
+  if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {
+    throw new Error(`Expected coordinate geometry diagnostics for doors and scene objects, got ${JSON.stringify(state.geometry)}`);
+  }
   if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {
     throw new Error(`Expected persisted settings in tester state, got ${JSON.stringify(state.settings)}`);
   }

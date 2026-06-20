@@ -12,20 +12,25 @@ import { isPerformanceProfile, loadSettings, saveSettings } from './settings';
 import type {
   AssetQualityCheck,
   AssetQualityGrade,
+  Bounds3,
   CinematicFocusState,
   CompletionStats,
+  DoorCoordinateGap,
   DoorRuntime,
   EnemyRuntime,
   FramePacingSample,
   GameSettings,
+  GeometryDiagnostics,
   LevelCatalogEntry,
   LevelDefinition,
+  LevelDensityCheck,
   MemoryMetrics,
   ObjectiveRuntime,
   PerformanceProfile,
   Phase,
   RectSpec,
   RendererMetrics,
+  SceneObjectBounds,
   TesterState,
   TutorialState,
   Vec2,
@@ -249,6 +254,10 @@ function drawTrimTexture(context: CanvasRenderingContext2D, size: number, panel:
     context.stroke();
   }
   context.globalAlpha = 1;
+}
+
+function roundMetric(value: number): number {
+  return Number(value.toFixed(2));
 }
 
 export class ShadowRecruitApp {
@@ -1609,6 +1618,271 @@ export class ShadowRecruitApp {
     };
   }
 
+  private geometryDiagnostics(): GeometryDiagnostics {
+    return {
+      objectBounds: this.sceneObjectBounds(),
+      doorContinuity: this.doorContinuityChecks(),
+      levelDensity: this.levelDensityCheck(),
+    };
+  }
+
+  private sceneObjectBounds(): readonly SceneObjectBounds[] {
+    const bounds: SceneObjectBounds[] = [];
+    for (const wall of this.level.walls) this.addBoundsRecord(bounds, wall.id, 'wall', this.anchorObjects.get(wall.id));
+    for (const blocker of this.level.blockers) this.addBoundsRecord(bounds, blocker.id, 'blocker', this.anchorObjects.get(blocker.id));
+    for (const door of this.doors) {
+      this.addBoundsRecord(bounds, door.id, 'door', this.anchorObjects.get(door.id));
+      this.addBoundsRecord(bounds, `${door.id}:frame`, 'door-frame', this.doorFrameMeshes.get(door.id));
+      this.addBoundsRecord(bounds, `${door.id}:wall-continuity`, 'door-continuity', this.doorContinuityMeshes.get(door.id));
+    }
+    for (const objective of this.objectives) this.addBoundsRecord(bounds, objective.id, 'objective', this.anchorObjects.get(objective.id));
+    for (const enemy of this.enemies) this.addBoundsRecord(bounds, enemy.id, 'enemy', this.anchorObjects.get(enemy.id));
+    this.addBoundsRecord(bounds, 'hero', 'hero', this.anchorObjects.get('hero'));
+    this.addBoundsRecord(bounds, 'extraction', 'extraction', this.anchorObjects.get('extraction'));
+    return bounds;
+  }
+
+  private addBoundsRecord(
+    bounds: SceneObjectBounds[],
+    id: string,
+    category: SceneObjectBounds['category'],
+    object: THREE.Object3D | undefined,
+  ): void {
+    if (!object) return;
+    this.boundsScratch.setFromObject(object);
+    if (this.boundsScratch.isEmpty()) return;
+    bounds.push({
+      id,
+      category,
+      visible: object.visible,
+      bounds: this.boundsSnapshot(this.boundsScratch),
+    });
+  }
+
+  private doorContinuityChecks(): GeometryDiagnostics['doorContinuity'] {
+    const epsilon = 0.08;
+    return this.doors.map((door) => {
+      const openingBounds = this.rectBounds(door);
+      const frameObject = this.doorFrameMeshes.get(door.id);
+      const continuityObject = this.doorContinuityMeshes.get(door.id);
+      const renderedDoorObject = this.anchorObjects.get(door.id);
+      const frameBounds = frameObject ? this.objectBounds(frameObject) : undefined;
+      const continuityBounds = continuityObject ? this.objectBounds(continuityObject) : undefined;
+      const renderedDoorBounds = renderedDoorObject ? this.objectBounds(renderedDoorObject) : undefined;
+      const neighbors = this.neighboringWalls(door);
+      const gaps: DoorCoordinateGap[] = [];
+
+      if (!neighbors.before) {
+        gaps.push({
+          id: `${door.id}:missing-before-wall`,
+          label: 'Missing adjacent wall before opening',
+          axis: door.axis,
+          fromId: 'none',
+          toId: door.id,
+          fromEdge: 0,
+          toEdge: this.coverageMin(door.axis, openingBounds, frameBounds, continuityBounds),
+          gap: 9999,
+        });
+      } else {
+        const toEdge = this.coverageMin(door.axis, openingBounds, frameBounds, continuityBounds);
+        const fromEdge = this.maxAlong(door.axis, this.rectBounds(neighbors.before));
+        const gap = roundMetric(toEdge - fromEdge);
+        if (gap > epsilon) {
+          gaps.push({
+            id: `${door.id}:before-gap`,
+            label: 'Gap between previous wall and door/frame/continuity coverage',
+            axis: door.axis,
+            fromId: neighbors.before.id,
+            toId: `${door.id}:frame`,
+            fromEdge: roundMetric(fromEdge),
+            toEdge: roundMetric(toEdge),
+            gap,
+          });
+        }
+      }
+
+      if (!neighbors.after) {
+        gaps.push({
+          id: `${door.id}:missing-after-wall`,
+          label: 'Missing adjacent wall after opening',
+          axis: door.axis,
+          fromId: door.id,
+          toId: 'none',
+          fromEdge: this.coverageMax(door.axis, openingBounds, frameBounds, continuityBounds),
+          toEdge: 0,
+          gap: 9999,
+        });
+      } else {
+        const fromEdge = this.coverageMax(door.axis, openingBounds, frameBounds, continuityBounds);
+        const toEdge = this.minAlong(door.axis, this.rectBounds(neighbors.after));
+        const gap = roundMetric(toEdge - fromEdge);
+        if (gap > epsilon) {
+          gaps.push({
+            id: `${door.id}:after-gap`,
+            label: 'Gap between door/frame/continuity coverage and next wall',
+            axis: door.axis,
+            fromId: `${door.id}:frame`,
+            toId: neighbors.after.id,
+            fromEdge: roundMetric(fromEdge),
+            toEdge: roundMetric(toEdge),
+            gap,
+          });
+        }
+      }
+
+      const notes = gaps.length > 0
+        ? gaps.map((gap) => `${gap.label}: ${gap.fromId} -> ${gap.toId} is ${Number.isFinite(gap.gap) ? `${gap.gap}m` : 'unbounded'} on ${gap.axis}.`)
+        : [`${door.id} wall segments, frame, and continuity coverage touch within ${epsilon}m.`];
+
+      return {
+        id: door.id,
+        axis: door.axis,
+        grade: gaps.length > 0 ? 'fail' : 'pass',
+        epsilon,
+        wallIds: [neighbors.before?.id, neighbors.after?.id].filter((id): id is string => Boolean(id)),
+        openingBounds,
+        ...(frameBounds ? { frameBounds } : {}),
+        ...(continuityBounds ? { continuityBounds } : {}),
+        ...(renderedDoorBounds ? { renderedDoorBounds } : {}),
+        gaps,
+        notes,
+      };
+    });
+  }
+
+  private neighboringWalls(door: DoorRuntime): { before?: RectSpec; after?: RectSpec } {
+    const perpendicular = door.axis === 'x' ? 'z' : 'x';
+    const along = door.axis;
+    const doorBounds = this.rectBounds(door);
+    const candidates = this.level.walls
+      .map((wall) => ({ wall, bounds: this.rectBounds(wall) }))
+      .filter(({ bounds }) => this.overlapOn(perpendicular, bounds, doorBounds) > 0);
+    let before: { wall: RectSpec; distance: number } | undefined;
+    let after: { wall: RectSpec; distance: number } | undefined;
+
+    for (const candidate of candidates) {
+      const wallMax = this.maxAlong(along, candidate.bounds);
+      const wallMin = this.minAlong(along, candidate.bounds);
+      const doorMin = this.minAlong(along, doorBounds);
+      const doorMax = this.maxAlong(along, doorBounds);
+      if (wallMax <= doorMin) {
+        const distance = doorMin - wallMax;
+        if (!before || distance < before.distance) before = { wall: candidate.wall, distance };
+      }
+      if (wallMin >= doorMax) {
+        const distance = wallMin - doorMax;
+        if (!after || distance < after.distance) after = { wall: candidate.wall, distance };
+      }
+    }
+
+    return { before: before?.wall, after: after?.wall };
+  }
+
+  private levelDensityCheck(): LevelDensityCheck {
+    const floorArea = (this.level.bounds.max.x - this.level.bounds.min.x) * (this.level.bounds.max.z - this.level.bounds.min.z);
+    const blockerArea = this.level.blockers.reduce((sum, blocker) => sum + blocker.size.x * blocker.size.z, 0);
+    const objectiveArea = this.objectives.reduce((sum, objective) => sum + Math.PI * objective.radius * objective.radius, 0);
+    const enemyArea = this.enemies.reduce((sum, enemy) => sum + Math.PI * enemy.detectionRadius * enemy.detectionRadius, 0);
+    const setDressingFootprintArea = blockerArea + objectiveArea + enemyArea;
+    const setDressingRatio = floorArea > 0 ? setDressingFootprintArea / floorArea : 0;
+    const grade: LevelDensityCheck['grade'] = setDressingRatio < 0.06 ? 'fail' : setDressingRatio < 0.1 ? 'review' : 'pass';
+    const notes = grade === 'pass'
+      ? [`Set-dressing and gameplay footprints cover ${(setDressingRatio * 100).toFixed(1)}% of the level floor.`]
+      : [
+        `Set-dressing and gameplay footprints cover only ${(setDressingRatio * 100).toFixed(1)}% of the ${roundMetric(floorArea)}m2 floor.`,
+        'Add tactical cover, security props, cables, signage, light fixtures, patrol landmarks, and extraction dressing before grading this as AAA-quality level presentation.',
+      ];
+
+    return {
+      grade,
+      floorArea: roundMetric(floorArea),
+      setDressingFootprintArea: roundMetric(setDressingFootprintArea),
+      setDressingRatio: roundMetric(setDressingRatio),
+      blockerCount: this.level.blockers.length,
+      objectiveCount: this.objectives.length,
+      enemyCount: this.enemies.length,
+      notes,
+    };
+  }
+
+  private objectBounds(object: THREE.Object3D): Bounds3 | undefined {
+    this.boundsScratch.setFromObject(object);
+    return this.boundsScratch.isEmpty() ? undefined : this.boundsSnapshot(this.boundsScratch);
+  }
+
+  private rectBounds(rect: RectSpec): Bounds3 {
+    const height = rect.height ?? 0;
+    return {
+      min: {
+        x: roundMetric(rect.center.x - rect.size.x / 2),
+        y: 0,
+        z: roundMetric(rect.center.z - rect.size.z / 2),
+      },
+      max: {
+        x: roundMetric(rect.center.x + rect.size.x / 2),
+        y: roundMetric(height),
+        z: roundMetric(rect.center.z + rect.size.z / 2),
+      },
+      size: {
+        x: roundMetric(rect.size.x),
+        y: roundMetric(height),
+        z: roundMetric(rect.size.z),
+      },
+    };
+  }
+
+  private boundsSnapshot(box: THREE.Box3): Bounds3 {
+    return {
+      min: {
+        x: roundMetric(box.min.x),
+        y: roundMetric(box.min.y),
+        z: roundMetric(box.min.z),
+      },
+      max: {
+        x: roundMetric(box.max.x),
+        y: roundMetric(box.max.y),
+        z: roundMetric(box.max.z),
+      },
+      size: {
+        x: roundMetric(box.max.x - box.min.x),
+        y: roundMetric(box.max.y - box.min.y),
+        z: roundMetric(box.max.z - box.min.z),
+      },
+    };
+  }
+
+  private minAlong(axis: 'x' | 'z', bounds: Bounds3): number {
+    return axis === 'x' ? bounds.min.x : bounds.min.z;
+  }
+
+  private maxAlong(axis: 'x' | 'z', bounds: Bounds3): number {
+    return axis === 'x' ? bounds.max.x : bounds.max.z;
+  }
+
+  private overlapOn(axis: 'x' | 'z', a: Bounds3, b: Bounds3): number {
+    return Math.min(this.maxAlong(axis, a), this.maxAlong(axis, b)) - Math.max(this.minAlong(axis, a), this.minAlong(axis, b));
+  }
+
+  private coverageMin(
+    axis: 'x' | 'z',
+    opening: Bounds3,
+    frame?: Bounds3,
+    continuity?: Bounds3,
+  ): number {
+    const bounds = [frame, continuity].filter((item): item is Bounds3 => Boolean(item));
+    return Math.min(this.minAlong(axis, opening), ...bounds.map((item) => this.minAlong(axis, item)));
+  }
+
+  private coverageMax(
+    axis: 'x' | 'z',
+    opening: Bounds3,
+    frame?: Bounds3,
+    continuity?: Bounds3,
+  ): number {
+    const bounds = [frame, continuity].filter((item): item is Bounds3 => Boolean(item));
+    return Math.max(this.maxAlong(axis, opening), ...bounds.map((item) => this.maxAlong(axis, item)));
+  }
+
   private tutorialState(): TutorialState {
     return {
       index: this.tutorialIndex,
@@ -1693,6 +1967,7 @@ export class ShadowRecruitApp {
       framePacing: this.framePacing(),
       memory: this.memoryMetrics(),
       assetQuality: this.assetQualityChecks(),
+      geometry: this.geometryDiagnostics(),
     };
   }
 

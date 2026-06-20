@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.5 - 2026-06-20
+
+### Patch
+
+- Added coordinate-aware geometry diagnostics to tester state, browser smoke, and game-tester reports so door/wall gaps, object bounds, and sparse level dressing are measured instead of judged from screenshots alone.
+
 ## 0.7.4 - 2026-06-20
 
 ### Patch

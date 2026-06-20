@@ -142,6 +142,61 @@ export type AssetQualityCheck = {
   notes: readonly string[];
 };
 
+export type Bounds3 = {
+  min: { x: number; y: number; z: number };
+  max: { x: number; y: number; z: number };
+  size: { x: number; y: number; z: number };
+};
+
+export type SceneObjectBounds = {
+  id: string;
+  category: 'wall' | 'blocker' | 'door' | 'door-frame' | 'door-continuity' | 'objective' | 'enemy' | 'hero' | 'extraction';
+  visible: boolean;
+  bounds: Bounds3;
+};
+
+export type DoorCoordinateGap = {
+  id: string;
+  label: string;
+  axis: 'x' | 'z';
+  fromId: string;
+  toId: string;
+  fromEdge: number;
+  toEdge: number;
+  gap: number;
+};
+
+export type DoorCoordinateCheck = {
+  id: string;
+  axis: 'x' | 'z';
+  grade: AssetQualityGrade;
+  epsilon: number;
+  wallIds: readonly string[];
+  openingBounds: Bounds3;
+  frameBounds?: Bounds3;
+  continuityBounds?: Bounds3;
+  renderedDoorBounds?: Bounds3;
+  gaps: readonly DoorCoordinateGap[];
+  notes: readonly string[];
+};
+
+export type LevelDensityCheck = {
+  grade: AssetQualityGrade;
+  floorArea: number;
+  setDressingFootprintArea: number;
+  setDressingRatio: number;
+  blockerCount: number;
+  objectiveCount: number;
+  enemyCount: number;
+  notes: readonly string[];
+};
+
+export type GeometryDiagnostics = {
+  objectBounds: readonly SceneObjectBounds[];
+  doorContinuity: readonly DoorCoordinateCheck[];
+  levelDensity: LevelDensityCheck;
+};
+
 export type TutorialState = {
   index: number;
   total: number;
@@ -179,4 +234,5 @@ export type TesterState = {
   framePacing: FramePacingSample;
   memory: MemoryMetrics;
   assetQuality: readonly AssetQualityCheck[];
+  geometry: GeometryDiagnostics;
 };
