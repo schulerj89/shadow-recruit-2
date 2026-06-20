@@ -27,6 +27,9 @@ try {
     titleComposition.facingDot < 0.65 ||
     titleComposition.heroScreenHeightRatio < 0.22 ||
     titleComposition.heroScreenOccupancy < 0.012 ||
+    !titleComposition.identityReadable ||
+    !Array.isArray(titleComposition.identityAnchors) ||
+    titleComposition.identityAnchors.filter((anchor) => ['head', 'visor', 'chest'].includes(anchor.id) && anchor.visible && !anchor.uiOccluded).length < 3 ||
     !titleComposition.heroScreenBounds ||
     !titleComposition.levelPreviewVisible ||
     titleComposition.orbitRadius < 5 ||
@@ -103,7 +106,15 @@ try {
     throw new Error(`Normal gameplay camera is not close enough for player readability: ${JSON.stringify(gameplayCamera)}`);
   }
   const gameplayViewDensity = gameplayState?.gameplayViewDensity;
-  if (!gameplayViewDensity || gameplayViewDensity.grade !== 'pass') {
+  if (
+    !gameplayViewDensity ||
+    gameplayViewDensity.grade !== 'pass' ||
+    gameplayViewDensity.bands.some((band) =>
+      typeof band.negativeSpaceRatio !== 'number' ||
+      typeof band.maxNegativeSpaceRatio !== 'number' ||
+      band.negativeSpaceRatio > band.maxNegativeSpaceRatio
+    )
+  ) {
     throw new Error(`Active gameplay camera lacks foreground/midground/background tactical detail: ${JSON.stringify(gameplayViewDensity)}`);
   }
   await writeFile(`${qaDir}/gameplay-camera.json`, JSON.stringify(gameplayCamera, null, 2));

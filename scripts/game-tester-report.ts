@@ -157,9 +157,11 @@ type GameplayViewDensityBand = {
   visibleObjectCount: number;
   tacticalCategoryCount: number;
   screenOccupancy: number;
+  negativeSpaceRatio?: number;
   minVisibleObjects: number;
   minTacticalCategories: number;
   minScreenOccupancy: number;
+  maxNegativeSpaceRatio?: number;
   objects: readonly GameplayViewDensityObject[];
   notes: readonly string[];
 };
@@ -258,6 +260,8 @@ type TitleComposition = {
   orbitRadius?: number;
   heroScreenOccupancy?: number;
   heroScreenHeightRatio?: number;
+  identityReadable?: boolean;
+  identityAnchors?: readonly TitleIdentityAnchor[];
   heroPosition?: { x: number; y: number; z: number };
   heroScreenBounds?: ScreenBounds;
   cameraPosition: { x: number; y: number; z: number };
@@ -280,6 +284,17 @@ type TitleTreatmentState = {
   notes: readonly string[];
 };
 
+type TitleIdentityAnchor = {
+  id: string;
+  label: string;
+  source: string;
+  worldPosition: { x: number; y: number; z: number };
+  screenPosition?: ScreenPoint;
+  visible: boolean;
+  uiOccluded: boolean;
+  notes: readonly string[];
+};
+
 type ScreenBounds = {
   min: { x: number; y: number };
   max: { x: number; y: number };
@@ -289,6 +304,13 @@ type ScreenBounds = {
   widthRatio: number;
   heightRatio: number;
   areaRatio: number;
+};
+
+type ScreenPoint = {
+  x: number;
+  y: number;
+  visible: boolean;
+  viewport: { width: number; height: number };
 };
 
 type AssetQualityCheck = {
@@ -359,6 +381,54 @@ type WallRunInterval = {
   bounds: Bounds3;
 };
 
+type WallRunConnectionEdge = {
+  id: string;
+  fromId: string;
+  toId: string;
+  axis: 'x' | 'z';
+  state: 'touches' | 'overlaps' | 'covered-by-priority-surface' | 'void';
+  fromEdge: number;
+  toEdge: number;
+  gap: number;
+  ownerId?: string;
+  notes: readonly string[];
+};
+
+type DoorToDoorOwnershipCheck = {
+  id: string;
+  wallLineId: string;
+  previousDoorId: string;
+  previousDoorMax: number;
+  nextDoorId: string;
+  nextDoorMin: number;
+  spanWidth: number;
+  ownerId?: string;
+  ownerType?: WallRunInterval['kind'];
+  ownerMin?: number;
+  ownerMax?: number;
+  depthMatch: boolean;
+  closedPriority: string;
+  openPriority: string;
+  grade: 'pass' | 'review' | 'fail';
+  notes: readonly string[];
+};
+
+type WallRunCameraProbe = {
+  id: string;
+  wallLineId: string;
+  screenshot: string;
+  screenRegion: ScreenBounds;
+  rayOrigin: { x: number; y: number; z: number };
+  rayDirection: { x: number; y: number; z: number };
+  expectedOwnerIds: readonly string[];
+  actualFirstHitId?: string;
+  actualOwnerId?: string;
+  actualFirstHitDistance?: number;
+  visibleVoid: boolean;
+  grade: 'pass' | 'review' | 'fail';
+  notes: readonly string[];
+};
+
 type WallRunContinuityCheck = {
   id: string;
   axis: 'x' | 'z';
@@ -366,6 +436,9 @@ type WallRunContinuityCheck = {
   grade: 'pass' | 'review' | 'fail';
   epsilon: number;
   intervals: readonly WallRunInterval[];
+  connections?: readonly WallRunConnectionEdge[];
+  doorOwnership?: readonly DoorToDoorOwnershipCheck[];
+  cameraProbes?: readonly WallRunCameraProbe[];
   gaps: readonly DoorCoordinateGap[];
   notes: readonly string[];
 };
@@ -521,7 +594,7 @@ Date: ${date}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
 - Tutorial alignment: ${describeTutorialSummary(tutorialAlignment)}
-- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
+- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; identityReadable=${titleComposition.identityReadable ?? false}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; anchors=${formatTitleAnchorSummary(titleComposition)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Gameplay camera: ${formatGameplayCameraSummary(gameplayCamera)}
 - Gameplay view density: ${formatGameplayViewDensitySummary(gameplayViewDensity)}
@@ -541,6 +614,10 @@ ${formatFpsSceneMatrix(fpsScenes, baseline)}
 ## Tutorial Alignment QA
 
 ${formatTutorialAlignment(tutorialAlignment)}
+
+## Title Identity QA
+
+${formatTitleIdentity(titleComposition)}
 
 ## Gameplay Camera QA
 
@@ -895,6 +972,28 @@ function formatAudioState(audio: AudioState | undefined): string {
     : 'not captured';
 }
 
+function formatTitleAnchorSummary(composition: TitleComposition | undefined): string {
+  const anchors = composition?.identityAnchors ?? [];
+  if (anchors.length === 0) return 'not captured';
+  return anchors.map((anchor) => `${anchor.id}:${anchor.visible && !anchor.uiOccluded ? 'readable' : anchor.visible ? 'occluded' : 'hidden'}`).join(', ');
+}
+
+function formatTitleIdentity(composition: TitleComposition | undefined): string {
+  if (!composition) return '- Title identity diagnostics not captured.';
+  const anchors = composition.identityAnchors ?? [];
+  if (anchors.length === 0) return '- FAIL title-identity: no head/visor/chest anchors were captured.';
+  const rows = anchors.map((anchor) => {
+    const screen = anchor.screenPosition
+      ? `screen=(${anchor.screenPosition.x},${anchor.screenPosition.y}) visible=${anchor.screenPosition.visible}`
+      : 'screen=missing';
+    return `- ${anchor.visible && !anchor.uiOccluded ? 'PASS' : 'FAIL'} title-anchor/${anchor.id}: ${anchor.label}; source=${anchor.source}; world=(${anchor.worldPosition.x},${anchor.worldPosition.y},${anchor.worldPosition.z}); ${screen}; uiOccluded=${anchor.uiOccluded}. ${anchor.notes.join(' ')}`;
+  });
+  return [
+    `- ${composition.identityReadable ? 'PASS' : 'FAIL'} title-identity: identityReadable=${composition.identityReadable ?? false}; anchors=${formatTitleAnchorSummary(composition)}.`,
+    ...rows,
+  ].join('\n');
+}
+
 function describeTitleFindings(composition: TitleComposition | undefined): string {
   if (!composition) return '- P1: Title composition metrics missing.';
   const titleTreatment = composition.titleTreatment;
@@ -909,6 +1008,10 @@ function describeTitleFindings(composition: TitleComposition | undefined): strin
   }
   if (!composition.heroScreenBounds) {
     return `- P1: Title hero screen-space bounds are missing, so the tester cannot prove the recruit is large enough to read. ${composition.notes.join(' ')}`;
+  }
+  const identityAnchors = composition.identityAnchors ?? [];
+  if (!composition.identityReadable || identityAnchors.filter((anchor) => ['head', 'visor', 'chest'].includes(anchor.id) && anchor.visible && !anchor.uiOccluded).length < 3) {
+    return `- P1: Title hero identity anchors are not readable: ${formatTitleAnchorSummary(composition)}. ${composition.notes.join(' ')}`;
   }
   if (!composition.heroReadable) {
     return `- P1: Title hero is not readable from the camera: facingDot=${composition.facingDot}; cameraDistance=${composition.cameraDistance}; screenHeight=${formatRatio(composition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(composition.heroScreenOccupancy)}; heroYaw=${composition.heroYaw}; yawToCamera=${composition.yawToCamera}. ${composition.notes.join(' ')}`;
@@ -945,7 +1048,7 @@ function describeGameplayCameraFindings(camera: GameplayCameraState | undefined)
 
 function formatGameplayViewDensitySummary(density: GameplayViewDensityState | undefined): string {
   if (!density) return 'not captured';
-  return `grade=${density.grade}; screenshot=${density.screenshot}; bands=${density.bands.map((band) => `${band.id}:${band.grade}:${band.visibleObjectCount} objects/${band.tacticalCategoryCount} categories/${formatRatio(band.screenOccupancy)}`).join(', ')}`;
+  return `grade=${density.grade}; screenshot=${density.screenshot}; bands=${density.bands.map((band) => `${band.id}:${band.grade}:${band.visibleObjectCount} objects/${band.tacticalCategoryCount} categories/${formatRatio(band.screenOccupancy)} occupancy/${formatRatio(band.negativeSpaceRatio)} negative`).join(', ')}`;
 }
 
 function formatGameplayViewDensity(density: GameplayViewDensityState | undefined): string {
@@ -955,7 +1058,7 @@ function formatGameplayViewDensity(density: GameplayViewDensityState | undefined
       .slice(0, 8)
       .map((object) => `${object.id}[${object.category}] d=${object.distanceFromPlayer}m area=${formatRatio(object.screenOccupancy)} bounds=${formatScreenBounds(object.screenBounds)}`)
       .join('; ');
-    return `- ${band.grade.toUpperCase()} gameplay-view/${band.id}: ${band.label}; distance=${band.minDistance}..${band.maxDistance}m; visible=${band.visibleObjectCount}/${band.minVisibleObjects}; categories=${band.tacticalCategoryCount}/${band.minTacticalCategories}; occupancy=${formatRatio(band.screenOccupancy)} target=${formatRatio(band.minScreenOccupancy)}; objects=${objectSummary || 'none'}. ${band.notes.join(' ')}`;
+    return `- ${band.grade.toUpperCase()} gameplay-view/${band.id}: ${band.label}; distance=${band.minDistance}..${band.maxDistance}m; visible=${band.visibleObjectCount}/${band.minVisibleObjects}; categories=${band.tacticalCategoryCount}/${band.minTacticalCategories}; occupancy=${formatRatio(band.screenOccupancy)} target=${formatRatio(band.minScreenOccupancy)}; negativeSpace=${formatRatio(band.negativeSpaceRatio)} max=${formatRatio(band.maxNegativeSpaceRatio)}; objects=${objectSummary || 'none'}. ${band.notes.join(' ')}`;
   });
   return [
     `- ${density.grade.toUpperCase()} gameplay-view-density: active=${density.active}; screenshot=${density.screenshot}; camera=(${density.cameraPosition.x},${density.cameraPosition.y},${density.cameraPosition.z}); player=(${density.playerPosition.x},${density.playerPosition.z}). ${density.notes.join(' ')}`,
@@ -968,9 +1071,16 @@ function describeGameplayViewDensityFindings(density: GameplayViewDensityState |
   if (density.grade !== 'pass') {
     const failures = density.bands
       .filter((band) => band.grade !== 'pass')
-      .map((band) => `${band.id}: ${band.visibleObjectCount}/${band.minVisibleObjects} objects, ${band.tacticalCategoryCount}/${band.minTacticalCategories} categories, ${formatRatio(band.screenOccupancy)}/${formatRatio(band.minScreenOccupancy)} occupancy`)
+      .map((band) => `${band.id}: ${band.visibleObjectCount}/${band.minVisibleObjects} objects, ${band.tacticalCategoryCount}/${band.minTacticalCategories} categories, ${formatRatio(band.screenOccupancy)}/${formatRatio(band.minScreenOccupancy)} occupancy, ${formatRatio(band.negativeSpaceRatio)}/${formatRatio(band.maxNegativeSpaceRatio)} negative-space risk`)
       .join('; ');
     return `- P1: Active gameplay camera lacks AAA-readable tactical density in ${density.screenshot}: ${failures}.`;
+  }
+  const negativeFailures = density.bands
+    .filter((band) => typeof band.negativeSpaceRatio !== 'number' || typeof band.maxNegativeSpaceRatio !== 'number' || band.negativeSpaceRatio > band.maxNegativeSpaceRatio)
+    .map((band) => `${band.id}: ${formatRatio(band.negativeSpaceRatio)}/${formatRatio(band.maxNegativeSpaceRatio)}`)
+    .join('; ');
+  if (negativeFailures) {
+    return `- P1: Active gameplay camera has too much floor/wall negative space in ${density.screenshot}: ${negativeFailures}.`;
   }
   return '- P1: None from generated active gameplay-view density diagnostics.';
 }
@@ -1016,10 +1126,19 @@ function formatWallRunContinuity(geometry: GeometryDiagnostics | undefined): str
   if (!geometry.wallRunContinuity?.length) return '- FAIL wall-run/instrumentation: no sorted wall-run interval ledger was captured.';
   return geometry.wallRunContinuity.map((check) => {
     const intervals = check.intervals.map((interval) => `${interval.id}[${interval.kind}] ${formatMeters(interval.min)}..${formatMeters(interval.max)}`).join('; ');
+    const connections = check.connections?.length
+      ? check.connections.map((edge) => `${edge.fromId}->${edge.toId}:${edge.state}${edge.gap > 0 ? ` ${formatMeters(edge.gap)}` : ''}${edge.ownerId ? ` owner=${edge.ownerId}` : ''}`).join('; ')
+      : 'missing connection graph';
+    const ownership = check.doorOwnership?.length
+      ? check.doorOwnership.map((row) => `${row.previousDoorId}->${row.nextDoorId}:${row.grade} span=${formatMeters(row.spanWidth)} owner=${row.ownerId ?? 'missing'} depth=${row.depthMatch}`).join('; ')
+      : 'no adjacent door pairs on this wall line';
+    const probes = check.cameraProbes?.length
+      ? check.cameraProbes.map((probe) => `${probe.id}:${probe.grade} expected=${probe.expectedOwnerIds.join('/')} hit=${probe.actualOwnerId ?? probe.actualFirstHitId ?? 'none'} void=${probe.visibleVoid} screen=${formatScreenBounds(probe.screenRegion)}`).join('; ')
+      : 'missing camera probes';
     const gaps = check.gaps.length > 0
       ? check.gaps.map((gap) => `${gap.fromId}->${gap.toId} ${formatMeters(gap.gap)} (${gap.axis} ${gap.fromEdge}->${gap.toEdge})`).join('; ')
       : `no unowned spans above ${formatMeters(check.epsilon)}`;
-    return `- ${check.grade.toUpperCase()} wall-run/${check.id}: axis=${check.axis}; line=${check.line}; intervals=${intervals}; gaps=${gaps}`;
+    return `- ${check.grade.toUpperCase()} wall-run/${check.id}: axis=${check.axis}; line=${check.line}; intervals=${intervals}; connections=${connections}; ownership=${ownership}; probes=${probes}; gaps=${gaps}`;
   }).join('\n');
 }
 
@@ -1037,7 +1156,22 @@ function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): st
     findings.push('- P1: Wall-run interval diagnostics missing; tester cannot prove spaces between doors and wall segments are connected.');
   } else {
     for (const check of geometry.wallRunContinuity) {
-      if (check.grade === 'fail') {
+      if (!check.connections?.length) {
+        findings.push(`- P1: Wall-run connection graph missing for ${check.id}; tester cannot prove adjacent walls, frames, returns, and continuity pieces connect.`);
+      } else if (check.connections.some((edge) => edge.state === 'void')) {
+        findings.push(`- P1: Wall-run connection graph has voids for ${check.id}: ${check.connections.filter((edge) => edge.state === 'void').map((edge) => `${edge.fromId}->${edge.toId} ${formatMeters(edge.gap)}`).join('; ')}.`);
+      }
+      if (!Array.isArray(check.doorOwnership)) {
+        findings.push(`- P1: Door-to-door ownership rows missing for ${check.id}; future adjacent-door gaps cannot be proven.`);
+      } else if (check.doorOwnership.some((row) => row.grade === 'fail')) {
+        findings.push(`- P1: Door-to-door ownership failed for ${check.id}: ${check.doorOwnership.filter((row) => row.grade === 'fail').map((row) => `${row.previousDoorId}->${row.nextDoorId} span=${formatMeters(row.spanWidth)} owner=${row.ownerId ?? 'missing'}`).join('; ')}.`);
+      }
+      if (!check.cameraProbes?.length) {
+        findings.push(`- P1: Camera probe rows missing for ${check.id}; tester cannot prove what the active camera sees through suspect wall/door pixels.`);
+      } else if (check.cameraProbes.some((probe) => probe.grade === 'fail' || probe.visibleVoid)) {
+        findings.push(`- P1: Wall-run camera probes failed for ${check.id}: ${check.cameraProbes.filter((probe) => probe.grade === 'fail' || probe.visibleVoid).map((probe) => `${probe.id} hit=${probe.actualOwnerId ?? probe.actualFirstHitId ?? 'none'} expected=${probe.expectedOwnerIds.join('/')}`).join('; ')}.`);
+      }
+      if (check.grade === 'fail' && check.gaps.length) {
         findings.push(`- P1: Wall-run coordinate gaps for ${check.id}: ${check.gaps.map((gap) => `${gap.fromId}->${gap.toId} ${formatMeters(gap.gap)} on ${gap.axis}`).join('; ')}.`);
       } else if (check.grade === 'review') {
         findings.push(`- P2: Wall-run coordinate review for ${check.id}: ${check.notes.join(' ')}`);

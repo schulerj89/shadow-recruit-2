@@ -50,6 +50,9 @@ try {
     titleComposition.facingDot < 0.65 ||
     titleComposition.heroScreenHeightRatio < 0.22 ||
     titleComposition.heroScreenOccupancy < 0.012 ||
+    !titleComposition.identityReadable ||
+    !Array.isArray(titleComposition.identityAnchors) ||
+    titleComposition.identityAnchors.filter((anchor) => ['head', 'visor', 'chest'].includes(anchor.id) && anchor.visible && !anchor.uiOccluded).length < 3 ||
     !titleComposition.heroScreenBounds ||
     !titleComposition.levelPreviewVisible ||
     titleComposition.orbitRadius < 5 ||
@@ -173,7 +176,15 @@ try {
   ) {
     throw new Error(`Expected closer player-readable gameplay camera, got ${JSON.stringify(gameplayCamera)}`);
   }
-  if (!gameplayState?.gameplayViewDensity || gameplayState.gameplayViewDensity.grade !== 'pass') {
+  if (
+    !gameplayState?.gameplayViewDensity ||
+    gameplayState.gameplayViewDensity.grade !== 'pass' ||
+    gameplayState.gameplayViewDensity.bands.some((band) =>
+      typeof band.negativeSpaceRatio !== 'number' ||
+      typeof band.maxNegativeSpaceRatio !== 'number' ||
+      band.negativeSpaceRatio > band.maxNegativeSpaceRatio
+    )
+  ) {
     throw new Error(`Expected active gameplay camera to have near/mid/far tactical detail, got ${JSON.stringify(gameplayState?.gameplayViewDensity)}`);
   }
   await collectObjectiveAndExpectFocus('access-keycard', 'lobby-door', '09-focus-lobby-door.png');
@@ -255,9 +266,20 @@ try {
   }
   if (
     state.geometry.wallRunContinuity.length < state.geometry.doorContinuity.length ||
-    state.geometry.wallRunContinuity.some((check) => check.grade !== 'pass' || check.intervals.length < 3 || check.gaps.length > 0)
+    state.geometry.wallRunContinuity.some((check) =>
+      check.grade !== 'pass' ||
+      check.intervals.length < 3 ||
+      !Array.isArray(check.connections) ||
+      check.connections.length < check.intervals.length - 1 ||
+      check.connections.some((edge) => edge.state === 'void') ||
+      !Array.isArray(check.doorOwnership) ||
+      !Array.isArray(check.cameraProbes) ||
+      check.cameraProbes.length < 1 ||
+      check.cameraProbes.some((probe) => probe.visibleVoid || probe.grade === 'fail') ||
+      check.gaps.length > 0
+    )
   ) {
-    throw new Error(`Expected sorted wall-run continuity ledgers with no unowned door/wall spans, got ${JSON.stringify(state.geometry.wallRunContinuity)}`);
+    throw new Error(`Expected sorted wall-run ledgers, connection graphs, ownership rows, and camera probes with no unowned visible spans, got ${JSON.stringify(state.geometry.wallRunContinuity)}`);
   }
   const setDressingVisibility = state.geometry.setDressingVisibility;
   if (

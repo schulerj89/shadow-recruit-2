@@ -1,0 +1,6770 @@
+{
+  "phase": "playing",
+  "levelId": "blacksite-threshold",
+  "missionCatalog": [
+    {
+      "id": "blacksite-threshold",
+      "name": "Blacksite Threshold",
+      "chapter": "Operation Glass Dagger",
+      "objectiveCount": 3,
+      "enemyCount": 3
+    }
+  ],
+  "selectedHero": "shadow-operative",
+  "settings": {
+    "debug": false,
+    "muted": false,
+    "performanceProfile": "performance"
+  },
+  "audio": {
+    "activeTrack": "gameplay",
+    "muted": false,
+    "unlocked": true
+  },
+  "loading": {
+    "active": false,
+    "label": "starting cinematic tutorial",
+    "value": 1,
+    "history": [
+      {
+        "label": "preloading hero, sentry, objectives, cover",
+        "value": 0.18,
+        "elapsedMs": 9
+      },
+      {
+        "label": "preloading tactical dressing",
+        "value": 0.42,
+        "elapsedMs": 224
+      },
+      {
+        "label": "building blacksite threshold",
+        "value": 0.68,
+        "elapsedMs": 230
+      },
+      {
+        "label": "starting cinematic tutorial",
+        "value": 1,
+        "elapsedMs": 247
+      }
+    ]
+  },
+  "tutorial": {
+    "index": 0,
+    "total": 5,
+    "step": {
+      "id": "hero",
+      "title": "Insertion",
+      "target": "hero",
+      "text": "Cadet, this is your first Shadow Recruit field operation. Move quietly, keep your suit low, and read the room before you cross open ground. Good luck, cadet.",
+      "alignmentKeywords": [
+        "cadet",
+        "shadow recruit",
+        "move quietly"
+      ]
+    }
+  },
+  "cinematicFocus": {
+    "active": false,
+    "target": "hero",
+    "remainingMs": 0,
+    "focusPoint": {
+      "x": 0,
+      "z": -29
+    },
+    "cameraPosition": {
+      "x": 3.15,
+      "y": 3.85,
+      "z": -33.65
+    }
+  },
+  "gameplayCamera": {
+    "active": true,
+    "readable": true,
+    "cameraPosition": {
+      "x": 3.15,
+      "y": 3.85,
+      "z": -33.65
+    },
+    "cameraTarget": {
+      "x": 0,
+      "y": 1.15,
+      "z": -29
+    },
+    "cameraDistance": 6.23,
+    "playerScreenBounds": {
+      "min": {
+        "x": 560.01,
+        "y": 300.81
+      },
+      "max": {
+        "x": 719.99,
+        "y": 506.85
+      },
+      "size": {
+        "x": 159.98,
+        "y": 206.04
+      },
+      "center": {
+        "x": 640,
+        "y": 403.83
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "widthRatio": 0.12,
+      "heightRatio": 0.29,
+      "areaRatio": 0.04
+    },
+    "playerScreenOccupancy": 0.04,
+    "playerScreenHeightRatio": 0.29,
+    "notes": [
+      "Gameplay camera keeps the player close enough to read the hero, nearby floor texture, cover, doors, and objectives."
+    ]
+  },
+  "gameplayViewDensity": {
+    "active": true,
+    "grade": "pass",
+    "screenshot": "gameplay-level-one.png",
+    "cameraPosition": {
+      "x": 3.15,
+      "y": 3.85,
+      "z": -33.65
+    },
+    "playerPosition": {
+      "x": 0,
+      "z": -29
+    },
+    "bands": [
+      {
+        "id": "near",
+        "label": "near foreground",
+        "minDistance": 0,
+        "maxDistance": 8,
+        "grade": "pass",
+        "visibleObjectCount": 4,
+        "tacticalCategoryCount": 3,
+        "screenOccupancy": 0.35,
+        "negativeSpaceRatio": 0,
+        "minVisibleObjects": 2,
+        "minTacticalCategories": 2,
+        "minScreenOccupancy": 0.015,
+        "maxNegativeSpaceRatio": 0.38,
+        "objects": [
+          {
+            "id": "insertion-floor-power-right",
+            "category": "set-dressing",
+            "distanceFromPlayer": 5.17,
+            "screenOccupancy": 0.18,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 402.61
+              },
+              "max": {
+                "x": 511.65,
+                "y": 720
+              },
+              "size": {
+                "x": 511.65,
+                "y": 317.39
+              },
+              "center": {
+                "x": 255.83,
+                "y": 561.3
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.4,
+              "heightRatio": 0.44,
+              "areaRatio": 0.18
+            },
+            "bounds": {
+              "min": {
+                "x": 1,
+                "y": 0,
+                "z": -28.23
+              },
+              "max": {
+                "x": 9,
+                "y": 0.18,
+                "z": -27.17
+              },
+              "size": {
+                "x": 8,
+                "y": 0.18,
+                "z": 1.05
+              }
+            }
+          },
+          {
+            "id": "insertion-floor-power-left",
+            "category": "set-dressing",
+            "distanceFromPlayer": 4.68,
+            "screenOccupancy": 0.11,
+            "screenBounds": {
+              "min": {
+                "x": 771.16,
+                "y": 305.88
+              },
+              "max": {
+                "x": 1206.55,
+                "y": 530.49
+              },
+              "size": {
+                "x": 435.4,
+                "y": 224.61
+              },
+              "center": {
+                "x": 988.85,
+                "y": 418.19
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.34,
+              "heightRatio": 0.31,
+              "areaRatio": 0.11
+            },
+            "bounds": {
+              "min": {
+                "x": -8,
+                "y": 0,
+                "z": -30.83
+              },
+              "max": {
+                "x": -1,
+                "y": 0.18,
+                "z": -29.77
+              },
+              "size": {
+                "x": 7,
+                "y": 0.18,
+                "z": 1.05
+              }
+            }
+          },
+          {
+            "id": "insertion-route-cover",
+            "category": "cover",
+            "distanceFromPlayer": 4.28,
+            "screenOccupancy": 0.05,
+            "screenBounds": {
+              "min": {
+                "x": 94.98,
+                "y": 295.53
+              },
+              "max": {
+                "x": 367.62,
+                "y": 478.32
+              },
+              "size": {
+                "x": 272.64,
+                "y": 182.79
+              },
+              "center": {
+                "x": 231.3,
+                "y": 386.93
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.21,
+              "heightRatio": 0.25,
+              "areaRatio": 0.05
+            },
+            "bounds": {
+              "min": {
+                "x": 1.92,
+                "y": 0,
+                "z": -26.48
+              },
+              "max": {
+                "x": 4.08,
+                "y": 1.1,
+                "z": -25.52
+              },
+              "size": {
+                "x": 2.15,
+                "y": 1.1,
+                "z": 0.95
+              }
+            }
+          },
+          {
+            "id": "sentry-lobby",
+            "category": "enemy",
+            "distanceFromPlayer": 7.59,
+            "screenOccupancy": 0.01,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 253.89
+              },
+              "max": {
+                "x": 38.83,
+                "y": 484.7
+              },
+              "size": {
+                "x": 38.83,
+                "y": 230.8
+              },
+              "center": {
+                "x": 19.42,
+                "y": 369.29
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.03,
+              "heightRatio": 0.32,
+              "areaRatio": 0.01
+            },
+            "bounds": {
+              "min": {
+                "x": 5,
+                "y": 0.02,
+                "z": -24.94
+              },
+              "max": {
+                "x": 6.58,
+                "y": 1.57,
+                "z": -23.36
+              },
+              "size": {
+                "x": 1.58,
+                "y": 1.55,
+                "z": 1.58
+              }
+            }
+          }
+        ],
+        "notes": [
+          "near foreground has 4 visible tactical object(s), 3 category/categories, 35.0% tactical screen occupancy, and controlled negative-space risk of 0.0% from the active gameplay camera."
+        ]
+      },
+      {
+        "id": "mid",
+        "label": "midground objective route",
+        "minDistance": 8,
+        "maxDistance": 18,
+        "grade": "pass",
+        "visibleObjectCount": 5,
+        "tacticalCategoryCount": 2,
+        "screenOccupancy": 1,
+        "negativeSpaceRatio": 0,
+        "minVisibleObjects": 2,
+        "minTacticalCategories": 2,
+        "minScreenOccupancy": 0.006,
+        "maxNegativeSpaceRatio": 0.5,
+        "objects": [
+          {
+            "id": "entry-floor-light-spine",
+            "category": "set-dressing",
+            "distanceFromPlayer": 8,
+            "screenOccupancy": 0.65,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 146.64
+              },
+              "max": {
+                "x": 1040.16,
+                "y": 720
+              },
+              "size": {
+                "x": 1040.16,
+                "y": 573.36
+              },
+              "center": {
+                "x": 520.08,
+                "y": 433.32
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.81,
+              "heightRatio": 0.8,
+              "areaRatio": 0.65
+            },
+            "bounds": {
+              "min": {
+                "x": -21,
+                "y": 0,
+                "z": -21.55
+              },
+              "max": {
+                "x": 21,
+                "y": 0.18,
+                "z": -20.45
+              },
+              "size": {
+                "x": 42,
+                "y": 0.18,
+                "z": 1.1
+              }
+            }
+          },
+          {
+            "id": "security-warning-floor-stripe",
+            "category": "set-dressing",
+            "distanceFromPlayer": 13.8,
+            "screenOccupancy": 0.33,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 130.73
+              },
+              "max": {
+                "x": 875.72,
+                "y": 478.93
+              },
+              "size": {
+                "x": 875.72,
+                "y": 348.2
+              },
+              "center": {
+                "x": 437.86,
+                "y": 304.83
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.68,
+              "heightRatio": 0.48,
+              "areaRatio": 0.33
+            },
+            "bounds": {
+              "min": {
+                "x": -20,
+                "y": 0,
+                "z": -15.7
+              },
+              "max": {
+                "x": 20,
+                "y": 0.16,
+                "z": -14.7
+              },
+              "size": {
+                "x": 40,
+                "y": 0.16,
+                "z": 1
+              }
+            }
+          },
+          {
+            "id": "entry-south-machinery-west",
+            "category": "set-dressing",
+            "distanceFromPlayer": 15.38,
+            "screenOccupancy": 0.08,
+            "screenBounds": {
+              "min": {
+                "x": 1101.29,
+                "y": 154.28
+              },
+              "max": {
+                "x": 1280,
+                "y": 577.3
+              },
+              "size": {
+                "x": 178.71,
+                "y": 423.02
+              },
+              "center": {
+                "x": 1190.65,
+                "y": 365.79
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.14,
+              "heightRatio": 0.59,
+              "areaRatio": 0.08
+            },
+            "bounds": {
+              "min": {
+                "x": -27,
+                "y": 0,
+                "z": -32.85
+              },
+              "max": {
+                "x": -3,
+                "y": 0.9,
+                "z": -31.85
+              },
+              "size": {
+                "x": 24,
+                "y": 0.9,
+                "z": 1
+              }
+            }
+          },
+          {
+            "id": "lobby-door",
+            "category": "door",
+            "distanceFromPlayer": 11.12,
+            "screenOccupancy": 0.08,
+            "screenBounds": {
+              "min": {
+                "x": 140.48,
+                "y": 55.09
+              },
+              "max": {
+                "x": 491.84,
+                "y": 252.66
+              },
+              "size": {
+                "x": 351.36,
+                "y": 197.57
+              },
+              "center": {
+                "x": 316.16,
+                "y": 153.88
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.27,
+              "heightRatio": 0.27,
+              "areaRatio": 0.08
+            },
+            "bounds": {
+              "min": {
+                "x": -3,
+                "y": 0,
+                "z": -18.4
+              },
+              "max": {
+                "x": 3,
+                "y": 3.3,
+                "z": -17.6
+              },
+              "size": {
+                "x": 6,
+                "y": 3.3,
+                "z": 0.8
+              }
+            }
+          },
+          {
+            "id": "entry-foreground-decal-west",
+            "category": "set-dressing",
+            "distanceFromPlayer": 16.03,
+            "screenOccupancy": 0.05,
+            "screenBounds": {
+              "min": {
+                "x": 935.52,
+                "y": 165.73
+              },
+              "max": {
+                "x": 1280,
+                "y": 307.12
+              },
+              "size": {
+                "x": 344.48,
+                "y": 141.39
+              },
+              "center": {
+                "x": 1107.76,
+                "y": 236.42
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.27,
+              "heightRatio": 0.2,
+              "areaRatio": 0.05
+            },
+            "bounds": {
+              "min": {
+                "x": -25,
+                "y": 0,
+                "z": -28.6
+              },
+              "max": {
+                "x": -7,
+                "y": 0.16,
+                "z": -27.4
+              },
+              "size": {
+                "x": 18,
+                "y": 0.16,
+                "z": 1.2
+              }
+            }
+          }
+        ],
+        "notes": [
+          "midground objective route has 5 visible tactical object(s), 2 category/categories, 100.0% tactical screen occupancy, and controlled negative-space risk of 0.0% from the active gameplay camera."
+        ]
+      },
+      {
+        "id": "far",
+        "label": "far background landmark",
+        "minDistance": 18,
+        "maxDistance": 34,
+        "grade": "pass",
+        "visibleObjectCount": 8,
+        "tacticalCategoryCount": 2,
+        "screenOccupancy": 0.7,
+        "negativeSpaceRatio": 0,
+        "minVisibleObjects": 1,
+        "minTacticalCategories": 1,
+        "minScreenOccupancy": 0.002,
+        "maxNegativeSpaceRatio": 0.62,
+        "objects": [
+          {
+            "id": "lobby-wall-machinery-east",
+            "category": "set-dressing",
+            "distanceFromPlayer": 27.13,
+            "screenOccupancy": 0.42,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 0
+              },
+              "max": {
+                "x": 1280,
+                "y": 304.99
+              },
+              "size": {
+                "x": 1280,
+                "y": 304.99
+              },
+              "center": {
+                "x": 640,
+                "y": 152.49
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 1,
+              "heightRatio": 0.42,
+              "areaRatio": 0.42
+            },
+            "bounds": {
+              "min": {
+                "x": 10,
+                "y": 0,
+                "z": -16.98
+              },
+              "max": {
+                "x": 38,
+                "y": 1.15,
+                "z": -15.73
+              },
+              "size": {
+                "x": 28,
+                "y": 1.15,
+                "z": 1.25
+              }
+            }
+          },
+          {
+            "id": "security-floor-cable-spine",
+            "category": "set-dressing",
+            "distanceFromPlayer": 27,
+            "screenOccupancy": 0.06,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 106.21
+              },
+              "max": {
+                "x": 625.01,
+                "y": 192.83
+              },
+              "size": {
+                "x": 625.01,
+                "y": 86.63
+              },
+              "center": {
+                "x": 312.51,
+                "y": 149.52
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.49,
+              "heightRatio": 0.12,
+              "areaRatio": 0.06
+            },
+            "bounds": {
+              "min": {
+                "x": -17,
+                "y": 0,
+                "z": -2.55
+              },
+              "max": {
+                "x": 17,
+                "y": 0.18,
+                "z": -1.45
+              },
+              "size": {
+                "x": 34,
+                "y": 0.18,
+                "z": 1.1
+              }
+            }
+          },
+          {
+            "id": "security-ceiling-cable-east",
+            "category": "set-dressing",
+            "distanceFromPlayer": 26.25,
+            "screenOccupancy": 0.05,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 189.92
+              },
+              "max": {
+                "x": 81.08,
+                "y": 720
+              },
+              "size": {
+                "x": 81.08,
+                "y": 530.08
+              },
+              "center": {
+                "x": 40.54,
+                "y": 454.96
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.06,
+              "heightRatio": 0.74,
+              "areaRatio": 0.05
+            },
+            "bounds": {
+              "min": {
+                "x": 5,
+                "y": 0,
+                "z": -12.6
+              },
+              "max": {
+                "x": 35,
+                "y": 0.2,
+                "z": -11.4
+              },
+              "size": {
+                "x": 30,
+                "y": 0.2,
+                "z": 1.2
+              }
+            }
+          },
+          {
+            "id": "security-center-server-run",
+            "category": "set-dressing",
+            "distanceFromPlayer": 31,
+            "screenOccupancy": 0.05,
+            "screenBounds": {
+              "min": {
+                "x": 0,
+                "y": 85.2
+              },
+              "max": {
+                "x": 587.24,
+                "y": 170.2
+              },
+              "size": {
+                "x": 587.24,
+                "y": 85.01
+              },
+              "center": {
+                "x": 293.62,
+                "y": 127.7
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.46,
+              "heightRatio": 0.12,
+              "areaRatio": 0.05
+            },
+            "bounds": {
+              "min": {
+                "x": -17,
+                "y": 0,
+                "z": 1.25
+              },
+              "max": {
+                "x": 17,
+                "y": 0.95,
+                "z": 2.75
+              },
+              "size": {
+                "x": 34,
+                "y": 0.95,
+                "z": 1.5
+              }
+            }
+          },
+          {
+            "id": "lobby-wall-machinery-west",
+            "category": "set-dressing",
+            "distanceFromPlayer": 27.13,
+            "screenOccupancy": 0.04,
+            "screenBounds": {
+              "min": {
+                "x": 666.59,
+                "y": 86.17
+              },
+              "max": {
+                "x": 1136.71,
+                "y": 169.87
+              },
+              "size": {
+                "x": 470.12,
+                "y": 83.7
+              },
+              "center": {
+                "x": 901.65,
+                "y": 128.02
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.37,
+              "heightRatio": 0.12,
+              "areaRatio": 0.04
+            },
+            "bounds": {
+              "min": {
+                "x": -38,
+                "y": 0,
+                "z": -16.98
+              },
+              "max": {
+                "x": -10,
+                "y": 1.15,
+                "z": -15.73
+              },
+              "size": {
+                "x": 28,
+                "y": 1.15,
+                "z": 1.25
+              }
+            }
+          },
+          {
+            "id": "security-ceiling-cable-west",
+            "category": "set-dressing",
+            "distanceFromPlayer": 26.25,
+            "screenOccupancy": 0.04,
+            "screenBounds": {
+              "min": {
+                "x": 462.29,
+                "y": 102.3
+              },
+              "max": {
+                "x": 1014.01,
+                "y": 164.99
+              },
+              "size": {
+                "x": 551.72,
+                "y": 62.69
+              },
+              "center": {
+                "x": 738.15,
+                "y": 133.64
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.43,
+              "heightRatio": 0.09,
+              "areaRatio": 0.04
+            },
+            "bounds": {
+              "min": {
+                "x": -35,
+                "y": 0,
+                "z": -12.6
+              },
+              "max": {
+                "x": -5,
+                "y": 0.2,
+                "z": -11.4
+              },
+              "size": {
+                "x": 30,
+                "y": 0.2,
+                "z": 1.2
+              }
+            }
+          },
+          {
+            "id": "south-cable-trench-west",
+            "category": "set-dressing",
+            "distanceFromPlayer": 22.09,
+            "screenOccupancy": 0.03,
+            "screenBounds": {
+              "min": {
+                "x": 1166.6,
+                "y": 146.45
+              },
+              "max": {
+                "x": 1280,
+                "y": 361.97
+              },
+              "size": {
+                "x": 113.4,
+                "y": 215.52
+              },
+              "center": {
+                "x": 1223.3,
+                "y": 254.21
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.09,
+              "heightRatio": 0.3,
+              "areaRatio": 0.03
+            },
+            "bounds": {
+              "min": {
+                "x": -36,
+                "y": 0,
+                "z": -31.6
+              },
+              "max": {
+                "x": -8,
+                "y": 0.16,
+                "z": -30.4
+              },
+              "size": {
+                "x": 28,
+                "y": 0.16,
+                "z": 1.2
+              }
+            }
+          },
+          {
+            "id": "cargo-stack-a",
+            "category": "cover",
+            "distanceFromPlayer": 27.3,
+            "screenOccupancy": 0.01,
+            "screenBounds": {
+              "min": {
+                "x": 1148.71,
+                "y": 103.65
+              },
+              "max": {
+                "x": 1280,
+                "y": 168.67
+              },
+              "size": {
+                "x": 131.29,
+                "y": 65.02
+              },
+              "center": {
+                "x": 1214.36,
+                "y": 136.16
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.1,
+              "heightRatio": 0.09,
+              "areaRatio": 0.01
+            },
+            "bounds": {
+              "min": {
+                "x": -29.33,
+                "y": 0,
+                "z": -26.68
+              },
+              "max": {
+                "x": -24.67,
+                "y": 1.35,
+                "z": -23.32
+              },
+              "size": {
+                "x": 4.65,
+                "y": 1.35,
+                "z": 3.36
+              }
+            }
+          }
+        ],
+        "notes": [
+          "far background landmark has 8 visible tactical object(s), 2 category/categories, 70.0% tactical screen occupancy, and controlled negative-space risk of 0.0% from the active gameplay camera."
+        ]
+      }
+    ],
+    "notes": [
+      "Active gameplay camera has measurable foreground, midground, and background tactical detail instead of relying on whole-level density averages."
+    ]
+  },
+  "completion": {
+    "active": false,
+    "elapsedSeconds": 5,
+    "objectivesCompleted": 0,
+    "objectivesTotal": 3,
+    "alerts": 0,
+    "performanceProfile": "performance",
+    "triumphantCue": false
+  },
+  "playerPosition": {
+    "x": 0,
+    "z": -29
+  },
+  "objectives": {
+    "collectedRequired": 0,
+    "totalRequired": 3,
+    "exitUnlocked": false
+  },
+  "doors": [
+    {
+      "id": "lobby-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "server-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "extraction-door",
+      "open": false,
+      "progress": 0
+    }
+  ],
+  "renderer": {
+    "performanceProfile": "performance",
+    "shadowsEnabled": false,
+    "shadowMapSize": 0,
+    "drawCalls": 676,
+    "triangles": 296698,
+    "geometries": 102,
+    "textures": 21,
+    "pixelRatio": 0.75
+  },
+  "framePacing": {
+    "fps": 55.86592186211996,
+    "frameMs": 17.899999976158142,
+    "latestFrameMs": 17,
+    "p95FrameMs": 18.200000047683716,
+    "samples": 240
+  },
+  "memory": {
+    "runtimeObjects": 79,
+    "loadedAssets": 9,
+    "characterAssets": 2,
+    "staticAssets": 7,
+    "loadedAssetIds": [
+      "hero:shadow-operative",
+      "sentry",
+      "cable-tray",
+      "codes",
+      "cover-barricade",
+      "extraction-beacon",
+      "keycard",
+      "terminal",
+      "wall-machinery"
+    ],
+    "failedAssetIds": [],
+    "assetAudit": [
+      {
+        "id": "hero:shadow-operative",
+        "label": "Shadow Operative",
+        "kind": "hero",
+        "requirement": "required",
+        "source": "sneak-game-seed",
+        "path": "src/assets/hero/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb; src/assets/hero/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "required-error",
+        "notes": [
+          "Hash-matched against the local Shadow Circuit seed asset during the v0.13.4 provenance audit.",
+          "Shadow Operative uses separate idle and run GLBs with runtime clip mapping through AnimationMixer.",
+          "Required playable character model; QA must fail missing or unreadable runtime geometry.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "sentry",
+        "label": "Enemy sentry",
+        "kind": "enemy",
+        "requirement": "required",
+        "source": "sneak-game-seed",
+        "path": "src/assets/characters/sentry/enemy_sentry.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "required-error",
+        "notes": [
+          "Hash-matched against the local Shadow Circuit sentry seed asset during the v0.13.4 provenance audit.",
+          "Required enemy model; QA must fail load or grounding issues instead of accepting primitive stand-ins.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "keycard",
+        "label": "Access keycard objective",
+        "kind": "objective",
+        "requirement": "required",
+        "source": "sneak-game-seed",
+        "path": "src/assets/objectives/keycard-cinematic.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "required-error",
+        "notes": [
+          "Hash-matched against the local Shadow Circuit keycard seed asset during the v0.13.4 provenance audit.",
+          "Required objective model; QA must fail missing or unreadable runtime geometry.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "terminal",
+        "label": "Security terminal objective",
+        "kind": "objective",
+        "requirement": "required",
+        "source": "sneak-game-seed",
+        "path": "src/assets/objectives/terminal-cinematic.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "required-error",
+        "notes": [
+          "Hash-matched against the local Shadow Circuit terminal seed asset during the v0.13.4 provenance audit.",
+          "Required objective model; QA must fail missing or unreadable runtime geometry.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "codes",
+        "label": "Command codes objective",
+        "kind": "objective",
+        "requirement": "required",
+        "source": "repo-generated-glb",
+        "path": "src/assets/objectives/command-codes-cinematic.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "required-error",
+        "notes": [
+          "Repo-generated cinematic command-codes GLB.",
+          "Required objective model; QA must fail missing or unreadable runtime geometry.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "cover-barricade",
+        "label": "Tactical cover barricade kit",
+        "kind": "cover",
+        "requirement": "required",
+        "source": "repo-generated-glb",
+        "path": "src/assets/environment/cover-barricade-kit.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "required-error",
+        "notes": [
+          "Repo-generated modular GLB kit for Level 1 blocker and cover visuals.",
+          "Gameplay collision remains authored in level blocker proxies; QA must fail if primitive blocker stand-ins are visible.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "cable-tray",
+        "label": "Cable tray dressing kit",
+        "kind": "set-dressing",
+        "requirement": "optional",
+        "source": "repo-generated-glb",
+        "path": "src/assets/environment/cable-tray-kit.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "optional-omit",
+        "notes": [
+          "Repo-generated modular GLB kit for tactical cable and floor dressing.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "extraction-beacon",
+        "label": "Extraction beacon dressing kit",
+        "kind": "set-dressing",
+        "requirement": "optional",
+        "source": "repo-generated-glb",
+        "path": "src/assets/environment/extraction-beacon-kit.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "optional-omit",
+        "notes": [
+          "Repo-generated modular GLB kit for extraction staging and green beacon readability.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      },
+      {
+        "id": "wall-machinery",
+        "label": "Wall machinery dressing kit",
+        "kind": "set-dressing",
+        "requirement": "optional",
+        "source": "repo-generated-glb",
+        "path": "src/assets/environment/wall-machinery-kit.glb",
+        "expectedFormat": "glb",
+        "fallbackPolicy": "optional-omit",
+        "notes": [
+          "Repo-generated modular GLB kit for machinery, vents, and wall silhouette breaks.",
+          "Loaded through the runtime GLTFLoader asset path.",
+          "No visible primitive or placeholder fallback is reported for this asset ID."
+        ],
+        "loaded": true,
+        "failed": false,
+        "fallbackVisible": false,
+        "grade": "pass"
+      }
+    ]
+  },
+  "assetQuality": [
+    {
+      "id": "level-floor",
+      "label": "Floor mesh",
+      "category": "level-mesh",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 0,
+        "height": 0,
+        "width": 84,
+        "depth": 72
+      },
+      "notes": [
+        "Floor mesh covers the authored level bounds with a generated tactical floor-panel image texture.",
+        "Floor uses src/assets/generated/tactical-floor-panel.png as a repeated runtime texture."
+      ]
+    },
+    {
+      "id": "level-walls",
+      "label": "Wall meshes",
+      "category": "level-mesh",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "12 wall meshes are present and use src/assets/generated/blacksite-wall-panel.png as the repeated generated wall texture."
+      ]
+    },
+    {
+      "id": "sliding-doors",
+      "label": "Sliding door panels",
+      "category": "door",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "3 sliding door assemblies are present and use the generated door-panel texture."
+      ]
+    },
+    {
+      "id": "door-wall-seams",
+      "label": "Door-wall seams",
+      "category": "door",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "3 sliding-door openings have door frames plus wall/portal continuity meshes behind the door layer, so the door panels visually take priority without reading as missing wall gaps."
+      ]
+    },
+    {
+      "id": "level-blocker-cover",
+      "label": "Blocker cover GLB visuals",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "9 authored blocker collision proxies are represented by fitted cover-barricade GLB visuals with no primitive stand-ins."
+      ]
+    },
+    {
+      "id": "insertion-route-cover",
+      "label": "insertion-route-cover cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.1,
+        "height": 1.1,
+        "width": 2.15,
+        "depth": 0.95
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "insertion-cover-right",
+      "label": "insertion-cover-right cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.25,
+        "height": 1.25,
+        "width": 3.1,
+        "depth": 2.04
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "cargo-stack-a",
+      "label": "cargo-stack-a cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.35,
+        "height": 1.35,
+        "width": 4.65,
+        "depth": 3.36
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "cargo-stack-b",
+      "label": "cargo-stack-b cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.35,
+        "height": 1.35,
+        "width": 4.65,
+        "depth": 3.36
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "antenna-bank",
+      "label": "antenna-bank cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.75,
+        "height": 1.75,
+        "width": 5.58,
+        "depth": 2.04
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "security-stack-cover-left",
+      "label": "security-stack-cover-left cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.2,
+        "height": 1.2,
+        "width": 2.58,
+        "depth": 1.36
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "server-bank-a",
+      "label": "server-bank-a cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.9,
+        "height": 1.9,
+        "width": 4.65,
+        "depth": 6.72
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "server-bank-b",
+      "label": "server-bank-b cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.9,
+        "height": 1.9,
+        "width": 4.65,
+        "depth": 6.72
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "briefing-table",
+      "label": "briefing-table cover module",
+      "category": "blocker",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1,
+        "height": 1,
+        "width": 10.49,
+        "depth": 2.04
+      },
+      "notes": [
+        "Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.",
+        "Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback."
+      ]
+    },
+    {
+      "id": "level-set-dressing",
+      "label": "Tactical set dressing",
+      "category": "set-dressing",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "notes": [
+        "34 coordinate-authored non-colliding dressing placements have loaded GLB assets, visible runtime bounds, floor contact, and coordinate footprint coverage without blocking the validation route."
+      ]
+    },
+    {
+      "id": "access-keycard",
+      "label": "Recover the lobby keycard",
+      "category": "objective",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": -31,
+        "y": 0,
+        "z": -25
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 0.9,
+        "height": 0.9,
+        "width": 1.49,
+        "depth": 0.02
+      },
+      "notes": [
+        "keycard GLB is visible, grounded, and available for interaction."
+      ]
+    },
+    {
+      "id": "security-terminal",
+      "label": "Hack the security terminal",
+      "category": "objective",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 30,
+        "y": 0,
+        "z": -3
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1.55,
+        "height": 1.55,
+        "width": 1.16,
+        "depth": 2.45
+      },
+      "notes": [
+        "terminal GLB is visible, grounded, and available for interaction."
+      ]
+    },
+    {
+      "id": "command-codes",
+      "label": "Copy the command codes",
+      "category": "objective",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": -32,
+        "y": 0,
+        "z": 14
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 1,
+        "height": 1,
+        "width": 1.81,
+        "depth": 1.28
+      },
+      "notes": [
+        "codes GLB is visible, grounded, and available for interaction."
+      ]
+    },
+    {
+      "id": "sentry-lobby",
+      "label": "Lobby sentry",
+      "category": "enemy",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 5.79,
+        "y": 0,
+        "z": -24.15
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.57,
+        "height": 1.55,
+        "width": 1.58,
+        "depth": 1.58
+      },
+      "notes": [
+        "Sentry GLB is visible above the floor and aligned to its patrol route."
+      ]
+    },
+    {
+      "id": "sentry-server",
+      "label": "Server sentry",
+      "category": "enemy",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 27.03,
+        "y": 0,
+        "z": 14.08
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.57,
+        "height": 1.55,
+        "width": 1.75,
+        "depth": 1.75
+      },
+      "notes": [
+        "Sentry GLB is visible above the floor and aligned to its patrol route."
+      ]
+    },
+    {
+      "id": "sentry-command",
+      "label": "Command sentry",
+      "category": "enemy",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": -4.24,
+        "y": 0,
+        "z": 25
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.57,
+        "height": 1.55,
+        "width": 1.46,
+        "depth": 1.46
+      },
+      "notes": [
+        "Sentry GLB is visible above the floor and aligned to its patrol route."
+      ]
+    },
+    {
+      "id": "hero",
+      "label": "Playable hero",
+      "category": "hero",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -29
+      },
+      "bounds": {
+        "minY": 0.02,
+        "maxY": 1.47,
+        "height": 1.45,
+        "width": 1.17,
+        "depth": 0.79
+      },
+      "notes": [
+        "Hero GLB is visible and grounded at the current player position."
+      ]
+    },
+    {
+      "id": "extraction",
+      "label": "Extraction point",
+      "category": "extraction",
+      "grade": "pass",
+      "visible": true,
+      "grounded": true,
+      "position": {
+        "x": 0,
+        "y": 0.08,
+        "z": 33
+      },
+      "bounds": {
+        "minY": 0,
+        "maxY": 0.16,
+        "height": 0.15,
+        "width": 4.96,
+        "depth": 4.96
+      },
+      "notes": [
+        "Extraction marker is visible and readable as the level-completion target."
+      ]
+    }
+  ],
+  "geometry": {
+    "objectBounds": [
+      {
+        "id": "outer-north",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -42,
+            "y": 0,
+            "z": 37
+          },
+          "max": {
+            "x": 42,
+            "y": 3.4,
+            "z": 38
+          },
+          "size": {
+            "x": 84,
+            "y": 3.4,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "outer-south",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -42,
+            "y": 0,
+            "z": -34
+          },
+          "max": {
+            "x": 42,
+            "y": 3.4,
+            "z": -33
+          },
+          "size": {
+            "x": 84,
+            "y": 3.4,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "outer-west",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -42,
+            "y": 0,
+            "z": -33
+          },
+          "max": {
+            "x": -41,
+            "y": 3.4,
+            "z": 37
+          },
+          "size": {
+            "x": 1,
+            "y": 3.4,
+            "z": 70
+          }
+        }
+      },
+      {
+        "id": "outer-east",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 41,
+            "y": 0,
+            "z": -33
+          },
+          "max": {
+            "x": 42,
+            "y": 3.4,
+            "z": 37
+          },
+          "size": {
+            "x": 1,
+            "y": 3.4,
+            "z": 70
+          }
+        }
+      },
+      {
+        "id": "lobby-divider-west",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -41,
+            "y": 0,
+            "z": -18.5
+          },
+          "max": {
+            "x": -3,
+            "y": 3.2,
+            "z": -17.5
+          },
+          "size": {
+            "x": 38,
+            "y": 3.2,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "lobby-divider-east",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 3,
+            "y": 0,
+            "z": -18.5
+          },
+          "max": {
+            "x": 41,
+            "y": 3.2,
+            "z": -17.5
+          },
+          "size": {
+            "x": 38,
+            "y": 3.2,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "server-divider-west",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -41,
+            "y": 0,
+            "z": 4.5
+          },
+          "max": {
+            "x": 11,
+            "y": 3.2,
+            "z": 5.5
+          },
+          "size": {
+            "x": 52,
+            "y": 3.2,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "server-divider-east",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 17,
+            "y": 0,
+            "z": 4.5
+          },
+          "max": {
+            "x": 30,
+            "y": 3.2,
+            "z": 5.5
+          },
+          "size": {
+            "x": 13,
+            "y": 3.2,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "command-divider-west",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -41,
+            "y": 0,
+            "z": 19.5
+          },
+          "max": {
+            "x": -3,
+            "y": 3.2,
+            "z": 20.5
+          },
+          "size": {
+            "x": 38,
+            "y": 3.2,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "command-divider-east",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 3,
+            "y": 0,
+            "z": 19.5
+          },
+          "max": {
+            "x": 41,
+            "y": 3.2,
+            "z": 20.5
+          },
+          "size": {
+            "x": 38,
+            "y": 3.2,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "armory-rail",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -13.5,
+            "y": 0,
+            "z": 10
+          },
+          "max": {
+            "x": -12.5,
+            "y": 2.4,
+            "z": 18
+          },
+          "size": {
+            "x": 1,
+            "y": 2.4,
+            "z": 8
+          }
+        }
+      },
+      {
+        "id": "server-rail",
+        "category": "wall",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 12.5,
+            "y": 0,
+            "z": 7
+          },
+          "max": {
+            "x": 13.5,
+            "y": 2.4,
+            "z": 17
+          },
+          "size": {
+            "x": 1,
+            "y": 2.4,
+            "z": 10
+          }
+        }
+      },
+      {
+        "id": "insertion-route-cover",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 1.92,
+            "y": 0,
+            "z": -26.48
+          },
+          "max": {
+            "x": 4.08,
+            "y": 1.1,
+            "z": -25.52
+          },
+          "size": {
+            "x": 2.15,
+            "y": 1.1,
+            "z": 0.95
+          }
+        }
+      },
+      {
+        "id": "insertion-cover-right",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 5.45,
+            "y": 0,
+            "z": -30.02
+          },
+          "max": {
+            "x": 8.55,
+            "y": 1.25,
+            "z": -27.98
+          },
+          "size": {
+            "x": 3.1,
+            "y": 1.25,
+            "z": 2.04
+          }
+        }
+      },
+      {
+        "id": "cargo-stack-a",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -29.33,
+            "y": 0,
+            "z": -26.68
+          },
+          "max": {
+            "x": -24.67,
+            "y": 1.35,
+            "z": -23.32
+          },
+          "size": {
+            "x": 4.65,
+            "y": 1.35,
+            "z": 3.36
+          }
+        }
+      },
+      {
+        "id": "cargo-stack-b",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 24.67,
+            "y": 0,
+            "z": -26.68
+          },
+          "max": {
+            "x": 29.33,
+            "y": 1.35,
+            "z": -23.32
+          },
+          "size": {
+            "x": 4.65,
+            "y": 1.35,
+            "z": 3.36
+          }
+        }
+      },
+      {
+        "id": "antenna-bank",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -28.79,
+            "y": 0,
+            "z": -5.02
+          },
+          "max": {
+            "x": -23.21,
+            "y": 1.75,
+            "z": -2.98
+          },
+          "size": {
+            "x": 5.58,
+            "y": 1.75,
+            "z": 2.04
+          }
+        }
+      },
+      {
+        "id": "security-stack-cover-left",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -25.29,
+            "y": 0,
+            "z": -14.68
+          },
+          "max": {
+            "x": -22.71,
+            "y": 1.2,
+            "z": -13.32
+          },
+          "size": {
+            "x": 2.58,
+            "y": 1.2,
+            "z": 1.36
+          }
+        }
+      },
+      {
+        "id": "server-bank-a",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 22.67,
+            "y": 0,
+            "z": 7.64
+          },
+          "max": {
+            "x": 27.33,
+            "y": 1.9,
+            "z": 14.36
+          },
+          "size": {
+            "x": 4.65,
+            "y": 1.9,
+            "z": 6.72
+          }
+        }
+      },
+      {
+        "id": "server-bank-b",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -27.33,
+            "y": 0,
+            "z": 8.64
+          },
+          "max": {
+            "x": -22.67,
+            "y": 1.9,
+            "z": 15.36
+          },
+          "size": {
+            "x": 4.65,
+            "y": 1.9,
+            "z": 6.72
+          }
+        }
+      },
+      {
+        "id": "briefing-table",
+        "category": "blocker",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -5.24,
+            "y": 0,
+            "z": 24.98
+          },
+          "max": {
+            "x": 5.24,
+            "y": 1,
+            "z": 27.02
+          },
+          "size": {
+            "x": 10.49,
+            "y": 1,
+            "z": 2.04
+          }
+        }
+      },
+      {
+        "id": "south-cable-trench-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -36,
+            "y": 0,
+            "z": -31.6
+          },
+          "max": {
+            "x": -8,
+            "y": 0.16,
+            "z": -30.4
+          },
+          "size": {
+            "x": 28,
+            "y": 0.16,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "south-cable-trench-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": -31.6
+          },
+          "max": {
+            "x": 36,
+            "y": 0.16,
+            "z": -30.4
+          },
+          "size": {
+            "x": 28,
+            "y": 0.16,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "insertion-floor-power-left",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -8,
+            "y": 0,
+            "z": -30.83
+          },
+          "max": {
+            "x": -1,
+            "y": 0.18,
+            "z": -29.77
+          },
+          "size": {
+            "x": 7,
+            "y": 0.18,
+            "z": 1.05
+          }
+        }
+      },
+      {
+        "id": "insertion-floor-power-right",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 1,
+            "y": 0,
+            "z": -28.23
+          },
+          "max": {
+            "x": 9,
+            "y": 0.18,
+            "z": -27.17
+          },
+          "size": {
+            "x": 8,
+            "y": 0.18,
+            "z": 1.05
+          }
+        }
+      },
+      {
+        "id": "entry-south-machinery-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -27,
+            "y": 0,
+            "z": -32.85
+          },
+          "max": {
+            "x": -3,
+            "y": 0.9,
+            "z": -31.85
+          },
+          "size": {
+            "x": 24,
+            "y": 0.9,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "entry-south-machinery-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 3,
+            "y": 0,
+            "z": -32.85
+          },
+          "max": {
+            "x": 27,
+            "y": 0.9,
+            "z": -31.85
+          },
+          "size": {
+            "x": 24,
+            "y": 0.9,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "entry-floor-light-spine",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -21,
+            "y": 0,
+            "z": -21.55
+          },
+          "max": {
+            "x": 21,
+            "y": 0.18,
+            "z": -20.45
+          },
+          "size": {
+            "x": 42,
+            "y": 0.18,
+            "z": 1.1
+          }
+        }
+      },
+      {
+        "id": "entry-foreground-decal-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -25,
+            "y": 0,
+            "z": -28.6
+          },
+          "max": {
+            "x": -7,
+            "y": 0.16,
+            "z": -27.4
+          },
+          "size": {
+            "x": 18,
+            "y": 0.16,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "entry-foreground-decal-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 7,
+            "y": 0,
+            "z": -28.6
+          },
+          "max": {
+            "x": 25,
+            "y": 0.16,
+            "z": -27.4
+          },
+          "size": {
+            "x": 18,
+            "y": 0.16,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "lobby-wall-machinery-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -38,
+            "y": 0,
+            "z": -16.98
+          },
+          "max": {
+            "x": -10,
+            "y": 1.15,
+            "z": -15.73
+          },
+          "size": {
+            "x": 28,
+            "y": 1.15,
+            "z": 1.25
+          }
+        }
+      },
+      {
+        "id": "lobby-wall-machinery-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 10,
+            "y": 0,
+            "z": -16.98
+          },
+          "max": {
+            "x": 38,
+            "y": 1.15,
+            "z": -15.73
+          },
+          "size": {
+            "x": 28,
+            "y": 1.15,
+            "z": 1.25
+          }
+        }
+      },
+      {
+        "id": "west-utility-pipe-run",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -39.7,
+            "y": 0,
+            "z": -28
+          },
+          "max": {
+            "x": -38.3,
+            "y": 0.42,
+            "z": 8
+          },
+          "size": {
+            "x": 1.4,
+            "y": 0.42,
+            "z": 36
+          }
+        }
+      },
+      {
+        "id": "east-utility-pipe-run",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 38.3,
+            "y": 0,
+            "z": -26
+          },
+          "max": {
+            "x": 39.7,
+            "y": 0.42,
+            "z": 10
+          },
+          "size": {
+            "x": 1.4,
+            "y": 0.42,
+            "z": 36
+          }
+        }
+      },
+      {
+        "id": "security-floor-cable-spine",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -17,
+            "y": 0,
+            "z": -2.55
+          },
+          "max": {
+            "x": 17,
+            "y": 0.18,
+            "z": -1.45
+          },
+          "size": {
+            "x": 34,
+            "y": 0.18,
+            "z": 1.1
+          }
+        }
+      },
+      {
+        "id": "security-west-service-stack",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -39.8,
+            "y": 0,
+            "z": -17
+          },
+          "max": {
+            "x": -38.6,
+            "y": 1.05,
+            "z": 1
+          },
+          "size": {
+            "x": 1.2,
+            "y": 1.05,
+            "z": 18
+          }
+        }
+      },
+      {
+        "id": "security-east-service-stack",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 38.6,
+            "y": 0,
+            "z": -17
+          },
+          "max": {
+            "x": 39.8,
+            "y": 1.05,
+            "z": 1
+          },
+          "size": {
+            "x": 1.2,
+            "y": 1.05,
+            "z": 18
+          }
+        }
+      },
+      {
+        "id": "security-warning-floor-stripe",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -20,
+            "y": 0,
+            "z": -15.7
+          },
+          "max": {
+            "x": 20,
+            "y": 0.16,
+            "z": -14.7
+          },
+          "size": {
+            "x": 40,
+            "y": 0.16,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "security-ceiling-cable-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -35,
+            "y": 0,
+            "z": -12.6
+          },
+          "max": {
+            "x": -5,
+            "y": 0.2,
+            "z": -11.4
+          },
+          "size": {
+            "x": 30,
+            "y": 0.2,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "security-ceiling-cable-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 5,
+            "y": 0,
+            "z": -12.6
+          },
+          "max": {
+            "x": 35,
+            "y": 0.2,
+            "z": -11.4
+          },
+          "size": {
+            "x": 30,
+            "y": 0.2,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "security-center-server-run",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -17,
+            "y": 0,
+            "z": 1.25
+          },
+          "max": {
+            "x": 17,
+            "y": 0.95,
+            "z": 2.75
+          },
+          "size": {
+            "x": 34,
+            "y": 0.95,
+            "z": 1.5
+          }
+        }
+      },
+      {
+        "id": "security-terminal-power-bus",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 21,
+            "y": 0,
+            "z": -8.6
+          },
+          "max": {
+            "x": 33,
+            "y": 0.18,
+            "z": -7.4
+          },
+          "size": {
+            "x": 12,
+            "y": 0.18,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "server-cable-run-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -39,
+            "y": 0,
+            "z": 5.77
+          },
+          "max": {
+            "x": -15,
+            "y": 0.2,
+            "z": 6.92
+          },
+          "size": {
+            "x": 24,
+            "y": 0.2,
+            "z": 1.15
+          }
+        }
+      },
+      {
+        "id": "server-cable-run-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 18,
+            "y": 0,
+            "z": 5.77
+          },
+          "max": {
+            "x": 38,
+            "y": 0.2,
+            "z": 6.92
+          },
+          "size": {
+            "x": 20,
+            "y": 0.2,
+            "z": 1.15
+          }
+        }
+      },
+      {
+        "id": "server-midfloor-power-tray",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 10.4
+          },
+          "max": {
+            "x": 15,
+            "y": 0.18,
+            "z": 11.6
+          },
+          "size": {
+            "x": 30,
+            "y": 0.18,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "server-north-hazard-strip",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 18.3
+          },
+          "max": {
+            "x": 15,
+            "y": 0.16,
+            "z": 19.3
+          },
+          "size": {
+            "x": 30,
+            "y": 0.16,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "server-overhead-rack-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -39,
+            "y": 0,
+            "z": 16.75
+          },
+          "max": {
+            "x": -19,
+            "y": 0.75,
+            "z": 18.05
+          },
+          "size": {
+            "x": 20,
+            "y": 0.75,
+            "z": 1.3
+          }
+        }
+      },
+      {
+        "id": "server-overhead-rack-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 19,
+            "y": 0,
+            "z": 16.75
+          },
+          "max": {
+            "x": 39,
+            "y": 0.75,
+            "z": 18.05
+          },
+          "size": {
+            "x": 20,
+            "y": 0.75,
+            "z": 1.3
+          }
+        }
+      },
+      {
+        "id": "command-console-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -35,
+            "y": 0,
+            "z": 21.05
+          },
+          "max": {
+            "x": -11,
+            "y": 0.95,
+            "z": 22.55
+          },
+          "size": {
+            "x": 24,
+            "y": 0.95,
+            "z": 1.5
+          }
+        }
+      },
+      {
+        "id": "command-console-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 11,
+            "y": 0,
+            "z": 21.05
+          },
+          "max": {
+            "x": 35,
+            "y": 0.95,
+            "z": 22.55
+          },
+          "size": {
+            "x": 24,
+            "y": 0.95,
+            "z": 1.5
+          }
+        }
+      },
+      {
+        "id": "command-floor-guidance-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -30,
+            "y": 0,
+            "z": 27.4
+          },
+          "max": {
+            "x": -6,
+            "y": 0.16,
+            "z": 28.6
+          },
+          "size": {
+            "x": 24,
+            "y": 0.16,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "command-floor-guidance-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 6,
+            "y": 0,
+            "z": 27.4
+          },
+          "max": {
+            "x": 30,
+            "y": 0.16,
+            "z": 28.6
+          },
+          "size": {
+            "x": 24,
+            "y": 0.16,
+            "z": 1.2
+          }
+        }
+      },
+      {
+        "id": "extraction-machinery-west",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -36,
+            "y": 0,
+            "z": 34
+          },
+          "max": {
+            "x": -12,
+            "y": 0.85,
+            "z": 36
+          },
+          "size": {
+            "x": 24,
+            "y": 0.85,
+            "z": 2
+          }
+        }
+      },
+      {
+        "id": "extraction-machinery-east",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 12,
+            "y": 0,
+            "z": 34
+          },
+          "max": {
+            "x": 36,
+            "y": 0.85,
+            "z": 36
+          },
+          "size": {
+            "x": 24,
+            "y": 0.85,
+            "z": 2
+          }
+        }
+      },
+      {
+        "id": "north-cable-spine",
+        "category": "set-dressing",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 35.7
+          },
+          "max": {
+            "x": 15,
+            "y": 0.22,
+            "z": 36.7
+          },
+          "size": {
+            "x": 30,
+            "y": 0.22,
+            "z": 1
+          }
+        }
+      },
+      {
+        "id": "lobby-door",
+        "category": "door",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -3,
+            "y": 0,
+            "z": -18.4
+          },
+          "max": {
+            "x": 3,
+            "y": 3.3,
+            "z": -17.6
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        }
+      },
+      {
+        "id": "lobby-door:frame",
+        "category": "door-frame",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -3.32,
+            "y": 0,
+            "z": -18.69
+          },
+          "max": {
+            "x": 3.32,
+            "y": 3.66,
+            "z": -17.31
+          },
+          "size": {
+            "x": 6.64,
+            "y": 3.66,
+            "z": 1.38
+          }
+        }
+      },
+      {
+        "id": "lobby-door:wall-continuity",
+        "category": "door-continuity",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -3.29,
+            "y": 0,
+            "z": -18.66
+          },
+          "max": {
+            "x": 3.29,
+            "y": 3.3,
+            "z": -17.34
+          },
+          "size": {
+            "x": 6.58,
+            "y": 3.3,
+            "z": 1.32
+          }
+        }
+      },
+      {
+        "id": "server-door",
+        "category": "door",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 11,
+            "y": 0,
+            "z": 4.6
+          },
+          "max": {
+            "x": 17,
+            "y": 3.3,
+            "z": 5.4
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        }
+      },
+      {
+        "id": "server-door:frame",
+        "category": "door-frame",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 10.68,
+            "y": 0,
+            "z": 4.31
+          },
+          "max": {
+            "x": 17.32,
+            "y": 3.66,
+            "z": 5.69
+          },
+          "size": {
+            "x": 6.64,
+            "y": 3.66,
+            "z": 1.38
+          }
+        }
+      },
+      {
+        "id": "server-door:wall-continuity",
+        "category": "door-continuity",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 10.71,
+            "y": 0,
+            "z": 4.34
+          },
+          "max": {
+            "x": 17.29,
+            "y": 3.3,
+            "z": 5.66
+          },
+          "size": {
+            "x": 6.58,
+            "y": 3.3,
+            "z": 1.32
+          }
+        }
+      },
+      {
+        "id": "extraction-door",
+        "category": "door",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -3,
+            "y": 0,
+            "z": 19.6
+          },
+          "max": {
+            "x": 3,
+            "y": 3.3,
+            "z": 20.4
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        }
+      },
+      {
+        "id": "extraction-door:frame",
+        "category": "door-frame",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -3.32,
+            "y": 0,
+            "z": 19.31
+          },
+          "max": {
+            "x": 3.32,
+            "y": 3.66,
+            "z": 20.69
+          },
+          "size": {
+            "x": 6.64,
+            "y": 3.66,
+            "z": 1.38
+          }
+        }
+      },
+      {
+        "id": "extraction-door:wall-continuity",
+        "category": "door-continuity",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -3.29,
+            "y": 0,
+            "z": 19.34
+          },
+          "max": {
+            "x": 3.29,
+            "y": 3.3,
+            "z": 20.66
+          },
+          "size": {
+            "x": 6.58,
+            "y": 3.3,
+            "z": 1.32
+          }
+        }
+      },
+      {
+        "id": "access-keycard",
+        "category": "objective",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -31.74,
+            "y": 0,
+            "z": -25.01
+          },
+          "max": {
+            "x": -30.26,
+            "y": 0.9,
+            "z": -24.99
+          },
+          "size": {
+            "x": 1.49,
+            "y": 0.9,
+            "z": 0.02
+          }
+        }
+      },
+      {
+        "id": "security-terminal",
+        "category": "objective",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 29.42,
+            "y": 0,
+            "z": -4.22
+          },
+          "max": {
+            "x": 30.58,
+            "y": 1.55,
+            "z": -1.78
+          },
+          "size": {
+            "x": 1.16,
+            "y": 1.55,
+            "z": 2.45
+          }
+        }
+      },
+      {
+        "id": "command-codes",
+        "category": "objective",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -32.9,
+            "y": 0,
+            "z": 13.36
+          },
+          "max": {
+            "x": -31.1,
+            "y": 1,
+            "z": 14.64
+          },
+          "size": {
+            "x": 1.81,
+            "y": 1,
+            "z": 1.28
+          }
+        }
+      },
+      {
+        "id": "sentry-lobby",
+        "category": "enemy",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 5,
+            "y": 0.02,
+            "z": -24.94
+          },
+          "max": {
+            "x": 6.58,
+            "y": 1.57,
+            "z": -23.36
+          },
+          "size": {
+            "x": 1.58,
+            "y": 1.55,
+            "z": 1.58
+          }
+        }
+      },
+      {
+        "id": "sentry-server",
+        "category": "enemy",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": 26.16,
+            "y": 0.02,
+            "z": 13.21
+          },
+          "max": {
+            "x": 27.91,
+            "y": 1.57,
+            "z": 14.96
+          },
+          "size": {
+            "x": 1.75,
+            "y": 1.55,
+            "z": 1.75
+          }
+        }
+      },
+      {
+        "id": "sentry-command",
+        "category": "enemy",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -4.97,
+            "y": 0.02,
+            "z": 24.27
+          },
+          "max": {
+            "x": -3.51,
+            "y": 1.57,
+            "z": 25.73
+          },
+          "size": {
+            "x": 1.46,
+            "y": 1.55,
+            "z": 1.46
+          }
+        }
+      },
+      {
+        "id": "hero",
+        "category": "hero",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -0.58,
+            "y": 0.02,
+            "z": -29.4
+          },
+          "max": {
+            "x": 0.58,
+            "y": 1.47,
+            "z": -28.6
+          },
+          "size": {
+            "x": 1.17,
+            "y": 1.45,
+            "z": 0.79
+          }
+        }
+      },
+      {
+        "id": "extraction",
+        "category": "extraction",
+        "visible": true,
+        "bounds": {
+          "min": {
+            "x": -2.48,
+            "y": 0,
+            "z": 30.52
+          },
+          "max": {
+            "x": 2.48,
+            "y": 0.16,
+            "z": 35.48
+          },
+          "size": {
+            "x": 4.96,
+            "y": 0.15,
+            "z": 4.96
+          }
+        }
+      }
+    ],
+    "setDressingVisibility": [
+      {
+        "id": "south-cable-trench-west",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -36,
+            "y": 0,
+            "z": -31.6
+          },
+          "max": {
+            "x": -8,
+            "y": 0.16,
+            "z": -30.4
+          },
+          "size": {
+            "x": 28,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -36,
+            "y": 0,
+            "z": -31.6
+          },
+          "max": {
+            "x": -8,
+            "y": 0.16,
+            "z": -30.4
+          },
+          "size": {
+            "x": 28,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint south-cable-trench-west."
+        ]
+      },
+      {
+        "id": "south-cable-trench-east",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": -31.6
+          },
+          "max": {
+            "x": 36,
+            "y": 0.16,
+            "z": -30.4
+          },
+          "size": {
+            "x": 28,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 8,
+            "y": 0,
+            "z": -31.6
+          },
+          "max": {
+            "x": 36,
+            "y": 0.16,
+            "z": -30.4
+          },
+          "size": {
+            "x": 28,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint south-cable-trench-east."
+        ]
+      },
+      {
+        "id": "insertion-floor-power-left",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -8,
+            "y": 0,
+            "z": -30.82
+          },
+          "max": {
+            "x": -1,
+            "y": 0.18,
+            "z": -29.78
+          },
+          "size": {
+            "x": 7,
+            "y": 0.18,
+            "z": 1.05
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -8,
+            "y": 0,
+            "z": -30.83
+          },
+          "max": {
+            "x": -1,
+            "y": 0.18,
+            "z": -29.77
+          },
+          "size": {
+            "x": 7,
+            "y": 0.18,
+            "z": 1.05
+          }
+        },
+        "footprintCoverage": 0.99,
+        "notes": [
+          "cable-tray GLB loaded and occupies 99.0% of authored footprint insertion-floor-power-left."
+        ]
+      },
+      {
+        "id": "insertion-floor-power-right",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 1,
+            "y": 0,
+            "z": -28.22
+          },
+          "max": {
+            "x": 9,
+            "y": 0.18,
+            "z": -27.18
+          },
+          "size": {
+            "x": 8,
+            "y": 0.18,
+            "z": 1.05
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 1,
+            "y": 0,
+            "z": -28.23
+          },
+          "max": {
+            "x": 9,
+            "y": 0.18,
+            "z": -27.17
+          },
+          "size": {
+            "x": 8,
+            "y": 0.18,
+            "z": 1.05
+          }
+        },
+        "footprintCoverage": 0.99,
+        "notes": [
+          "cable-tray GLB loaded and occupies 99.0% of authored footprint insertion-floor-power-right."
+        ]
+      },
+      {
+        "id": "entry-south-machinery-west",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -27,
+            "y": 0,
+            "z": -32.85
+          },
+          "max": {
+            "x": -3,
+            "y": 0.9,
+            "z": -31.85
+          },
+          "size": {
+            "x": 24,
+            "y": 0.9,
+            "z": 1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -27,
+            "y": 0,
+            "z": -32.85
+          },
+          "max": {
+            "x": -3,
+            "y": 0.9,
+            "z": -31.85
+          },
+          "size": {
+            "x": 24,
+            "y": 0.9,
+            "z": 1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint entry-south-machinery-west."
+        ]
+      },
+      {
+        "id": "entry-south-machinery-east",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 3,
+            "y": 0,
+            "z": -32.85
+          },
+          "max": {
+            "x": 27,
+            "y": 0.9,
+            "z": -31.85
+          },
+          "size": {
+            "x": 24,
+            "y": 0.9,
+            "z": 1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 3,
+            "y": 0,
+            "z": -32.85
+          },
+          "max": {
+            "x": 27,
+            "y": 0.9,
+            "z": -31.85
+          },
+          "size": {
+            "x": 24,
+            "y": 0.9,
+            "z": 1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint entry-south-machinery-east."
+        ]
+      },
+      {
+        "id": "entry-floor-light-spine",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -21,
+            "y": 0,
+            "z": -21.55
+          },
+          "max": {
+            "x": 21,
+            "y": 0.18,
+            "z": -20.45
+          },
+          "size": {
+            "x": 42,
+            "y": 0.18,
+            "z": 1.1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -21,
+            "y": 0,
+            "z": -21.55
+          },
+          "max": {
+            "x": 21,
+            "y": 0.18,
+            "z": -20.45
+          },
+          "size": {
+            "x": 42,
+            "y": 0.18,
+            "z": 1.1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint entry-floor-light-spine."
+        ]
+      },
+      {
+        "id": "entry-foreground-decal-west",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -25,
+            "y": 0,
+            "z": -28.6
+          },
+          "max": {
+            "x": -7,
+            "y": 0.16,
+            "z": -27.4
+          },
+          "size": {
+            "x": 18,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -25,
+            "y": 0,
+            "z": -28.6
+          },
+          "max": {
+            "x": -7,
+            "y": 0.16,
+            "z": -27.4
+          },
+          "size": {
+            "x": 18,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint entry-foreground-decal-west."
+        ]
+      },
+      {
+        "id": "entry-foreground-decal-east",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 7,
+            "y": 0,
+            "z": -28.6
+          },
+          "max": {
+            "x": 25,
+            "y": 0.16,
+            "z": -27.4
+          },
+          "size": {
+            "x": 18,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 7,
+            "y": 0,
+            "z": -28.6
+          },
+          "max": {
+            "x": 25,
+            "y": 0.16,
+            "z": -27.4
+          },
+          "size": {
+            "x": 18,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint entry-foreground-decal-east."
+        ]
+      },
+      {
+        "id": "lobby-wall-machinery-west",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -38,
+            "y": 0,
+            "z": -16.98
+          },
+          "max": {
+            "x": -10,
+            "y": 1.15,
+            "z": -15.73
+          },
+          "size": {
+            "x": 28,
+            "y": 1.15,
+            "z": 1.25
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -38,
+            "y": 0,
+            "z": -16.98
+          },
+          "max": {
+            "x": -10,
+            "y": 1.15,
+            "z": -15.73
+          },
+          "size": {
+            "x": 28,
+            "y": 1.15,
+            "z": 1.25
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint lobby-wall-machinery-west."
+        ]
+      },
+      {
+        "id": "lobby-wall-machinery-east",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 10,
+            "y": 0,
+            "z": -16.98
+          },
+          "max": {
+            "x": 38,
+            "y": 1.15,
+            "z": -15.73
+          },
+          "size": {
+            "x": 28,
+            "y": 1.15,
+            "z": 1.25
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 10,
+            "y": 0,
+            "z": -16.98
+          },
+          "max": {
+            "x": 38,
+            "y": 1.15,
+            "z": -15.73
+          },
+          "size": {
+            "x": 28,
+            "y": 1.15,
+            "z": 1.25
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint lobby-wall-machinery-east."
+        ]
+      },
+      {
+        "id": "west-utility-pipe-run",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -39.7,
+            "y": 0,
+            "z": -28
+          },
+          "max": {
+            "x": -38.3,
+            "y": 0.42,
+            "z": 8
+          },
+          "size": {
+            "x": 1.4,
+            "y": 0.42,
+            "z": 36
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -39.7,
+            "y": 0,
+            "z": -28
+          },
+          "max": {
+            "x": -38.3,
+            "y": 0.42,
+            "z": 8
+          },
+          "size": {
+            "x": 1.4,
+            "y": 0.42,
+            "z": 36
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint west-utility-pipe-run."
+        ]
+      },
+      {
+        "id": "east-utility-pipe-run",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 38.3,
+            "y": 0,
+            "z": -26
+          },
+          "max": {
+            "x": 39.7,
+            "y": 0.42,
+            "z": 10
+          },
+          "size": {
+            "x": 1.4,
+            "y": 0.42,
+            "z": 36
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 38.3,
+            "y": 0,
+            "z": -26
+          },
+          "max": {
+            "x": 39.7,
+            "y": 0.42,
+            "z": 10
+          },
+          "size": {
+            "x": 1.4,
+            "y": 0.42,
+            "z": 36
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint east-utility-pipe-run."
+        ]
+      },
+      {
+        "id": "security-floor-cable-spine",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -17,
+            "y": 0,
+            "z": -2.55
+          },
+          "max": {
+            "x": 17,
+            "y": 0.18,
+            "z": -1.45
+          },
+          "size": {
+            "x": 34,
+            "y": 0.18,
+            "z": 1.1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -17,
+            "y": 0,
+            "z": -2.55
+          },
+          "max": {
+            "x": 17,
+            "y": 0.18,
+            "z": -1.45
+          },
+          "size": {
+            "x": 34,
+            "y": 0.18,
+            "z": 1.1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint security-floor-cable-spine."
+        ]
+      },
+      {
+        "id": "security-west-service-stack",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -39.8,
+            "y": 0,
+            "z": -17
+          },
+          "max": {
+            "x": -38.6,
+            "y": 1.05,
+            "z": 1
+          },
+          "size": {
+            "x": 1.2,
+            "y": 1.05,
+            "z": 18
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -39.8,
+            "y": 0,
+            "z": -17
+          },
+          "max": {
+            "x": -38.6,
+            "y": 1.05,
+            "z": 1
+          },
+          "size": {
+            "x": 1.2,
+            "y": 1.05,
+            "z": 18
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint security-west-service-stack."
+        ]
+      },
+      {
+        "id": "security-east-service-stack",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 38.6,
+            "y": 0,
+            "z": -17
+          },
+          "max": {
+            "x": 39.8,
+            "y": 1.05,
+            "z": 1
+          },
+          "size": {
+            "x": 1.2,
+            "y": 1.05,
+            "z": 18
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 38.6,
+            "y": 0,
+            "z": -17
+          },
+          "max": {
+            "x": 39.8,
+            "y": 1.05,
+            "z": 1
+          },
+          "size": {
+            "x": 1.2,
+            "y": 1.05,
+            "z": 18
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint security-east-service-stack."
+        ]
+      },
+      {
+        "id": "security-warning-floor-stripe",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -20,
+            "y": 0,
+            "z": -15.7
+          },
+          "max": {
+            "x": 20,
+            "y": 0.16,
+            "z": -14.7
+          },
+          "size": {
+            "x": 40,
+            "y": 0.16,
+            "z": 1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -20,
+            "y": 0,
+            "z": -15.7
+          },
+          "max": {
+            "x": 20,
+            "y": 0.16,
+            "z": -14.7
+          },
+          "size": {
+            "x": 40,
+            "y": 0.16,
+            "z": 1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint security-warning-floor-stripe."
+        ]
+      },
+      {
+        "id": "security-ceiling-cable-west",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -35,
+            "y": 0,
+            "z": -12.6
+          },
+          "max": {
+            "x": -5,
+            "y": 0.2,
+            "z": -11.4
+          },
+          "size": {
+            "x": 30,
+            "y": 0.2,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -35,
+            "y": 0,
+            "z": -12.6
+          },
+          "max": {
+            "x": -5,
+            "y": 0.2,
+            "z": -11.4
+          },
+          "size": {
+            "x": 30,
+            "y": 0.2,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint security-ceiling-cable-west."
+        ]
+      },
+      {
+        "id": "security-ceiling-cable-east",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 5,
+            "y": 0,
+            "z": -12.6
+          },
+          "max": {
+            "x": 35,
+            "y": 0.2,
+            "z": -11.4
+          },
+          "size": {
+            "x": 30,
+            "y": 0.2,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 5,
+            "y": 0,
+            "z": -12.6
+          },
+          "max": {
+            "x": 35,
+            "y": 0.2,
+            "z": -11.4
+          },
+          "size": {
+            "x": 30,
+            "y": 0.2,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint security-ceiling-cable-east."
+        ]
+      },
+      {
+        "id": "security-center-server-run",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -17,
+            "y": 0,
+            "z": 1.25
+          },
+          "max": {
+            "x": 17,
+            "y": 0.95,
+            "z": 2.75
+          },
+          "size": {
+            "x": 34,
+            "y": 0.95,
+            "z": 1.5
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -17,
+            "y": 0,
+            "z": 1.25
+          },
+          "max": {
+            "x": 17,
+            "y": 0.95,
+            "z": 2.75
+          },
+          "size": {
+            "x": 34,
+            "y": 0.95,
+            "z": 1.5
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint security-center-server-run."
+        ]
+      },
+      {
+        "id": "security-terminal-power-bus",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 21,
+            "y": 0,
+            "z": -8.6
+          },
+          "max": {
+            "x": 33,
+            "y": 0.18,
+            "z": -7.4
+          },
+          "size": {
+            "x": 12,
+            "y": 0.18,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 21,
+            "y": 0,
+            "z": -8.6
+          },
+          "max": {
+            "x": 33,
+            "y": 0.18,
+            "z": -7.4
+          },
+          "size": {
+            "x": 12,
+            "y": 0.18,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint security-terminal-power-bus."
+        ]
+      },
+      {
+        "id": "server-cable-run-west",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -39,
+            "y": 0,
+            "z": 5.77
+          },
+          "max": {
+            "x": -15,
+            "y": 0.2,
+            "z": 6.92
+          },
+          "size": {
+            "x": 24,
+            "y": 0.2,
+            "z": 1.15
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -39,
+            "y": 0,
+            "z": 5.77
+          },
+          "max": {
+            "x": -15,
+            "y": 0.2,
+            "z": 6.92
+          },
+          "size": {
+            "x": 24,
+            "y": 0.2,
+            "z": 1.15
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint server-cable-run-west."
+        ]
+      },
+      {
+        "id": "server-cable-run-east",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 18,
+            "y": 0,
+            "z": 5.77
+          },
+          "max": {
+            "x": 38,
+            "y": 0.2,
+            "z": 6.92
+          },
+          "size": {
+            "x": 20,
+            "y": 0.2,
+            "z": 1.15
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 18,
+            "y": 0,
+            "z": 5.77
+          },
+          "max": {
+            "x": 38,
+            "y": 0.2,
+            "z": 6.92
+          },
+          "size": {
+            "x": 20,
+            "y": 0.2,
+            "z": 1.15
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint server-cable-run-east."
+        ]
+      },
+      {
+        "id": "server-midfloor-power-tray",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 10.4
+          },
+          "max": {
+            "x": 15,
+            "y": 0.18,
+            "z": 11.6
+          },
+          "size": {
+            "x": 30,
+            "y": 0.18,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 10.4
+          },
+          "max": {
+            "x": 15,
+            "y": 0.18,
+            "z": 11.6
+          },
+          "size": {
+            "x": 30,
+            "y": 0.18,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint server-midfloor-power-tray."
+        ]
+      },
+      {
+        "id": "server-north-hazard-strip",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 18.3
+          },
+          "max": {
+            "x": 15,
+            "y": 0.16,
+            "z": 19.3
+          },
+          "size": {
+            "x": 30,
+            "y": 0.16,
+            "z": 1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 18.3
+          },
+          "max": {
+            "x": 15,
+            "y": 0.16,
+            "z": 19.3
+          },
+          "size": {
+            "x": 30,
+            "y": 0.16,
+            "z": 1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint server-north-hazard-strip."
+        ]
+      },
+      {
+        "id": "server-overhead-rack-west",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -39,
+            "y": 0,
+            "z": 16.75
+          },
+          "max": {
+            "x": -19,
+            "y": 0.75,
+            "z": 18.05
+          },
+          "size": {
+            "x": 20,
+            "y": 0.75,
+            "z": 1.3
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -39,
+            "y": 0,
+            "z": 16.75
+          },
+          "max": {
+            "x": -19,
+            "y": 0.75,
+            "z": 18.05
+          },
+          "size": {
+            "x": 20,
+            "y": 0.75,
+            "z": 1.3
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint server-overhead-rack-west."
+        ]
+      },
+      {
+        "id": "server-overhead-rack-east",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 19,
+            "y": 0,
+            "z": 16.75
+          },
+          "max": {
+            "x": 39,
+            "y": 0.75,
+            "z": 18.05
+          },
+          "size": {
+            "x": 20,
+            "y": 0.75,
+            "z": 1.3
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 19,
+            "y": 0,
+            "z": 16.75
+          },
+          "max": {
+            "x": 39,
+            "y": 0.75,
+            "z": 18.05
+          },
+          "size": {
+            "x": 20,
+            "y": 0.75,
+            "z": 1.3
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint server-overhead-rack-east."
+        ]
+      },
+      {
+        "id": "command-console-west",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -35,
+            "y": 0,
+            "z": 21.05
+          },
+          "max": {
+            "x": -11,
+            "y": 0.95,
+            "z": 22.55
+          },
+          "size": {
+            "x": 24,
+            "y": 0.95,
+            "z": 1.5
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -35,
+            "y": 0,
+            "z": 21.05
+          },
+          "max": {
+            "x": -11,
+            "y": 0.95,
+            "z": 22.55
+          },
+          "size": {
+            "x": 24,
+            "y": 0.95,
+            "z": 1.5
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint command-console-west."
+        ]
+      },
+      {
+        "id": "command-console-east",
+        "asset": "wall-machinery",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 11,
+            "y": 0,
+            "z": 21.05
+          },
+          "max": {
+            "x": 35,
+            "y": 0.95,
+            "z": 22.55
+          },
+          "size": {
+            "x": 24,
+            "y": 0.95,
+            "z": 1.5
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 11,
+            "y": 0,
+            "z": 21.05
+          },
+          "max": {
+            "x": 35,
+            "y": 0.95,
+            "z": 22.55
+          },
+          "size": {
+            "x": 24,
+            "y": 0.95,
+            "z": 1.5
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "wall-machinery GLB loaded and occupies 100.0% of authored footprint command-console-east."
+        ]
+      },
+      {
+        "id": "command-floor-guidance-west",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -30,
+            "y": 0,
+            "z": 27.4
+          },
+          "max": {
+            "x": -6,
+            "y": 0.16,
+            "z": 28.6
+          },
+          "size": {
+            "x": 24,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -30,
+            "y": 0,
+            "z": 27.4
+          },
+          "max": {
+            "x": -6,
+            "y": 0.16,
+            "z": 28.6
+          },
+          "size": {
+            "x": 24,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint command-floor-guidance-west."
+        ]
+      },
+      {
+        "id": "command-floor-guidance-east",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 6,
+            "y": 0,
+            "z": 27.4
+          },
+          "max": {
+            "x": 30,
+            "y": 0.16,
+            "z": 28.6
+          },
+          "size": {
+            "x": 24,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 6,
+            "y": 0,
+            "z": 27.4
+          },
+          "max": {
+            "x": 30,
+            "y": 0.16,
+            "z": 28.6
+          },
+          "size": {
+            "x": 24,
+            "y": 0.16,
+            "z": 1.2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint command-floor-guidance-east."
+        ]
+      },
+      {
+        "id": "extraction-machinery-west",
+        "asset": "extraction-beacon",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -36,
+            "y": 0,
+            "z": 34
+          },
+          "max": {
+            "x": -12,
+            "y": 0.85,
+            "z": 36
+          },
+          "size": {
+            "x": 24,
+            "y": 0.85,
+            "z": 2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -36,
+            "y": 0,
+            "z": 34
+          },
+          "max": {
+            "x": -12,
+            "y": 0.85,
+            "z": 36
+          },
+          "size": {
+            "x": 24,
+            "y": 0.85,
+            "z": 2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "extraction-beacon GLB loaded and occupies 100.0% of authored footprint extraction-machinery-west."
+        ]
+      },
+      {
+        "id": "extraction-machinery-east",
+        "asset": "extraction-beacon",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": 12,
+            "y": 0,
+            "z": 34
+          },
+          "max": {
+            "x": 36,
+            "y": 0.85,
+            "z": 36
+          },
+          "size": {
+            "x": 24,
+            "y": 0.85,
+            "z": 2
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": 12,
+            "y": 0,
+            "z": 34
+          },
+          "max": {
+            "x": 36,
+            "y": 0.85,
+            "z": 36
+          },
+          "size": {
+            "x": 24,
+            "y": 0.85,
+            "z": 2
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "extraction-beacon GLB loaded and occupies 100.0% of authored footprint extraction-machinery-east."
+        ]
+      },
+      {
+        "id": "north-cable-spine",
+        "asset": "cable-tray",
+        "grade": "pass",
+        "loaded": true,
+        "visible": true,
+        "grounded": true,
+        "authoredBounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 35.7
+          },
+          "max": {
+            "x": 15,
+            "y": 0.22,
+            "z": 36.7
+          },
+          "size": {
+            "x": 30,
+            "y": 0.22,
+            "z": 1
+          }
+        },
+        "renderedBounds": {
+          "min": {
+            "x": -15,
+            "y": 0,
+            "z": 35.7
+          },
+          "max": {
+            "x": 15,
+            "y": 0.22,
+            "z": 36.7
+          },
+          "size": {
+            "x": 30,
+            "y": 0.22,
+            "z": 1
+          }
+        },
+        "footprintCoverage": 1,
+        "notes": [
+          "cable-tray GLB loaded and occupies 100.0% of authored footprint north-cable-spine."
+        ]
+      }
+    ],
+    "doorContinuity": [
+      {
+        "id": "lobby-door",
+        "axis": "x",
+        "grade": "pass",
+        "epsilon": 0.08,
+        "wallIds": [
+          "lobby-divider-west",
+          "lobby-divider-east"
+        ],
+        "openingBounds": {
+          "min": {
+            "x": -3,
+            "y": 0,
+            "z": -18.4
+          },
+          "max": {
+            "x": 3,
+            "y": 3.3,
+            "z": -17.6
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        },
+        "frameBounds": {
+          "min": {
+            "x": -3.32,
+            "y": 0,
+            "z": -18.69
+          },
+          "max": {
+            "x": 3.32,
+            "y": 3.66,
+            "z": -17.31
+          },
+          "size": {
+            "x": 6.64,
+            "y": 3.66,
+            "z": 1.38
+          }
+        },
+        "continuityBounds": {
+          "min": {
+            "x": -3.29,
+            "y": 0,
+            "z": -18.66
+          },
+          "max": {
+            "x": 3.29,
+            "y": 3.3,
+            "z": -17.34
+          },
+          "size": {
+            "x": 6.58,
+            "y": 3.3,
+            "z": 1.32
+          }
+        },
+        "renderedDoorBounds": {
+          "min": {
+            "x": -3,
+            "y": 0,
+            "z": -18.4
+          },
+          "max": {
+            "x": 3,
+            "y": 3.3,
+            "z": -17.6
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        },
+        "gaps": [],
+        "notes": [
+          "lobby-door wall segments, frame, and continuity coverage touch within 0.08m."
+        ]
+      },
+      {
+        "id": "server-door",
+        "axis": "x",
+        "grade": "pass",
+        "epsilon": 0.08,
+        "wallIds": [
+          "server-divider-west",
+          "server-divider-east"
+        ],
+        "openingBounds": {
+          "min": {
+            "x": 11,
+            "y": 0,
+            "z": 4.6
+          },
+          "max": {
+            "x": 17,
+            "y": 3.3,
+            "z": 5.4
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        },
+        "frameBounds": {
+          "min": {
+            "x": 10.68,
+            "y": 0,
+            "z": 4.31
+          },
+          "max": {
+            "x": 17.32,
+            "y": 3.66,
+            "z": 5.69
+          },
+          "size": {
+            "x": 6.64,
+            "y": 3.66,
+            "z": 1.38
+          }
+        },
+        "continuityBounds": {
+          "min": {
+            "x": 10.71,
+            "y": 0,
+            "z": 4.34
+          },
+          "max": {
+            "x": 17.29,
+            "y": 3.3,
+            "z": 5.66
+          },
+          "size": {
+            "x": 6.58,
+            "y": 3.3,
+            "z": 1.32
+          }
+        },
+        "renderedDoorBounds": {
+          "min": {
+            "x": 11,
+            "y": 0,
+            "z": 4.6
+          },
+          "max": {
+            "x": 17,
+            "y": 3.3,
+            "z": 5.4
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        },
+        "gaps": [],
+        "notes": [
+          "server-door wall segments, frame, and continuity coverage touch within 0.08m."
+        ]
+      },
+      {
+        "id": "extraction-door",
+        "axis": "x",
+        "grade": "pass",
+        "epsilon": 0.08,
+        "wallIds": [
+          "command-divider-west",
+          "command-divider-east"
+        ],
+        "openingBounds": {
+          "min": {
+            "x": -3,
+            "y": 0,
+            "z": 19.6
+          },
+          "max": {
+            "x": 3,
+            "y": 3.3,
+            "z": 20.4
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        },
+        "frameBounds": {
+          "min": {
+            "x": -3.32,
+            "y": 0,
+            "z": 19.31
+          },
+          "max": {
+            "x": 3.32,
+            "y": 3.66,
+            "z": 20.69
+          },
+          "size": {
+            "x": 6.64,
+            "y": 3.66,
+            "z": 1.38
+          }
+        },
+        "continuityBounds": {
+          "min": {
+            "x": -3.29,
+            "y": 0,
+            "z": 19.34
+          },
+          "max": {
+            "x": 3.29,
+            "y": 3.3,
+            "z": 20.66
+          },
+          "size": {
+            "x": 6.58,
+            "y": 3.3,
+            "z": 1.32
+          }
+        },
+        "renderedDoorBounds": {
+          "min": {
+            "x": -3,
+            "y": 0,
+            "z": 19.6
+          },
+          "max": {
+            "x": 3,
+            "y": 3.3,
+            "z": 20.4
+          },
+          "size": {
+            "x": 6,
+            "y": 3.3,
+            "z": 0.8
+          }
+        },
+        "gaps": [],
+        "notes": [
+          "extraction-door wall segments, frame, and continuity coverage touch within 0.08m."
+        ]
+      }
+    ],
+    "wallRunContinuity": [
+      {
+        "id": "x:-18",
+        "axis": "x",
+        "line": -18,
+        "grade": "pass",
+        "epsilon": 0.08,
+        "intervals": [
+          {
+            "id": "lobby-divider-west",
+            "kind": "wall",
+            "min": -41,
+            "max": -3,
+            "bounds": {
+              "min": {
+                "x": -41,
+                "y": 0,
+                "z": -18.5
+              },
+              "max": {
+                "x": -3,
+                "y": 3.2,
+                "z": -17.5
+              },
+              "size": {
+                "x": 38,
+                "y": 3.2,
+                "z": 1
+              }
+            }
+          },
+          {
+            "id": "lobby-door:frame",
+            "kind": "door-frame",
+            "min": -3.32,
+            "max": 3.32,
+            "bounds": {
+              "min": {
+                "x": -3.32,
+                "y": 0,
+                "z": -18.69
+              },
+              "max": {
+                "x": 3.32,
+                "y": 3.66,
+                "z": -17.31
+              },
+              "size": {
+                "x": 6.64,
+                "y": 3.66,
+                "z": 1.38
+              }
+            }
+          },
+          {
+            "id": "lobby-door:wall-continuity",
+            "kind": "door-continuity",
+            "min": -3.29,
+            "max": 3.29,
+            "bounds": {
+              "min": {
+                "x": -3.29,
+                "y": 0,
+                "z": -18.66
+              },
+              "max": {
+                "x": 3.29,
+                "y": 3.3,
+                "z": -17.34
+              },
+              "size": {
+                "x": 6.58,
+                "y": 3.3,
+                "z": 1.32
+              }
+            }
+          },
+          {
+            "id": "lobby-door",
+            "kind": "door-opening",
+            "min": -3,
+            "max": 3,
+            "bounds": {
+              "min": {
+                "x": -3,
+                "y": 0,
+                "z": -18.4
+              },
+              "max": {
+                "x": 3,
+                "y": 3.3,
+                "z": -17.6
+              },
+              "size": {
+                "x": 6,
+                "y": 3.3,
+                "z": 0.8
+              }
+            }
+          },
+          {
+            "id": "lobby-divider-east",
+            "kind": "wall",
+            "min": 3,
+            "max": 41,
+            "bounds": {
+              "min": {
+                "x": 3,
+                "y": 0,
+                "z": -18.5
+              },
+              "max": {
+                "x": 41,
+                "y": 3.2,
+                "z": -17.5
+              },
+              "size": {
+                "x": 38,
+                "y": 3.2,
+                "z": 1
+              }
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": "lobby-divider-west->lobby-door:frame",
+            "fromId": "lobby-divider-west",
+            "toId": "lobby-door:frame",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": -3,
+            "toEdge": -3.32,
+            "gap": -0.32,
+            "ownerId": "lobby-door:frame",
+            "notes": [
+              "lobby-door:frame intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "lobby-door:frame->lobby-door:wall-continuity",
+            "fromId": "lobby-door:frame",
+            "toId": "lobby-door:wall-continuity",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 3.32,
+            "toEdge": -3.29,
+            "gap": -6.61,
+            "ownerId": "lobby-door:frame",
+            "notes": [
+              "lobby-door:frame intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "lobby-door:wall-continuity->lobby-door",
+            "fromId": "lobby-door:wall-continuity",
+            "toId": "lobby-door",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 3.29,
+            "toEdge": -3,
+            "gap": -6.29,
+            "ownerId": "lobby-door:wall-continuity",
+            "notes": [
+              "lobby-door:wall-continuity intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "lobby-door->lobby-divider-east",
+            "fromId": "lobby-door",
+            "toId": "lobby-divider-east",
+            "axis": "x",
+            "state": "touches",
+            "fromEdge": 3,
+            "toEdge": 3,
+            "gap": 0,
+            "notes": [
+              "lobby-door and lobby-divider-east touch within tolerance on the wall run."
+            ]
+          }
+        ],
+        "doorOwnership": [],
+        "cameraProbes": [
+          {
+            "id": "lobby-door:active-camera-probe",
+            "wallLineId": "x:-18",
+            "screenshot": "gameplay-level-one.png",
+            "screenRegion": {
+              "min": {
+                "x": 329.52,
+                "y": 128.89
+              },
+              "max": {
+                "x": 347.52,
+                "y": 146.89
+              },
+              "size": {
+                "x": 18,
+                "y": 18
+              },
+              "center": {
+                "x": 338.52,
+                "y": 137.89
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.01,
+              "heightRatio": 0.03,
+              "areaRatio": 0
+            },
+            "rayOrigin": {
+              "x": 3.15,
+              "y": 3.85,
+              "z": -33.65
+            },
+            "rayDirection": {
+              "x": -0.2,
+              "y": -0.13,
+              "z": 0.97
+            },
+            "expectedOwnerIds": [
+              "lobby-door",
+              "lobby-door:frame",
+              "lobby-door:wall-continuity"
+            ],
+            "actualFirstHitId": "lobby-door:wall-continuity:back-wall",
+            "actualOwnerId": "lobby-door:wall-continuity",
+            "actualFirstHitDistance": 15.51,
+            "visibleVoid": false,
+            "grade": "pass",
+            "notes": [
+              "Camera probe through lobby-door hits lobby-door:wall-continuity first, proving the active view is blocked by a door/frame/continuity surface."
+            ]
+          }
+        ],
+        "gaps": [],
+        "notes": [
+          "x-axis wall run at line -18 has 5 sorted intervals, 4 connection edge(s), 0 door-to-door ownership row(s), and 1 camera probe row(s) with no unowned visible span above 0.08m."
+        ]
+      },
+      {
+        "id": "x:5",
+        "axis": "x",
+        "line": 5,
+        "grade": "pass",
+        "epsilon": 0.08,
+        "intervals": [
+          {
+            "id": "server-divider-west",
+            "kind": "wall",
+            "min": -41,
+            "max": 11,
+            "bounds": {
+              "min": {
+                "x": -41,
+                "y": 0,
+                "z": 4.5
+              },
+              "max": {
+                "x": 11,
+                "y": 3.2,
+                "z": 5.5
+              },
+              "size": {
+                "x": 52,
+                "y": 3.2,
+                "z": 1
+              }
+            }
+          },
+          {
+            "id": "server-door:frame",
+            "kind": "door-frame",
+            "min": 10.68,
+            "max": 17.32,
+            "bounds": {
+              "min": {
+                "x": 10.68,
+                "y": 0,
+                "z": 4.31
+              },
+              "max": {
+                "x": 17.32,
+                "y": 3.66,
+                "z": 5.69
+              },
+              "size": {
+                "x": 6.64,
+                "y": 3.66,
+                "z": 1.38
+              }
+            }
+          },
+          {
+            "id": "server-door:wall-continuity",
+            "kind": "door-continuity",
+            "min": 10.71,
+            "max": 17.29,
+            "bounds": {
+              "min": {
+                "x": 10.71,
+                "y": 0,
+                "z": 4.34
+              },
+              "max": {
+                "x": 17.29,
+                "y": 3.3,
+                "z": 5.66
+              },
+              "size": {
+                "x": 6.58,
+                "y": 3.3,
+                "z": 1.32
+              }
+            }
+          },
+          {
+            "id": "server-door",
+            "kind": "door-opening",
+            "min": 11,
+            "max": 17,
+            "bounds": {
+              "min": {
+                "x": 11,
+                "y": 0,
+                "z": 4.6
+              },
+              "max": {
+                "x": 17,
+                "y": 3.3,
+                "z": 5.4
+              },
+              "size": {
+                "x": 6,
+                "y": 3.3,
+                "z": 0.8
+              }
+            }
+          },
+          {
+            "id": "server-divider-east",
+            "kind": "wall",
+            "min": 17,
+            "max": 30,
+            "bounds": {
+              "min": {
+                "x": 17,
+                "y": 0,
+                "z": 4.5
+              },
+              "max": {
+                "x": 30,
+                "y": 3.2,
+                "z": 5.5
+              },
+              "size": {
+                "x": 13,
+                "y": 3.2,
+                "z": 1
+              }
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": "server-divider-west->server-door:frame",
+            "fromId": "server-divider-west",
+            "toId": "server-door:frame",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 11,
+            "toEdge": 10.68,
+            "gap": -0.32,
+            "ownerId": "server-door:frame",
+            "notes": [
+              "server-door:frame intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "server-door:frame->server-door:wall-continuity",
+            "fromId": "server-door:frame",
+            "toId": "server-door:wall-continuity",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 17.32,
+            "toEdge": 10.71,
+            "gap": -6.61,
+            "ownerId": "server-door:frame",
+            "notes": [
+              "server-door:frame intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "server-door:wall-continuity->server-door",
+            "fromId": "server-door:wall-continuity",
+            "toId": "server-door",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 17.29,
+            "toEdge": 11,
+            "gap": -6.29,
+            "ownerId": "server-door:wall-continuity",
+            "notes": [
+              "server-door:wall-continuity intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "server-door->server-divider-east",
+            "fromId": "server-door",
+            "toId": "server-divider-east",
+            "axis": "x",
+            "state": "touches",
+            "fromEdge": 17,
+            "toEdge": 17,
+            "gap": 0,
+            "notes": [
+              "server-door and server-divider-east touch within tolerance on the wall run."
+            ]
+          }
+        ],
+        "doorOwnership": [],
+        "cameraProbes": [
+          {
+            "id": "server-door:active-camera-probe",
+            "wallLineId": "x:5",
+            "screenshot": "gameplay-level-one.png",
+            "screenRegion": {
+              "min": {
+                "x": 0,
+                "y": 82.98
+              },
+              "max": {
+                "x": 9,
+                "y": 100.98
+              },
+              "size": {
+                "x": 9,
+                "y": 18
+              },
+              "center": {
+                "x": 4.5,
+                "y": 91.98
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.01,
+              "heightRatio": 0.03,
+              "areaRatio": 0
+            },
+            "rayOrigin": {
+              "x": 3.15,
+              "y": 3.85,
+              "z": -33.65
+            },
+            "rayDirection": {
+              "x": 0.27,
+              "y": -0.05,
+              "z": 0.96
+            },
+            "expectedOwnerIds": [
+              "server-door",
+              "server-door:frame",
+              "server-door:wall-continuity"
+            ],
+            "actualFirstHitId": "lobby-divider-east",
+            "actualOwnerId": "lobby-divider-east",
+            "actualFirstHitDistance": 15.76,
+            "visibleVoid": false,
+            "grade": "review",
+            "notes": [
+              "server-door probe target is outside the active camera viewport; capture a focused door screenshot for human-visible gap review."
+            ]
+          }
+        ],
+        "gaps": [],
+        "notes": [
+          "x-axis wall run at line 5 has 5 sorted intervals, 4 connection edge(s), 0 door-to-door ownership row(s), and 1 camera probe row(s) with no unowned visible span above 0.08m."
+        ]
+      },
+      {
+        "id": "x:20",
+        "axis": "x",
+        "line": 20,
+        "grade": "pass",
+        "epsilon": 0.08,
+        "intervals": [
+          {
+            "id": "command-divider-west",
+            "kind": "wall",
+            "min": -41,
+            "max": -3,
+            "bounds": {
+              "min": {
+                "x": -41,
+                "y": 0,
+                "z": 19.5
+              },
+              "max": {
+                "x": -3,
+                "y": 3.2,
+                "z": 20.5
+              },
+              "size": {
+                "x": 38,
+                "y": 3.2,
+                "z": 1
+              }
+            }
+          },
+          {
+            "id": "extraction-door:frame",
+            "kind": "door-frame",
+            "min": -3.32,
+            "max": 3.32,
+            "bounds": {
+              "min": {
+                "x": -3.32,
+                "y": 0,
+                "z": 19.31
+              },
+              "max": {
+                "x": 3.32,
+                "y": 3.66,
+                "z": 20.69
+              },
+              "size": {
+                "x": 6.64,
+                "y": 3.66,
+                "z": 1.38
+              }
+            }
+          },
+          {
+            "id": "extraction-door:wall-continuity",
+            "kind": "door-continuity",
+            "min": -3.29,
+            "max": 3.29,
+            "bounds": {
+              "min": {
+                "x": -3.29,
+                "y": 0,
+                "z": 19.34
+              },
+              "max": {
+                "x": 3.29,
+                "y": 3.3,
+                "z": 20.66
+              },
+              "size": {
+                "x": 6.58,
+                "y": 3.3,
+                "z": 1.32
+              }
+            }
+          },
+          {
+            "id": "extraction-door",
+            "kind": "door-opening",
+            "min": -3,
+            "max": 3,
+            "bounds": {
+              "min": {
+                "x": -3,
+                "y": 0,
+                "z": 19.6
+              },
+              "max": {
+                "x": 3,
+                "y": 3.3,
+                "z": 20.4
+              },
+              "size": {
+                "x": 6,
+                "y": 3.3,
+                "z": 0.8
+              }
+            }
+          },
+          {
+            "id": "command-divider-east",
+            "kind": "wall",
+            "min": 3,
+            "max": 41,
+            "bounds": {
+              "min": {
+                "x": 3,
+                "y": 0,
+                "z": 19.5
+              },
+              "max": {
+                "x": 41,
+                "y": 3.2,
+                "z": 20.5
+              },
+              "size": {
+                "x": 38,
+                "y": 3.2,
+                "z": 1
+              }
+            }
+          }
+        ],
+        "connections": [
+          {
+            "id": "command-divider-west->extraction-door:frame",
+            "fromId": "command-divider-west",
+            "toId": "extraction-door:frame",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": -3,
+            "toEdge": -3.32,
+            "gap": -0.32,
+            "ownerId": "extraction-door:frame",
+            "notes": [
+              "extraction-door:frame intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "extraction-door:frame->extraction-door:wall-continuity",
+            "fromId": "extraction-door:frame",
+            "toId": "extraction-door:wall-continuity",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 3.32,
+            "toEdge": -3.29,
+            "gap": -6.61,
+            "ownerId": "extraction-door:frame",
+            "notes": [
+              "extraction-door:frame intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "extraction-door:wall-continuity->extraction-door",
+            "fromId": "extraction-door:wall-continuity",
+            "toId": "extraction-door",
+            "axis": "x",
+            "state": "covered-by-priority-surface",
+            "fromEdge": 3.29,
+            "toEdge": -3,
+            "gap": -6.29,
+            "ownerId": "extraction-door:wall-continuity",
+            "notes": [
+              "extraction-door:wall-continuity intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority."
+            ]
+          },
+          {
+            "id": "extraction-door->command-divider-east",
+            "fromId": "extraction-door",
+            "toId": "command-divider-east",
+            "axis": "x",
+            "state": "touches",
+            "fromEdge": 3,
+            "toEdge": 3,
+            "gap": 0,
+            "notes": [
+              "extraction-door and command-divider-east touch within tolerance on the wall run."
+            ]
+          }
+        ],
+        "doorOwnership": [],
+        "cameraProbes": [
+          {
+            "id": "extraction-door:active-camera-probe",
+            "wallLineId": "x:20",
+            "screenshot": "gameplay-level-one.png",
+            "screenRegion": {
+              "min": {
+                "x": 183.89,
+                "y": 55.29
+              },
+              "max": {
+                "x": 201.89,
+                "y": 73.29
+              },
+              "size": {
+                "x": 18,
+                "y": 18
+              },
+              "center": {
+                "x": 192.89,
+                "y": 64.29
+              },
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              },
+              "widthRatio": 0.01,
+              "heightRatio": 0.03,
+              "areaRatio": 0
+            },
+            "rayOrigin": {
+              "x": 3.15,
+              "y": 3.85,
+              "z": -33.65
+            },
+            "rayDirection": {
+              "x": -0.06,
+              "y": -0.04,
+              "z": 1
+            },
+            "expectedOwnerIds": [
+              "extraction-door",
+              "extraction-door:frame",
+              "extraction-door:wall-continuity"
+            ],
+            "actualFirstHitId": "lobby-door:wall-continuity:back-wall",
+            "actualOwnerId": "lobby-door:wall-continuity",
+            "actualFirstHitDistance": 15.12,
+            "visibleVoid": false,
+            "grade": "review",
+            "notes": [
+              "Camera probe toward extraction-door is occluded by lobby-door:wall-continuity before the target; this is not a visible void but still needs focused screenshot review."
+            ]
+          }
+        ],
+        "gaps": [],
+        "notes": [
+          "x-axis wall run at line 20 has 5 sorted intervals, 4 connection edge(s), 0 door-to-door ownership row(s), and 1 camera probe row(s) with no unowned visible span above 0.08m."
+        ]
+      }
+    ],
+    "levelDensity": {
+      "grade": "pass",
+      "floorArea": 6048,
+      "setDressingFootprintArea": 1343.67,
+      "setDressingRatio": 0.22,
+      "blockerCount": 9,
+      "setDressingCount": 34,
+      "objectiveCount": 3,
+      "enemyCount": 3,
+      "zones": [
+        {
+          "id": "entry-lobby",
+          "label": "Entry Lobby",
+          "grade": "pass",
+          "bounds": {
+            "min": {
+              "x": -42,
+              "z": -34
+            },
+            "max": {
+              "x": 42,
+              "z": -18
+            }
+          },
+          "screenshot": "gameplay-level-one.png",
+          "floorArea": 1344,
+          "coverFootprintArea": 54.3,
+          "setDressingFootprintArea": 245.4,
+          "gameplayFootprintArea": 26.41,
+          "totalFootprintArea": 326.11,
+          "totalFootprintRatio": 0.24,
+          "blockerCount": 4,
+          "setDressingCount": 11,
+          "objectiveCount": 1,
+          "enemyCount": 1,
+          "landmarkCount": 12,
+          "interactableCount": 2,
+          "expectedLandmarks": [
+            "access-keycard",
+            "lobby-door",
+            "insertion-route-cover",
+            "insertion-cover-right",
+            "insertion-floor-power-left",
+            "insertion-floor-power-right",
+            "cargo-stack-a",
+            "cargo-stack-b",
+            "sentry-lobby",
+            "entry-floor-light-spine",
+            "entry-south-machinery-west",
+            "entry-south-machinery-east"
+          ],
+          "notes": [
+            "Entry Lobby has 24.3% tactical footprint coverage with 12/12 expected landmark(s) present."
+          ]
+        },
+        {
+          "id": "security-stack",
+          "label": "Security Stack",
+          "grade": "pass",
+          "bounds": {
+            "min": {
+              "x": -42,
+              "z": -18
+            },
+            "max": {
+              "x": 42,
+              "z": 5
+            }
+          },
+          "screenshot": "tutorial-03-terminal.png",
+          "floorArea": 1932,
+          "coverFootprintArea": 24,
+          "setDressingFootprintArea": 392.4,
+          "gameplayFootprintArea": 9.62,
+          "totalFootprintArea": 426.02,
+          "totalFootprintRatio": 0.22,
+          "blockerCount": 2,
+          "setDressingCount": 12,
+          "objectiveCount": 1,
+          "enemyCount": 0,
+          "landmarkCount": 8,
+          "interactableCount": 3,
+          "expectedLandmarks": [
+            "security-terminal",
+            "antenna-bank",
+            "security-stack-cover-left",
+            "security-floor-cable-spine",
+            "server-door",
+            "security-west-service-stack",
+            "security-east-service-stack",
+            "security-warning-floor-stripe"
+          ],
+          "notes": [
+            "Security Stack has 22.1% tactical footprint coverage with 8/8 expected landmark(s) present."
+          ]
+        },
+        {
+          "id": "server-wing",
+          "label": "Server Wing",
+          "grade": "pass",
+          "bounds": {
+            "min": {
+              "x": -42,
+              "z": 5
+            },
+            "max": {
+              "x": 42,
+              "z": 20
+            }
+          },
+          "screenshot": "gameplay-command-codes.png",
+          "floorArea": 1260,
+          "coverFootprintArea": 80,
+          "setDressingFootprintArea": 179.8,
+          "gameplayFootprintArea": 25.64,
+          "totalFootprintArea": 285.44,
+          "totalFootprintRatio": 0.23,
+          "blockerCount": 2,
+          "setDressingCount": 8,
+          "objectiveCount": 1,
+          "enemyCount": 1,
+          "landmarkCount": 6,
+          "interactableCount": 3,
+          "expectedLandmarks": [
+            "command-codes",
+            "server-bank-a",
+            "server-bank-b",
+            "sentry-server",
+            "server-midfloor-power-tray",
+            "server-north-hazard-strip"
+          ],
+          "notes": [
+            "Server Wing has 22.7% tactical footprint coverage with 6/6 expected landmark(s) present."
+          ]
+        },
+        {
+          "id": "command-extraction",
+          "label": "Command And Extraction",
+          "grade": "pass",
+          "bounds": {
+            "min": {
+              "x": -42,
+              "z": 20
+            },
+            "max": {
+              "x": 42,
+              "z": 38
+            }
+          },
+          "screenshot": "complete.png",
+          "floorArea": 1512,
+          "coverFootprintArea": 33,
+          "setDressingFootprintArea": 255.6,
+          "gameplayFootprintArea": 36.98,
+          "totalFootprintArea": 325.58,
+          "totalFootprintRatio": 0.22,
+          "blockerCount": 1,
+          "setDressingCount": 7,
+          "objectiveCount": 0,
+          "enemyCount": 1,
+          "landmarkCount": 7,
+          "interactableCount": 2,
+          "expectedLandmarks": [
+            "extraction",
+            "briefing-table",
+            "extraction-machinery-west",
+            "extraction-machinery-east",
+            "sentry-command",
+            "command-floor-guidance-west",
+            "command-floor-guidance-east"
+          ],
+          "notes": [
+            "Command And Extraction has 21.5% tactical footprint coverage with 7/7 expected landmark(s) present."
+          ]
+        }
+      ],
+      "notes": [
+        "Set-dressing and gameplay footprints cover 22.2% of the level floor across 4 named zone(s)."
+      ]
+    }
+  },
+  "titleComposition": {
+    "active": false,
+    "heroVisible": true,
+    "heroReadable": false,
+    "levelPreviewVisible": false,
+    "facingDot": 0.83,
+    "heroYaw": 3.14,
+    "yawToCamera": 2.55,
+    "cameraDistance": 6.81,
+    "orbitAngle": -1.54,
+    "orbitRadius": 15.66,
+    "heroScreenOccupancy": 0.04,
+    "heroScreenHeightRatio": 0.29,
+    "identityReadable": false,
+    "identityAnchors": [
+      {
+        "id": "head",
+        "label": "Head silhouette",
+        "source": "bounds-estimate",
+        "worldPosition": {
+          "x": 0,
+          "y": 1.32,
+          "z": -29
+        },
+        "screenPosition": {
+          "x": 640,
+          "y": 342.28,
+          "visible": true,
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "visible": true,
+        "uiOccluded": false,
+        "notes": [
+          "Head silhouette projects into the title screenshot without UI occlusion."
+        ]
+      },
+      {
+        "id": "visor",
+        "label": "Face/visor read",
+        "source": "bounds-estimate",
+        "worldPosition": {
+          "x": 0,
+          "y": 1.21,
+          "z": -29
+        },
+        "screenPosition": {
+          "x": 640,
+          "y": 354.07,
+          "visible": true,
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "visible": true,
+        "uiOccluded": false,
+        "notes": [
+          "Face/visor read projects into the title screenshot without UI occlusion."
+        ]
+      },
+      {
+        "id": "chest",
+        "label": "Chest/gear read",
+        "source": "bounds-estimate",
+        "worldPosition": {
+          "x": 0,
+          "y": 0.86,
+          "z": -29
+        },
+        "screenPosition": {
+          "x": 640,
+          "y": 388.34,
+          "visible": true,
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "visible": true,
+        "uiOccluded": false,
+        "notes": [
+          "Chest/gear read projects into the title screenshot without UI occlusion."
+        ]
+      },
+      {
+        "id": "feet",
+        "label": "Foot grounding",
+        "source": "bounds-estimate",
+        "worldPosition": {
+          "x": 0,
+          "y": 0.08,
+          "z": -29
+        },
+        "screenPosition": {
+          "x": 640,
+          "y": 459.78,
+          "visible": true,
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "visible": true,
+        "uiOccluded": false,
+        "notes": [
+          "Foot grounding projects into the title screenshot without UI occlusion."
+        ]
+      }
+    ],
+    "heroPosition": {
+      "x": 0,
+      "y": 0,
+      "z": -29
+    },
+    "heroScreenBounds": {
+      "min": {
+        "x": 560.01,
+        "y": 300.81
+      },
+      "max": {
+        "x": 719.99,
+        "y": 506.85
+      },
+      "size": {
+        "x": 159.98,
+        "y": 206.04
+      },
+      "center": {
+        "x": 640,
+        "y": 403.83
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "widthRatio": 0.12,
+      "heightRatio": 0.29,
+      "areaRatio": 0.04
+    },
+    "cameraPosition": {
+      "x": 3.15,
+      "y": 3.85,
+      "z": -33.65
+    },
+    "cameraTarget": {
+      "x": 2.6,
+      "y": 1.12,
+      "z": -18
+    },
+    "titleTreatment": {
+      "active": false,
+      "wordmarkText": "",
+      "kickerText": "",
+      "copyText": "",
+      "wordmarkVisible": false,
+      "wordmarkReadable": false,
+      "panelOverlapRatio": 0,
+      "heroOverlapRatio": 0,
+      "notes": [
+        "Title phase is not active.",
+        "Wordmark bounds are missing.",
+        "Title text or kicker needs final branding: \"\" / \"\".",
+        "panelOverlap=0, heroOverlap=0."
+      ]
+    },
+    "notes": [
+      "Title composition is not active in the current phase.",
+      "Level 1 preview map is missing from the title scene.",
+      "Native title wordmark needs review: Title phase is not active. Wordmark bounds are missing. Title text or kicker needs final branding: \"\" / \"\". panelOverlap=0, heroOverlap=0.",
+      "Identity anchors need review: head=visible:true/ui:false, visor=visible:true/ui:false, chest=visible:true/ui:false, feet=visible:true/ui:false.",
+      "facingDot=0.83, cameraDistance=6.81, screenHeight=0.29, screenOccupancy=0.04."
+    ]
+  },
+  "tutorialAlignment": [
+    {
+      "id": "hero",
+      "index": 0,
+      "title": "Insertion",
+      "target": "hero",
+      "targetKind": "hero",
+      "grade": "pass",
+      "targetExists": true,
+      "textEndsWithCadet": true,
+      "requiredKeywords": [
+        "cadet",
+        "shadow recruit",
+        "move quietly"
+      ],
+      "missingKeywords": [],
+      "targetPoint": {
+        "x": 0,
+        "z": -29
+      },
+      "focusPoint": null,
+      "focusDistance": null,
+      "cameraDistance": 6.81,
+      "notes": [
+        "Tutorial step hero targets hero, uses required callout terms, and ends with Good luck, cadet."
+      ]
+    },
+    {
+      "id": "keycard",
+      "index": 1,
+      "title": "First Lock",
+      "target": "access-keycard",
+      "targetKind": "objective",
+      "grade": "pass",
+      "targetExists": true,
+      "textEndsWithCadet": true,
+      "requiredKeywords": [
+        "objective",
+        "keycard",
+        "door"
+      ],
+      "missingKeywords": [],
+      "targetPoint": {
+        "x": -31,
+        "z": -25
+      },
+      "focusPoint": null,
+      "focusDistance": null,
+      "cameraDistance": 35.44,
+      "notes": [
+        "Tutorial step keycard targets access-keycard, uses required callout terms, and ends with Good luck, cadet."
+      ]
+    },
+    {
+      "id": "terminal",
+      "index": 2,
+      "title": "Security Stack",
+      "target": "security-terminal",
+      "targetKind": "objective",
+      "grade": "pass",
+      "targetExists": true,
+      "textEndsWithCadet": true,
+      "requiredKeywords": [
+        "terminal",
+        "server-wing door",
+        "interact"
+      ],
+      "missingKeywords": [],
+      "targetPoint": {
+        "x": 30,
+        "z": -3
+      },
+      "focusPoint": null,
+      "focusDistance": null,
+      "cameraDistance": 40.93,
+      "notes": [
+        "Tutorial step terminal targets security-terminal, uses required callout terms, and ends with Good luck, cadet."
+      ]
+    },
+    {
+      "id": "sentry",
+      "index": 3,
+      "title": "Avoid Contact",
+      "target": "sentry-lobby",
+      "targetKind": "enemy",
+      "grade": "pass",
+      "targetExists": true,
+      "textEndsWithCadet": true,
+      "requiredKeywords": [
+        "avoid sentries",
+        "cover",
+        "patrol"
+      ],
+      "missingKeywords": [],
+      "targetPoint": {
+        "x": 5.79,
+        "z": -24.15
+      },
+      "focusPoint": null,
+      "focusDistance": null,
+      "cameraDistance": 10.59,
+      "notes": [
+        "Tutorial step sentry targets sentry-lobby, uses required callout terms, and ends with Good luck, cadet."
+      ]
+    },
+    {
+      "id": "extraction",
+      "index": 4,
+      "title": "Extraction",
+      "target": "extraction",
+      "targetKind": "extraction",
+      "grade": "pass",
+      "targetExists": true,
+      "textEndsWithCadet": true,
+      "requiredKeywords": [
+        "command codes",
+        "final door",
+        "extraction"
+      ],
+      "missingKeywords": [],
+      "targetPoint": {
+        "x": 0,
+        "z": 33
+      },
+      "focusPoint": null,
+      "focusDistance": null,
+      "cameraDistance": 66.83,
+      "notes": [
+        "Tutorial step extraction targets extraction, uses required callout terms, and ends with Good luck, cadet."
+      ]
+    }
+  ],
+  "browserBaseline": {
+    "fps": 55.86592178770921,
+    "frameMs": 17.90000000000009,
+    "latestFrameMs": 17.300000000000182,
+    "p95FrameMs": 18.100000000000136,
+    "samples": 240
+  },
+  "fpsScenes": [
+    {
+      "id": "title",
+      "label": "Title hero and menu",
+      "phase": "title",
+      "screenshot": "docs/qa/2026-06-20/v0.18.0/fps/fps-title.png",
+      "framePacing": {
+        "fps": 55.86592186211996,
+        "frameMs": 17.899999976158142,
+        "latestFrameMs": 17.90000009536743,
+        "p95FrameMs": 18.299999952316284,
+        "samples": 240
+      },
+      "renderer": {
+        "performanceProfile": "performance",
+        "shadowsEnabled": false,
+        "shadowMapSize": 0,
+        "drawCalls": 41,
+        "triangles": 98809,
+        "geometries": 42,
+        "textures": 7,
+        "pixelRatio": 0.75
+      },
+      "audioTrack": "title",
+      "titleComposition": {
+        "active": true,
+        "heroVisible": true,
+        "heroReadable": true,
+        "levelPreviewVisible": true,
+        "facingDot": 0.99,
+        "heroYaw": 1.13,
+        "yawToCamera": 1.27,
+        "cameraDistance": 6.14,
+        "orbitAngle": 0.3,
+        "orbitRadius": 5.31,
+        "heroScreenOccupancy": 0.1,
+        "heroScreenHeightRatio": 0.44,
+        "identityReadable": true,
+        "identityAnchors": [
+          {
+            "id": "head",
+            "label": "Head silhouette",
+            "source": "bounds-estimate",
+            "worldPosition": {
+              "x": 2.6,
+              "y": 1.79,
+              "z": -18
+            },
+            "screenPosition": {
+              "x": 640,
+              "y": 279.46,
+              "visible": true,
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              }
+            },
+            "visible": true,
+            "uiOccluded": false,
+            "notes": [
+              "Head silhouette projects into the title screenshot without UI occlusion."
+            ]
+          },
+          {
+            "id": "visor",
+            "label": "Face/visor read",
+            "source": "bounds-estimate",
+            "worldPosition": {
+              "x": 2.6,
+              "y": 1.64,
+              "z": -18
+            },
+            "screenPosition": {
+              "x": 640,
+              "y": 298.81,
+              "visible": true,
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              }
+            },
+            "visible": true,
+            "uiOccluded": false,
+            "notes": [
+              "Face/visor read projects into the title screenshot without UI occlusion."
+            ]
+          },
+          {
+            "id": "chest",
+            "label": "Chest/gear read",
+            "source": "bounds-estimate",
+            "worldPosition": {
+              "x": 2.6,
+              "y": 1.17,
+              "z": -18
+            },
+            "screenPosition": {
+              "x": 640,
+              "y": 354.62,
+              "visible": true,
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              }
+            },
+            "visible": true,
+            "uiOccluded": false,
+            "notes": [
+              "Chest/gear read projects into the title screenshot without UI occlusion."
+            ]
+          },
+          {
+            "id": "feet",
+            "label": "Foot grounding",
+            "source": "bounds-estimate",
+            "worldPosition": {
+              "x": 2.6,
+              "y": 0.11,
+              "z": -18
+            },
+            "screenPosition": {
+              "x": 640,
+              "y": 469.14,
+              "visible": true,
+              "viewport": {
+                "width": 1280,
+                "height": 720
+              }
+            },
+            "visible": true,
+            "uiOccluded": false,
+            "notes": [
+              "Foot grounding projects into the title screenshot without UI occlusion."
+            ]
+          }
+        ],
+        "heroPosition": {
+          "x": 2.6,
+          "y": 0,
+          "z": -18
+        },
+        "heroScreenBounds": {
+          "min": {
+            "x": 504.77,
+            "y": 231.83
+          },
+          "max": {
+            "x": 801.31,
+            "y": 550.91
+          },
+          "size": {
+            "x": 296.54,
+            "y": 319.08
+          },
+          "center": {
+            "x": 653.04,
+            "y": 391.37
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "widthRatio": 0.23,
+          "heightRatio": 0.44,
+          "areaRatio": 0.1
+        },
+        "cameraPosition": {
+          "x": 7.67,
+          "y": 3.08,
+          "z": -16.42
+        },
+        "cameraTarget": {
+          "x": 2.6,
+          "y": 1.12,
+          "z": -18
+        },
+        "levelPreviewBounds": {
+          "min": {
+            "x": -4.12,
+            "y": 0.03,
+            "z": -23.76
+          },
+          "max": {
+            "x": 9.32,
+            "y": 0.58,
+            "z": -12.24
+          },
+          "size": {
+            "x": 13.44,
+            "y": 0.54,
+            "z": 11.52
+          }
+        },
+        "titleTreatment": {
+          "active": true,
+          "wordmarkText": "SHADOW RECRUIT 2",
+          "kickerText": "OPERATION BLACKGLASS",
+          "copyText": "A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.",
+          "wordmarkVisible": true,
+          "wordmarkReadable": true,
+          "wordmarkBounds": {
+            "min": {
+              "x": 80,
+              "y": 309.06
+            },
+            "max": {
+              "x": 537.78,
+              "y": 537.35
+            },
+            "size": {
+              "x": 457.78,
+              "y": 228.29
+            },
+            "center": {
+              "x": 308.89,
+              "y": 423.21
+            },
+            "viewport": {
+              "width": 1280,
+              "height": 720
+            },
+            "widthRatio": 0.36,
+            "heightRatio": 0.32,
+            "areaRatio": 0.11
+          },
+          "panelOverlapRatio": 0,
+          "heroOverlapRatio": 0.07,
+          "notes": [
+            "Native CSS wordmark is visible, final-title branded, and does not collide with the command panel or staged hero."
+          ]
+        },
+        "notes": [
+          "Title hero faces the camera in a readable front/three-quarter pose while the Level 1 preview map supports the rotating title background."
+        ]
+      },
+      "fpsGate": {
+        "performanceProfile": "performance",
+        "targetFrameMs": 16.7,
+        "toleranceMs": 0.4,
+        "maxP95FrameMs": 20,
+        "baselineOverheadBudgetMs": 0.4,
+        "baselineP95OverheadBudgetMs": 0.6,
+        "frameOverheadMs": 0,
+        "p95OverheadMs": 0.2,
+        "browserBaselineHeadroomMs": -0.8,
+        "gameHeadroomMs": -0.8,
+        "strictTargetMet": false,
+        "browserCanProve60": false,
+        "tracksBaseline": true,
+        "status": "environment-limited"
+      }
+    },
+    {
+      "id": "gameplay",
+      "label": "Active gameplay camera",
+      "phase": "playing",
+      "screenshot": "docs/qa/2026-06-20/v0.18.0/fps/fps-gameplay.png",
+      "framePacing": {
+        "fps": 55.86592186211996,
+        "frameMs": 17.899999976158142,
+        "latestFrameMs": 17,
+        "p95FrameMs": 18.200000047683716,
+        "samples": 240
+      },
+      "renderer": {
+        "performanceProfile": "performance",
+        "shadowsEnabled": false,
+        "shadowMapSize": 0,
+        "drawCalls": 676,
+        "triangles": 296698,
+        "geometries": 102,
+        "textures": 21,
+        "pixelRatio": 0.75
+      },
+      "audioTrack": "gameplay",
+      "fpsGate": {
+        "performanceProfile": "performance",
+        "targetFrameMs": 16.7,
+        "toleranceMs": 0.4,
+        "maxP95FrameMs": 20,
+        "baselineOverheadBudgetMs": 0.4,
+        "baselineP95OverheadBudgetMs": 0.6,
+        "frameOverheadMs": 0,
+        "p95OverheadMs": 0.1,
+        "browserBaselineHeadroomMs": -0.8,
+        "gameHeadroomMs": -0.8,
+        "strictTargetMet": false,
+        "browserCanProve60": false,
+        "tracksBaseline": true,
+        "status": "environment-limited"
+      }
+    },
+    {
+      "id": "complete",
+      "label": "Mission complete screen",
+      "phase": "complete",
+      "screenshot": "docs/qa/2026-06-20/v0.18.0/fps/fps-complete.png",
+      "framePacing": {
+        "fps": 56.49717498903982,
+        "frameMs": 17.700000047683716,
+        "latestFrameMs": 18,
+        "p95FrameMs": 18.200000047683716,
+        "samples": 240
+      },
+      "renderer": {
+        "performanceProfile": "performance",
+        "shadowsEnabled": false,
+        "shadowMapSize": 0,
+        "drawCalls": 674,
+        "triangles": 208128,
+        "geometries": 101,
+        "textures": 22,
+        "pixelRatio": 0.75
+      },
+      "audioTrack": "complete",
+      "fpsGate": {
+        "performanceProfile": "performance",
+        "targetFrameMs": 16.7,
+        "toleranceMs": 0.4,
+        "maxP95FrameMs": 20,
+        "baselineOverheadBudgetMs": 0.4,
+        "baselineP95OverheadBudgetMs": 0.6,
+        "frameOverheadMs": -0.2,
+        "p95OverheadMs": 0.1,
+        "browserBaselineHeadroomMs": -0.8,
+        "gameHeadroomMs": -0.6,
+        "strictTargetMet": false,
+        "browserCanProve60": false,
+        "tracksBaseline": true,
+        "status": "environment-limited"
+      }
+    },
+    {
+      "id": "caught",
+      "label": "Sentry caught failure screen",
+      "phase": "caught",
+      "screenshot": "docs/qa/2026-06-20/v0.18.0/fps/fps-caught.png",
+      "framePacing": {
+        "fps": 55.86592186211996,
+        "frameMs": 17.899999976158142,
+        "latestFrameMs": 17.90000009536743,
+        "p95FrameMs": 18.200000047683716,
+        "samples": 240
+      },
+      "renderer": {
+        "performanceProfile": "performance",
+        "shadowsEnabled": false,
+        "shadowMapSize": 0,
+        "drawCalls": 695,
+        "triangles": 374861,
+        "geometries": 113,
+        "textures": 26,
+        "pixelRatio": 0.75
+      },
+      "audioTrack": "gameplay",
+      "fpsGate": {
+        "performanceProfile": "performance",
+        "targetFrameMs": 16.7,
+        "toleranceMs": 0.4,
+        "maxP95FrameMs": 20,
+        "baselineOverheadBudgetMs": 0.4,
+        "baselineP95OverheadBudgetMs": 0.6,
+        "frameOverheadMs": 0,
+        "p95OverheadMs": 0.1,
+        "browserBaselineHeadroomMs": -0.8,
+        "gameHeadroomMs": -0.8,
+        "strictTargetMet": false,
+        "browserCanProve60": false,
+        "tracksBaseline": true,
+        "status": "environment-limited"
+      }
+    }
+  ],
+  "fpsGate": {
+    "performanceProfile": "performance",
+    "targetFrameMs": 16.7,
+    "toleranceMs": 0.4,
+    "maxP95FrameMs": 20,
+    "baselineOverheadBudgetMs": 0.4,
+    "baselineP95OverheadBudgetMs": 0.6,
+    "frameOverheadMs": 0,
+    "p95OverheadMs": 0.2,
+    "browserBaselineHeadroomMs": -0.8,
+    "gameHeadroomMs": -0.8,
+    "strictTargetMet": false,
+    "browserCanProve60": false,
+    "tracksBaseline": true,
+    "status": "environment-limited",
+    "sceneCount": 4,
+    "failingScenes": [],
+    "environmentLimitedScenes": [
+      "title",
+      "gameplay",
+      "complete",
+      "caught"
+    ]
+  }
+}

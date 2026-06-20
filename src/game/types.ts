@@ -212,6 +212,13 @@ export type ScreenBounds = {
   areaRatio: number;
 };
 
+export type ScreenPoint = {
+  x: number;
+  y: number;
+  visible: boolean;
+  viewport: { width: number; height: number };
+};
+
 export type TitleTreatmentState = {
   active: boolean;
   wordmarkText: string;
@@ -222,6 +229,17 @@ export type TitleTreatmentState = {
   wordmarkBounds?: ScreenBounds;
   panelOverlapRatio: number;
   heroOverlapRatio: number;
+  notes: readonly string[];
+};
+
+export type TitleIdentityAnchor = {
+  id: 'head' | 'visor' | 'chest' | 'feet';
+  label: string;
+  source: 'bounds-estimate' | 'bone-or-marker';
+  worldPosition: { x: number; y: number; z: number };
+  screenPosition?: ScreenPoint;
+  visible: boolean;
+  uiOccluded: boolean;
   notes: readonly string[];
 };
 
@@ -278,6 +296,56 @@ export type WallRunInterval = {
   bounds: Bounds3;
 };
 
+export type WallRunConnectionState = 'touches' | 'overlaps' | 'covered-by-priority-surface' | 'void';
+
+export type WallRunConnectionEdge = {
+  id: string;
+  fromId: string;
+  toId: string;
+  axis: 'x' | 'z';
+  state: WallRunConnectionState;
+  fromEdge: number;
+  toEdge: number;
+  gap: number;
+  ownerId?: string;
+  notes: readonly string[];
+};
+
+export type DoorToDoorOwnershipCheck = {
+  id: string;
+  wallLineId: string;
+  previousDoorId: string;
+  previousDoorMax: number;
+  nextDoorId: string;
+  nextDoorMin: number;
+  spanWidth: number;
+  ownerId?: string;
+  ownerType?: WallRunInterval['kind'];
+  ownerMin?: number;
+  ownerMax?: number;
+  depthMatch: boolean;
+  closedPriority: 'door-surface' | 'owner-surface' | 'missing';
+  openPriority: 'continuity-surface' | 'owner-surface' | 'missing';
+  grade: AssetQualityGrade;
+  notes: readonly string[];
+};
+
+export type WallRunCameraProbe = {
+  id: string;
+  wallLineId: string;
+  screenshot: string;
+  screenRegion: ScreenBounds;
+  rayOrigin: { x: number; y: number; z: number };
+  rayDirection: { x: number; y: number; z: number };
+  expectedOwnerIds: readonly string[];
+  actualFirstHitId?: string;
+  actualOwnerId?: string;
+  actualFirstHitDistance?: number;
+  visibleVoid: boolean;
+  grade: AssetQualityGrade;
+  notes: readonly string[];
+};
+
 export type WallRunContinuityCheck = {
   id: string;
   axis: 'x' | 'z';
@@ -285,6 +353,9 @@ export type WallRunContinuityCheck = {
   grade: AssetQualityGrade;
   epsilon: number;
   intervals: readonly WallRunInterval[];
+  connections: readonly WallRunConnectionEdge[];
+  doorOwnership: readonly DoorToDoorOwnershipCheck[];
+  cameraProbes: readonly WallRunCameraProbe[];
   gaps: readonly DoorCoordinateGap[];
   notes: readonly string[];
 };
@@ -345,6 +416,8 @@ export type TitleComposition = {
   orbitRadius: number;
   heroScreenOccupancy: number;
   heroScreenHeightRatio: number;
+  identityReadable: boolean;
+  identityAnchors: readonly TitleIdentityAnchor[];
   heroPosition?: { x: number; y: number; z: number };
   heroScreenBounds?: ScreenBounds;
   cameraPosition: { x: number; y: number; z: number };
@@ -431,9 +504,11 @@ export type GameplayViewDensityBand = {
   visibleObjectCount: number;
   tacticalCategoryCount: number;
   screenOccupancy: number;
+  negativeSpaceRatio: number;
   minVisibleObjects: number;
   minTacticalCategories: number;
   minScreenOccupancy: number;
+  maxNegativeSpaceRatio: number;
   objects: readonly GameplayViewDensityObject[];
   notes: readonly string[];
 };

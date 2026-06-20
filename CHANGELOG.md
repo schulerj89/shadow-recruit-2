@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.18.0 - 2026-06-20
+
+### Minor
+
+- Added runtime wall-line connection graphs, active-camera wall/door probe rows, title identity-anchor diagnostics, and gameplay negative-space density metrics to the Shadow Recruit tester state.
+- Tightened browser smoke, screenshot capture, and game-tester reports so wall continuity, title hero readability, and AAA active-camera density require the new evidence.
+
 ## 0.17.1 - 2026-06-20
 
 ### Patch

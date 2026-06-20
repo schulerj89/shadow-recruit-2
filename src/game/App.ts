@@ -17,6 +17,7 @@ import type {
   CinematicFocusState,
   CompletionStats,
   DoorCoordinateGap,
+  DoorToDoorOwnershipCheck,
   DoorRuntime,
   EnemyRuntime,
   FramePacingSample,
@@ -41,14 +42,18 @@ import type {
   RendererMetrics,
   SceneObjectBounds,
   ScreenBounds,
+  ScreenPoint,
   SetDressingDefinition,
   SetDressingVisibilityCheck,
   TesterState,
+  TitleIdentityAnchor,
   TutorialAlignmentCheck,
   TitleComposition,
   TitleTreatmentState,
   TutorialState,
   Vec2,
+  WallRunCameraProbe,
+  WallRunConnectionEdge,
   WallRunInterval,
 } from './types';
 
@@ -88,9 +93,9 @@ const minimumLoadingScreenMs = 650;
 const gameplayCameraTargetHeight = 1.15;
 const gameplayCameraOffset = { x: 3.15, y: 3.85, z: -4.65 };
 const gameplayDensityBands = [
-  { id: 'near', label: 'near foreground', minDistance: 0, maxDistance: 8, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.015 },
-  { id: 'mid', label: 'midground objective route', minDistance: 8, maxDistance: 18, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.006 },
-  { id: 'far', label: 'far background landmark', minDistance: 18, maxDistance: 34, minVisibleObjects: 1, minTacticalCategories: 1, minScreenOccupancy: 0.002 },
+  { id: 'near', label: 'near foreground', minDistance: 0, maxDistance: 8, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.015, maxNegativeSpaceRatio: 0.38 },
+  { id: 'mid', label: 'midground objective route', minDistance: 8, maxDistance: 18, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.006, maxNegativeSpaceRatio: 0.5 },
+  { id: 'far', label: 'far background landmark', minDistance: 18, maxDistance: 34, minVisibleObjects: 1, minTacticalCategories: 1, minScreenOccupancy: 0.002, maxNegativeSpaceRatio: 0.62 },
 ] as const;
 
 const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
@@ -320,6 +325,7 @@ export class ShadowRecruitApp {
   private readonly enemyDetectionCones = new Map<string, THREE.Object3D>();
   private readonly anchorObjects = new Map<string, THREE.Object3D>();
   private readonly boundsScratch = new THREE.Box3();
+  private readonly raycaster = new THREE.Raycaster();
   private readonly gameplayCameraTargetScratch = new THREE.Vector3();
   private readonly gameplayCameraDesiredScratch = new THREE.Vector3();
   private readonly doorTexture = new THREE.TextureLoader().load(doorPanelUrl);
@@ -549,6 +555,7 @@ export class ShadowRecruitApp {
     mesh.castShadow = quality.shadowsEnabled;
     mesh.receiveShadow = quality.shadowsEnabled;
     mesh.name = rect.id;
+    this.tagQaObject(mesh, rect.id, textureKind === 'wall' ? 'wall' : textureKind);
     this.scene.add(mesh);
     this.runtimeObjects.push({ object: mesh });
     this.anchorObjects.set(rect.id, mesh);
@@ -664,6 +671,7 @@ export class ShadowRecruitApp {
     this.scene.add(frame);
     this.runtimeObjects.push({ object: frame });
     this.doorFrameMeshes.set(door.id, frame);
+    this.tagQaObject(frame, `${door.id}:frame`, 'door-frame');
   }
 
   private addDoorWallContinuity(door: DoorRuntime): void {
@@ -704,6 +712,7 @@ export class ShadowRecruitApp {
     this.scene.add(group);
     this.runtimeObjects.push({ object: group });
     this.doorContinuityMeshes.set(door.id, group);
+    this.tagQaObject(group, `${door.id}:wall-continuity`, 'door-continuity');
   }
 
   private addDoor(door: DoorRuntime): void {
@@ -731,6 +740,7 @@ export class ShadowRecruitApp {
     const group = new THREE.Group();
     group.name = door.id;
     group.add(left, right);
+    this.tagQaObject(group, door.id, 'door');
     this.scene.add(group);
     this.runtimeObjects.push({ object: group });
     this.doorMeshes.set(door.id, { left, right });
@@ -2154,6 +2164,7 @@ export class ShadowRecruitApp {
       const gaps: DoorCoordinateGap[] = [];
       let coveredMax = intervals[0]?.max ?? 0;
       let coveredBy = intervals[0]?.id ?? 'none';
+      const id = `${run.axis}:${run.line}`;
 
       for (let index = 1; index < intervals.length; index += 1) {
         const interval = intervals[index];
@@ -2175,18 +2186,30 @@ export class ShadowRecruitApp {
           coveredBy = interval.id;
         }
       }
+      const connections = this.wallRunConnections(run.axis, intervals, epsilon);
+      const doorOwnership = this.doorToDoorOwnershipChecks(id, run.axis, run.line, run.doors, intervals, epsilon);
+      const cameraProbes = this.wallRunCameraProbes(id, run.doors);
+      const connectionFailures = connections.filter((edge) => edge.state === 'void');
+      const ownershipFailures = doorOwnership.filter((row) => row.grade === 'fail');
+      const probeFailures = cameraProbes.filter((probe) => probe.grade === 'fail');
 
-      const notes = gaps.length > 0
+      const notes = gaps.length > 0 || connectionFailures.length > 0 || ownershipFailures.length > 0 || probeFailures.length > 0
         ? gaps.map((gap) => `${gap.label}: ${gap.fromId} -> ${gap.toId} is ${gap.gap}m on ${gap.axis}.`)
-        : [`${run.axis}-axis wall run at line ${run.line} has ${intervals.length} sorted intervals with no unowned span above ${epsilon}m.`];
+          .concat(connectionFailures.map((edge) => `Connection graph void: ${edge.fromId} -> ${edge.toId} is ${edge.gap}m on ${edge.axis}.`))
+          .concat(ownershipFailures.map((row) => `Door-to-door span ${row.previousDoorId} -> ${row.nextDoorId} has no owning wall/frame/continuity surface.`))
+          .concat(probeFailures.map((probe) => `Camera probe ${probe.id} first hit ${probe.actualOwnerId ?? probe.actualFirstHitId ?? 'none'} instead of ${probe.expectedOwnerIds.join('/')}.`))
+        : [`${run.axis}-axis wall run at line ${run.line} has ${intervals.length} sorted intervals, ${connections.length} connection edge(s), ${doorOwnership.length} door-to-door ownership row(s), and ${cameraProbes.length} camera probe row(s) with no unowned visible span above ${epsilon}m.`];
 
       return {
-        id: `${run.axis}:${run.line}`,
+        id,
         axis: run.axis,
         line: run.line,
-        grade: gaps.length > 0 || intervals.length === 0 ? 'fail' : 'pass',
+        grade: gaps.length > 0 || intervals.length === 0 || connectionFailures.length > 0 || ownershipFailures.length > 0 || probeFailures.length > 0 ? 'fail' : 'pass',
         epsilon,
         intervals,
+        connections,
+        doorOwnership,
+        cameraProbes,
         gaps,
         notes,
       };
@@ -2224,6 +2247,160 @@ export class ShadowRecruitApp {
       max: roundMetric(this.maxAlong(axis, bounds)),
       bounds,
     };
+  }
+
+  private wallRunConnections(axis: 'x' | 'z', intervals: readonly WallRunInterval[], epsilon: number): WallRunConnectionEdge[] {
+    const edges: WallRunConnectionEdge[] = [];
+    for (let index = 0; index < intervals.length - 1; index += 1) {
+      const from = intervals[index];
+      const to = intervals[index + 1];
+      const rawGap = to.min - from.max;
+      const gap = roundMetric(rawGap);
+      const priorityOwner = [from, to].find((interval) => interval.kind === 'door-continuity' || interval.kind === 'door-frame');
+      const state: WallRunConnectionEdge['state'] = rawGap > epsilon
+        ? 'void'
+        : rawGap < -epsilon
+          ? priorityOwner ? 'covered-by-priority-surface' : 'overlaps'
+          : 'touches';
+      const notes = state === 'void'
+        ? [`No named wall, frame, return, trim, or continuity interval owns the ${gap}m span between ${from.id} and ${to.id}.`]
+        : state === 'covered-by-priority-surface'
+          ? [`${priorityOwner?.id ?? 'priority surface'} intentionally overlaps this adjacency so the door/frame/continuity surface can take visual priority.`]
+          : [`${from.id} and ${to.id} ${state === 'touches' ? 'touch within tolerance' : 'overlap'} on the wall run.`];
+      edges.push({
+        id: `${from.id}->${to.id}`,
+        fromId: from.id,
+        toId: to.id,
+        axis,
+        state,
+        fromEdge: roundMetric(from.max),
+        toEdge: roundMetric(to.min),
+        gap,
+        ...(priorityOwner ? { ownerId: priorityOwner.id } : {}),
+        notes,
+      });
+    }
+    return edges;
+  }
+
+  private doorToDoorOwnershipChecks(
+    wallLineId: string,
+    axis: 'x' | 'z',
+    line: number,
+    doors: readonly DoorRuntime[],
+    intervals: readonly WallRunInterval[],
+    epsilon: number,
+  ): DoorToDoorOwnershipCheck[] {
+    const sortedDoors = [...doors].sort((a, b) => this.minAlong(axis, this.rectBounds(a)) - this.minAlong(axis, this.rectBounds(b)));
+    const rows: DoorToDoorOwnershipCheck[] = [];
+    const perpendicular = axis === 'x' ? 'z' : 'x';
+    for (let index = 0; index < sortedDoors.length - 1; index += 1) {
+      const previous = sortedDoors[index];
+      const next = sortedDoors[index + 1];
+      const previousMax = roundMetric(this.maxAlong(axis, this.rectBounds(previous)));
+      const nextMin = roundMetric(this.minAlong(axis, this.rectBounds(next)));
+      const spanWidth = roundMetric(nextMin - previousMax);
+      const owner = intervals.find((interval) =>
+        interval.kind !== 'door-opening' &&
+        interval.min <= previousMax + epsilon &&
+        interval.max >= nextMin - epsilon
+      );
+      const depthMatch = owner ? this.boundsTouchLine(perpendicular, owner.bounds, line) : false;
+      const grade: AssetQualityGrade = spanWidth <= epsilon || (Boolean(owner) && depthMatch) ? 'pass' : 'fail';
+      rows.push({
+        id: `${previous.id}->${next.id}`,
+        wallLineId,
+        previousDoorId: previous.id,
+        previousDoorMax: previousMax,
+        nextDoorId: next.id,
+        nextDoorMin: nextMin,
+        spanWidth,
+        ...(owner ? {
+          ownerId: owner.id,
+          ownerType: owner.kind,
+          ownerMin: owner.min,
+          ownerMax: owner.max,
+        } : {}),
+        depthMatch,
+        closedPriority: owner ? 'owner-surface' : 'missing',
+        openPriority: owner?.kind === 'door-continuity' ? 'continuity-surface' : owner ? 'owner-surface' : 'missing',
+        grade,
+        notes: grade === 'pass'
+          ? [`The ${spanWidth}m span between ${previous.id} and ${next.id} is owned by ${owner?.id ?? 'adjacent door contact'} with matching wall depth.`]
+          : [`No named wall, return, trim, frame, or continuity surface owns the ${spanWidth}m span between adjacent door openings ${previous.id} and ${next.id}.`],
+      });
+    }
+    return rows;
+  }
+
+  private wallRunCameraProbes(wallLineId: string, doors: readonly DoorRuntime[]): WallRunCameraProbe[] {
+    return doors
+      .map((door) => this.wallRunDoorProbe(wallLineId, door))
+      .filter((probe): probe is WallRunCameraProbe => Boolean(probe));
+  }
+
+  private wallRunDoorProbe(wallLineId: string, door: DoorRuntime): WallRunCameraProbe | null {
+    const target = new THREE.Vector3(door.center.x, (door.height ?? 3.2) * 0.55, door.center.z);
+    const screenPoint = this.projectWorldPoint(target);
+    if (!screenPoint) return null;
+    const screenRegion = this.screenPointRegion(screenPoint, 18);
+    const expectedOwnerIds = [door.id, `${door.id}:frame`, `${door.id}:wall-continuity`];
+    const direction = target.clone().sub(this.camera.position).normalize();
+    const surfaces = this.wallProbeSurfaceObjects();
+    this.raycaster.set(this.camera.position, direction);
+    this.raycaster.far = this.camera.position.distanceTo(target) + 1.2;
+    const hit = this.raycaster.intersectObjects(surfaces, true)[0];
+    const actualFirstHitId = hit?.object.name || (hit?.object.userData.qaId ? String(hit.object.userData.qaId) : undefined);
+    const actualOwnerId = hit?.object.userData.qaOwnerId ? String(hit.object.userData.qaOwnerId) : this.resolveProbeOwnerId(actualFirstHitId);
+    const visibleVoid = screenPoint.visible && !hit;
+    const expectedHit = Boolean(actualOwnerId && expectedOwnerIds.includes(actualOwnerId));
+    const grade: AssetQualityGrade = visibleVoid
+      ? 'fail'
+      : expectedHit
+        ? 'pass'
+        : 'review';
+    return {
+      id: `${door.id}:active-camera-probe`,
+      wallLineId,
+      screenshot: this.phase === 'cinematic-focus' ? `focus-${door.id}.png` : 'gameplay-level-one.png',
+      screenRegion,
+      rayOrigin: this.vectorSnapshot(this.camera.position),
+      rayDirection: this.vectorSnapshot(direction),
+      expectedOwnerIds,
+      ...(actualFirstHitId ? { actualFirstHitId } : {}),
+      ...(actualOwnerId ? { actualOwnerId } : {}),
+      ...(hit ? { actualFirstHitDistance: roundMetric(hit.distance) } : {}),
+      visibleVoid,
+      grade,
+      notes: grade === 'pass'
+        ? [`Camera probe through ${door.id} hits ${actualOwnerId} first, proving the active view is blocked by a door/frame/continuity surface.`]
+        : grade === 'review' && !screenPoint.visible
+          ? [`${door.id} probe target is outside the active camera viewport; capture a focused door screenshot for human-visible gap review.`]
+          : grade === 'review'
+            ? [`Camera probe toward ${door.id} is occluded by ${actualOwnerId ?? actualFirstHitId ?? 'another named surface'} before the target; this is not a visible void but still needs focused screenshot review.`]
+          : [`Camera probe expected ${expectedOwnerIds.join('/')} but first hit ${actualOwnerId ?? actualFirstHitId ?? 'nothing'}, so the active view may expose a wrong surface or void.`],
+    };
+  }
+
+  private wallProbeSurfaceObjects(): THREE.Object3D[] {
+    return [
+      ...this.level.walls.map((wall) => this.anchorObjects.get(wall.id)).filter((object): object is THREE.Object3D => Boolean(object)),
+      ...this.doors.flatMap((door) => [
+        this.anchorObjects.get(door.id),
+        this.doorFrameMeshes.get(door.id),
+        this.doorContinuityMeshes.get(door.id),
+      ]).filter((object): object is THREE.Object3D => Boolean(object)),
+    ];
+  }
+
+  private resolveProbeOwnerId(id: string | undefined): string | undefined {
+    if (!id) return undefined;
+    if (this.anchorObjects.has(id) || this.doorFrameMeshes.has(id) || this.doorContinuityMeshes.has(id)) return id;
+    const door = this.doors.find((candidate) => id === candidate.id || id.startsWith(`${candidate.id}:`));
+    if (!door) return id;
+    if (id.includes(':frame')) return `${door.id}:frame`;
+    if (id.includes(':wall-continuity')) return `${door.id}:wall-continuity`;
+    return door.id;
   }
 
   private rectRunAxis(rect: RectSpec): 'x' | 'z' {
@@ -2434,6 +2611,16 @@ export class ShadowRecruitApp {
     };
   }
 
+  private tagQaObject(object: THREE.Object3D, ownerId: string, category: string): void {
+    object.userData.qaOwnerId = ownerId;
+    object.userData.qaCategory = category;
+    object.traverse((child) => {
+      child.userData.qaOwnerId = ownerId;
+      child.userData.qaCategory = category;
+      if (!child.userData.qaId) child.userData.qaId = child.name || ownerId;
+    });
+  }
+
   private minAlong(axis: 'x' | 'z', bounds: Bounds3): number {
     return axis === 'x' ? bounds.min.x : bounds.min.z;
   }
@@ -2613,17 +2800,19 @@ export class ShadowRecruitApp {
         .sort((a, b) => b.screenOccupancy - a.screenOccupancy);
       const screenOccupancy = roundMetric(Math.min(1, objects.reduce((sum, object) => sum + object.screenOccupancy, 0)));
       const tacticalCategoryCount = new Set(objects.map((object) => object.category)).size;
+      const negativeSpaceRatio = roundMetric(Math.max(0, 1 - Math.min(1, screenOccupancy * 3.2 + tacticalCategoryCount * 0.06)));
       const grade: AssetQualityGrade = active &&
         objects.length >= band.minVisibleObjects &&
         tacticalCategoryCount >= band.minTacticalCategories &&
-        screenOccupancy >= band.minScreenOccupancy
+        screenOccupancy >= band.minScreenOccupancy &&
+        negativeSpaceRatio <= band.maxNegativeSpaceRatio
         ? 'pass'
         : 'fail';
       const notes = grade === 'pass'
-        ? [`${band.label} has ${objects.length} visible tactical object(s), ${tacticalCategoryCount} category/categories, and ${formatPercent(screenOccupancy)} screen occupancy from the active gameplay camera.`]
+        ? [`${band.label} has ${objects.length} visible tactical object(s), ${tacticalCategoryCount} category/categories, ${formatPercent(screenOccupancy)} tactical screen occupancy, and controlled negative-space risk of ${formatPercent(negativeSpaceRatio)} from the active gameplay camera.`]
         : [
           `${band.label} is under-dressed from the active gameplay camera.`,
-          `Need ${band.minVisibleObjects}+ objects, ${band.minTacticalCategories}+ tactical categories, and ${formatPercent(band.minScreenOccupancy)} screen occupancy; got ${objects.length}, ${tacticalCategoryCount}, and ${formatPercent(screenOccupancy)}.`,
+          `Need ${band.minVisibleObjects}+ objects, ${band.minTacticalCategories}+ tactical categories, ${formatPercent(band.minScreenOccupancy)} screen occupancy, and <=${formatPercent(band.maxNegativeSpaceRatio)} negative-space risk; got ${objects.length}, ${tacticalCategoryCount}, ${formatPercent(screenOccupancy)}, and ${formatPercent(negativeSpaceRatio)}.`,
         ];
       return {
         id: band.id,
@@ -2634,9 +2823,11 @@ export class ShadowRecruitApp {
         visibleObjectCount: objects.length,
         tacticalCategoryCount,
         screenOccupancy,
+        negativeSpaceRatio,
         minVisibleObjects: band.minVisibleObjects,
         minTacticalCategories: band.minTacticalCategories,
         minScreenOccupancy: band.minScreenOccupancy,
+        maxNegativeSpaceRatio: band.maxNegativeSpaceRatio,
         objects,
         notes,
       };
@@ -2782,6 +2973,7 @@ export class ShadowRecruitApp {
     const heroScreenOccupancy = heroScreenBounds?.areaRatio ?? 0;
     const heroScreenHeightRatio = heroScreenBounds?.heightRatio ?? 0;
     const titleTreatment = this.titleTreatmentState(heroScreenBounds);
+    const identityAnchors = hero ? this.titleIdentityAnchors(hero) : [];
 
     if (hero && heroPosition) {
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hero.quaternion).normalize();
@@ -2794,8 +2986,14 @@ export class ShadowRecruitApp {
     }
 
     const heroVisible = Boolean(hero?.visible);
+    const identityReadable = active &&
+      ['head', 'visor', 'chest'].every((id) => {
+        const anchor = identityAnchors.find((item) => item.id === id);
+        return Boolean(anchor?.visible && !anchor.uiOccluded);
+      });
     const heroReadable = active &&
       heroVisible &&
+      identityReadable &&
       facingDot >= 0.65 &&
       cameraDistance >= 3.2 &&
       cameraDistance <= 8.8 &&
@@ -2807,6 +3005,7 @@ export class ShadowRecruitApp {
         active ? 'Title hero does not meet facing/readability thresholds.' : 'Title composition is not active in the current phase.',
         levelPreviewVisible ? 'Level 1 preview map is visible.' : 'Level 1 preview map is missing from the title scene.',
         titleTreatment.wordmarkReadable ? 'Native title wordmark passes visibility and overlap checks.' : `Native title wordmark needs review: ${titleTreatment.notes.join(' ')}`,
+        identityReadable ? 'Head, visor, and chest anchors are visible and not hidden by UI.' : `Identity anchors need review: ${identityAnchors.map((anchor) => `${anchor.id}=visible:${anchor.visible}/ui:${anchor.uiOccluded}`).join(', ') || 'none'}.`,
         `facingDot=${roundMetric(facingDot)}, cameraDistance=${roundMetric(cameraDistance)}, screenHeight=${roundMetric(heroScreenHeightRatio)}, screenOccupancy=${roundMetric(heroScreenOccupancy)}.`,
       ];
 
@@ -2823,6 +3022,8 @@ export class ShadowRecruitApp {
       orbitRadius: roundMetric(orbitRadius),
       heroScreenOccupancy: roundMetric(heroScreenOccupancy),
       heroScreenHeightRatio: roundMetric(heroScreenHeightRatio),
+      identityReadable,
+      identityAnchors,
       ...(heroPosition ? { heroPosition: this.vectorSnapshot(heroPosition) } : {}),
       ...(heroScreenBounds ? { heroScreenBounds } : {}),
       cameraPosition: this.vectorSnapshot(cameraPosition),
@@ -2877,6 +3078,51 @@ export class ShadowRecruitApp {
     };
   }
 
+  private titleIdentityAnchors(hero: THREE.Object3D): TitleIdentityAnchor[] {
+    const bounds = this.objectBounds(hero);
+    if (!bounds) return [];
+    const centerX = (bounds.min.x + bounds.max.x) / 2;
+    const centerZ = (bounds.min.z + bounds.max.z) / 2;
+    const height = Math.max(0.01, bounds.size.y);
+    const anchorSpecs: readonly { id: TitleIdentityAnchor['id']; label: string; yRatio: number }[] = [
+      { id: 'head', label: 'Head silhouette', yRatio: 0.9 },
+      { id: 'visor', label: 'Face/visor read', yRatio: 0.82 },
+      { id: 'chest', label: 'Chest/gear read', yRatio: 0.58 },
+      { id: 'feet', label: 'Foot grounding', yRatio: 0.04 },
+    ];
+    const uiBounds = [
+      this.overlay.querySelector<HTMLElement>('[data-testid="title-wordmark"]'),
+      this.overlay.querySelector<HTMLElement>('.command-panel'),
+    ].map((element) => element ? this.elementScreenBounds(element) : undefined)
+      .filter((item): item is ScreenBounds => Boolean(item));
+
+    return anchorSpecs.map((spec) => {
+      const world = new THREE.Vector3(centerX, bounds.min.y + height * spec.yRatio, centerZ);
+      const screenPosition = this.projectWorldPoint(world);
+      const uiOccluded = Boolean(screenPosition && uiBounds.some((bounds) => this.screenPointInsideBounds(screenPosition, bounds)));
+      const visible = Boolean(screenPosition?.visible);
+      return {
+        id: spec.id,
+        label: spec.label,
+        source: 'bounds-estimate',
+        worldPosition: this.vectorSnapshot(world),
+        ...(screenPosition ? { screenPosition } : {}),
+        visible,
+        uiOccluded,
+        notes: visible && !uiOccluded
+          ? [`${spec.label} projects into the title screenshot without UI occlusion.`]
+          : [
+            visible ? `${spec.label} projects into the viewport.` : `${spec.label} is outside the title camera view.`,
+            uiOccluded ? `${spec.label} is covered by the title wordmark or command panel.` : `${spec.label} is not covered by title UI.`,
+          ],
+      };
+    });
+  }
+
+  private screenPointInsideBounds(point: ScreenPoint, bounds: ScreenBounds): boolean {
+    return point.x >= bounds.min.x && point.x <= bounds.max.x && point.y >= bounds.min.y && point.y <= bounds.max.y;
+  }
+
   private compactElementText(element: HTMLElement | null): string {
     return (element?.innerText ?? element?.textContent ?? '').replace(/\s+/g, ' ').trim();
   }
@@ -2903,6 +3149,45 @@ export class ShadowRecruitApp {
       widthRatio: roundMetric(visibleWidth / viewportWidth),
       heightRatio: roundMetric(visibleHeight / viewportHeight),
       areaRatio: roundMetric((visibleWidth * visibleHeight) / (viewportWidth * viewportHeight)),
+    };
+  }
+
+  private projectWorldPoint(point: THREE.Vector3): ScreenPoint | undefined {
+    const viewport = this.renderer.getSize(new THREE.Vector2());
+    const width = viewport.x || this.canvas.clientWidth || this.canvas.width;
+    const height = viewport.y || this.canvas.clientHeight || this.canvas.height;
+    if (width <= 0 || height <= 0) return undefined;
+    const projected = point.clone().project(this.camera);
+    if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y) || !Number.isFinite(projected.z)) return undefined;
+    const x = (projected.x * 0.5 + 0.5) * width;
+    const y = (-projected.y * 0.5 + 0.5) * height;
+    return {
+      x: roundMetric(clamp(x, 0, width)),
+      y: roundMetric(clamp(y, 0, height)),
+      visible: projected.z >= -1 && projected.z <= 1 && x >= 0 && x <= width && y >= 0 && y <= height,
+      viewport: { width: roundMetric(width), height: roundMetric(height) },
+    };
+  }
+
+  private screenPointRegion(point: ScreenPoint, size = 12): ScreenBounds {
+    const width = point.viewport.width;
+    const height = point.viewport.height;
+    const half = size / 2;
+    const minX = clamp(point.x - half, 0, width);
+    const minY = clamp(point.y - half, 0, height);
+    const maxX = clamp(point.x + half, 0, width);
+    const maxY = clamp(point.y + half, 0, height);
+    const visibleWidth = Math.max(0, maxX - minX);
+    const visibleHeight = Math.max(0, maxY - minY);
+    return {
+      min: { x: roundMetric(minX), y: roundMetric(minY) },
+      max: { x: roundMetric(maxX), y: roundMetric(maxY) },
+      size: { x: roundMetric(visibleWidth), y: roundMetric(visibleHeight) },
+      center: { x: roundMetric(minX + visibleWidth / 2), y: roundMetric(minY + visibleHeight / 2) },
+      viewport: point.viewport,
+      widthRatio: roundMetric(visibleWidth / Math.max(1, width)),
+      heightRatio: roundMetric(visibleHeight / Math.max(1, height)),
+      areaRatio: roundMetric((visibleWidth * visibleHeight) / Math.max(1, width * height)),
     };
   }
 
