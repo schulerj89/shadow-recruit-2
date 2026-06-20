@@ -36,6 +36,7 @@ Every browser smoke should define:
 - Wait for app readiness through a debug hook, not arbitrary sleeps.
 - Assert canvas is nonblank before relying on screenshots.
 - Assert scene state through exposed debug APIs: phase, level, player position, enemies, assets, errors, renderer metrics.
+- Assert coordinate-backed QA state through exposed debug APIs when screenshots cover walls, doors, title hero staging, object grounding, or level density. The captured state should include stable object IDs, world-space bounds, wall-run interval ledgers, door open/closed priority surfaces, title camera/hero facing metrics, projected hero bounds, and per-zone density data.
 - Assert frame pacing or an explicit performance profile for gameplay scenes.
 - Exercise reset/retry/load transitions for any feature that allocates resources.
 - Use headed visible-browser runs for frame pacing when needed; use headless for deterministic functional smoke.
@@ -47,6 +48,8 @@ Every browser smoke should define:
 - Mask or disable volatile regions such as FPS counters, timers, random particles, or cursor hover.
 - For WebGL screenshots, also check pixel histogram or nonblank ratio so black/transparent canvases fail quickly.
 - Keep screenshots named by feature, viewport, and state.
+- Pair defect-prone screenshots with JSON evidence. Door-focus captures should include the matching wall-run ledger; title captures should include hero facing and projection metrics; gameplay density captures should include zone IDs, footprint counts, and sparse-region coordinates.
+- Add targeted debug-overlay captures when the normal camera cannot make a coordinate defect visible. The overlay should make bounds, intervals, floor-contact planes, and sparse zones readable without replacing the normal gameplay screenshot.
 
 ## Accessibility And Input QA
 

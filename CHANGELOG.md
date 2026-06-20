@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.14.1 - 2026-06-20
+
+### Patch
+
+- Tightened the game tester, game designer, and QA automation skills so door gaps between doors, title heroes looking away from camera, flat material reads, and empty AAA-level spaces require screenshot, coordinate, projection, asset-provenance, and density evidence before passing.
+
 ## 0.14.0 - 2026-06-20
 
 ### Minor

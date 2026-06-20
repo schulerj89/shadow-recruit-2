@@ -1,4 +1,4 @@
 interface:
   display_name: "Shadow Recruit Game Tester"
-  short_description: "Fuses screenshots, coordinates, assets, and density"
-  default_prompt: "Use $shadow-recruit-game-tester to play Shadow Recruit 2 with npm run tester:play, then review screenshots, smoke results, FPS metrics, playthrough artifacts, screenshot-to-coordinate wall-run gaps, title hero facing/projection evidence, asset grades, and AAA level-density scorecards."
+  short_description: "Fuses screenshots, coordinates, projection, and density"
+  default_prompt: "Use $shadow-recruit-game-tester to play Shadow Recruit 2 with npm run tester:play, then review screenshots, smoke results, FPS metrics, playthrough artifacts, wall-run interval ledgers, door-to-door coordinate gaps, title hero facing/projection evidence, asset/texture grades, and AAA level-density scorecards."
