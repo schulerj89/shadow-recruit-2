@@ -22,7 +22,7 @@ Use a manifest before spending Meshy or Tripo credits. Keep it non-secret and co
       "origin": "bottom-center",
       "scaleMeters": 1.6,
       "runtimePath": "public/assets/blacksite-props/security-terminal-a.glb",
-      "notes": "Required objective prop; keep procedural fallback."
+      "notes": "Required objective prop; fail QA if the GLB is missing or replaced by a visible primitive stand-in."
     }
   ]
 }

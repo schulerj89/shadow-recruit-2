@@ -7,6 +7,8 @@ import signalWardenRunUrl from '../assets/hero/hero_3/Meshy_AI_a_small_tactical_
 import circuitNomadIdleUrl from '../assets/hero/hero_4/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb?url';
 import circuitNomadRunUrl from '../assets/hero/hero_4/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb?url';
 
+const seedAssetNote = 'Hash-matched against the local Shadow Circuit seed asset during the v0.13.4 provenance audit.';
+
 export const heroOptions = [
   {
     id: 'shadow-operative',
@@ -16,6 +18,10 @@ export const heroOptions = [
     accentColor: '#53ffe2',
     idleUrl: shadowOperativeIdleUrl,
     runUrl: shadowOperativeRunUrl,
+    idlePath: 'src/assets/hero/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb',
+    runPath: 'src/assets/hero/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb',
+    provenance: 'sneak-game-seed',
+    provenanceNotes: [seedAssetNote],
   },
   {
     id: 'echo-vanguard',
@@ -25,6 +31,10 @@ export const heroOptions = [
     accentColor: '#7dfcc6',
     idleUrl: echoVanguardIdleUrl,
     runUrl: echoVanguardRunUrl,
+    idlePath: 'src/assets/hero/hero_2/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb',
+    runPath: 'src/assets/hero/hero_2/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb',
+    provenance: 'sneak-game-seed',
+    provenanceNotes: [seedAssetNote],
   },
   {
     id: 'signal-warden',
@@ -34,6 +44,10 @@ export const heroOptions = [
     accentColor: '#5ad7ff',
     idleUrl: signalWardenIdleUrl,
     runUrl: signalWardenRunUrl,
+    idlePath: 'src/assets/hero/hero_3/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb',
+    runPath: 'src/assets/hero/hero_3/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb',
+    provenance: 'sneak-game-seed',
+    provenanceNotes: [seedAssetNote],
   },
   {
     id: 'circuit-nomad',
@@ -43,6 +57,10 @@ export const heroOptions = [
     accentColor: '#ffd45a',
     idleUrl: circuitNomadIdleUrl,
     runUrl: circuitNomadRunUrl,
+    idlePath: 'src/assets/hero/hero_4/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Idle_3_withSkin.glb',
+    runPath: 'src/assets/hero/hero_4/Meshy_AI_a_small_tactical_chib_biped/Meshy_AI_a_small_tactical_chib_biped_Animation_Run_02_withSkin.glb',
+    provenance: 'sneak-game-seed',
+    provenanceNotes: [seedAssetNote],
   },
 ] as const;
 

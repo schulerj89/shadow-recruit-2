@@ -145,6 +145,31 @@ export type RendererMetrics = {
   pixelRatio: number;
 };
 
+export type RuntimeAssetKind = 'hero' | 'enemy' | 'objective' | 'set-dressing';
+export type RuntimeAssetRequirement = 'required' | 'optional';
+export type RuntimeAssetSource = 'sneak-game-seed' | 'repo-generated-glb';
+export type RuntimeAssetFallbackPolicy = 'required-error' | 'optional-omit';
+
+export type RuntimeAssetManifestEntry = {
+  id: string;
+  label: string;
+  kind: RuntimeAssetKind;
+  requirement: RuntimeAssetRequirement;
+  source: RuntimeAssetSource;
+  path: string;
+  expectedFormat: 'glb';
+  fallbackPolicy: RuntimeAssetFallbackPolicy;
+  notes: readonly string[];
+};
+
+export type RuntimeAssetAudit = RuntimeAssetManifestEntry & {
+  loaded: boolean;
+  failed: boolean;
+  failure?: string;
+  fallbackVisible: boolean;
+  grade: AssetQualityGrade;
+};
+
 export type MemoryMetrics = {
   runtimeObjects: number;
   loadedAssets: number;
@@ -152,6 +177,7 @@ export type MemoryMetrics = {
   staticAssets: number;
   loadedAssetIds: readonly string[];
   failedAssetIds: readonly string[];
+  assetAudit: readonly RuntimeAssetAudit[];
 };
 
 export type AssetQualityGrade = 'pass' | 'review' | 'fail';

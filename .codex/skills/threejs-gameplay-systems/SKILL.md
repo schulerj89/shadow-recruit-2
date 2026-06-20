@@ -43,7 +43,7 @@ Start every gameplay change by defining:
 - Stop and uncache animation actions when actors unload.
 - Keep camera collision and player collision separate from visual clipping.
 - Budget raycasts by purpose and frequency; broad AI awareness should use cheap spatial checks before line-of-sight rays.
-- Keep gameplay fallbacks when high-end GLB assets fail to load.
+- Keep gameplay state recoverable when high-end GLB assets fail to load, but surface the asset failure through QA/debug state. Do not let a production primitive stand-in pass as the intended Shadow Recruit GLB.
 - Do not rely on glTF animation auto-start. Select clips deliberately and map them to gameplay state names.
 - Keep root motion policy explicit: either consume root motion into gameplay movement or strip/ignore it and drive motion from simulation.
 

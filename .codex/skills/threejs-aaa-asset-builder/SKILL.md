@@ -7,7 +7,7 @@ description: Build game-ready Three.js GLB asset pipelines with Meshy, Tripo, gl
 
 ## Production Goal
 
-Use this skill to turn art direction into runtime-safe GLB assets. Favor reusable, validated GLB files with metadata, primitive fallbacks, and loader support over one-off meshes hidden inside scene code.
+Use this skill to turn art direction into runtime-safe GLB assets. Favor reusable, validated GLB files with metadata, explicit provenance, loader support, and no visible primitive stand-ins over one-off meshes hidden inside scene code.
 
 ## Credential Handling
 
@@ -42,7 +42,7 @@ Use `$threejs-image-generator` first when a strong source plate, turnaround, or 
 6. Store final runtime assets under a stable path such as `public/assets/<kit>/<asset-id>.glb` or the repo's existing runtime asset folder.
 7. Store non-secret provider task metadata under `tools/<provider>/generated/<kit>/<asset-id>.json`.
 8. Add or update a typed asset registry instead of scattering string URLs through gameplay code.
-9. Validate in the browser with screenshots, animation playback, fallback behavior, renderer metrics, and memory scan.
+9. Validate in the browser with screenshots, animation playback, no-visible-fallback behavior, renderer metrics, and memory scan.
 
 ## AAA Environment Dressing
 
@@ -65,7 +65,7 @@ Use this section when a large level reads as empty or blockout-quality:
 - Use low-poly or remesh controls for repeated assets and mobile-visible actors.
 - For humanoids, require clean pose, rig-check, skeleton metadata, and a minimal locomotion set before runtime integration.
 - For retargeting, verify bind pose, scale, bone naming, foot contact, root motion policy, and loop seams.
-- Keep primitive or procedural fallbacks for required gameplay objects.
+- For Shadow Recruit production builds, do not approve visible primitive or procedural stand-ins for required gameplay objects. Required GLBs should load through the asset registry or fail QA loudly; optional dressing may be omitted with diagnostics, but the tester must not treat an omitted or placeholder prop as AAA-ready.
 - Validate vertex count, material count, texture dimensions, animation clip names, skeleton count, morph targets, and node hierarchy before accepting a GLB.
 - Keep pivots consistent: props usually bottom-center or interaction point; characters at ground contact between feet; doors/gates at hinge or path origin.
 - Freeze naming contracts for nodes, clips, sockets, and attachment points before gameplay code depends on them.
@@ -75,7 +75,7 @@ Use this section when a large level reads as empty or blockout-quality:
 Accept a generated GLB only when:
 
 - It loads through the project GLTFLoader path without console errors.
-- It has a documented runtime path, source prompt/reference, provider, task metadata, license/provenance, budget, and fallback.
+- It has a documented runtime path, source prompt/reference, provider, task metadata, license/provenance, budget, and explicit no-visible-fallback or authored replacement policy.
 - It renders correctly in the gameplay camera and in a close-up debug viewer.
 - Required animations loop or transition cleanly and match gameplay root-motion policy.
 - Collision proxies, interaction bounds, and nav blockers are authored outside the render mesh.

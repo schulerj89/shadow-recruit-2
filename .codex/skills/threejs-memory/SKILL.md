@@ -50,7 +50,7 @@ Do not declare a memory fix complete until repeated load/reset/unload cycles ret
 - KTX2/Basis textures can reduce GPU texture memory and bandwidth compared with PNG/JPEG runtime uploads.
 - Mipmaps add memory overhead but usually improve 3D texture sampling and distant rendering quality.
 - Large generated images should be resized or compressed before runtime use.
-- Required gameplay assets need primitive fallbacks so cinematic assets can fail or unload gracefully.
+- In Shadow Recruit production builds, required gameplay GLBs need fail-fast/no-visible-fallback QA or authored GLB replacements. Optional dressing may omit itself with diagnostics, but visible primitive stand-ins should fail the asset-quality gate instead of masking missing art.
 - Prefer KTX2/Basis for repeated runtime textures and documentation-only webp/jpeg for non-runtime images.
 - Treat render target size as width x height x channels x bytes x samples x history buffers; post stacks can exceed asset memory quickly.
 - Reject asset payloads that meet file-size limits but break the visible 60 FPS gameplay path after decode, upload, animation, or postprocessing.

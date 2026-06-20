@@ -537,8 +537,9 @@ export class ShadowRecruitApp {
     return mesh;
   }
 
-  private addSetDressing(rect: SetDressingDefinition): THREE.Object3D {
+  private addSetDressing(rect: SetDressingDefinition): THREE.Object3D | null {
     const object = this.assets.createSetDressing(rect.asset, rect.id);
+    if (!object) return null;
     this.fitObjectToRect(object, rect);
     this.applyObjectQuality(object);
     this.scene.add(object);
@@ -1634,9 +1635,20 @@ export class ShadowRecruitApp {
   }
 
   private memoryMetrics(): MemoryMetrics {
+    const visibleFallbackAssetIds = new Set(
+      this.runtimeObjects
+        .map(({ object }) => object)
+        .filter((object) => object.visible && object.userData.missingAsset === true)
+        .map((object) => String(object.userData.assetId ?? object.name)),
+    );
     return {
       runtimeObjects: this.runtimeObjects.length,
       ...this.assets.metrics(),
+      assetAudit: this.assets.assetAudit(
+        this.selectedHero,
+        this.level.setDressing.map((item) => item.asset),
+        visibleFallbackAssetIds,
+      ),
     };
   }
 

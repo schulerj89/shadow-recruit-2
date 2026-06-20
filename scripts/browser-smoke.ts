@@ -8,6 +8,17 @@ const baseUrl = process.env.SMOKE_URL ?? 'http://127.0.0.1:5173/';
 const screenshotDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
 const headless = process.env.SMOKE_HEADLESS !== 'false';
 
+type RuntimeAssetAuditState = {
+  id: string;
+  source: string;
+  path: string;
+  expectedFormat: string;
+  loaded: boolean;
+  failed: boolean;
+  fallbackVisible: boolean;
+  grade: string;
+};
+
 const browser = await chromium.launch({ headless });
 const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: 1 });
 const logs: string[] = [];
@@ -178,6 +189,25 @@ try {
     !state.memory.loadedAssetIds.includes('extraction-beacon')
   ) {
     throw new Error(`Expected loaded GLB asset metrics, got ${JSON.stringify(state.memory)}`);
+  }
+  const requiredAuditIds = [
+    'hero:echo-vanguard',
+    'sentry',
+    'keycard',
+    'terminal',
+    'codes',
+    'cable-tray',
+    'wall-machinery',
+    'extraction-beacon',
+  ];
+  const assetAudit = (state.memory.assetAudit ?? []) as readonly RuntimeAssetAuditState[];
+  if (
+    assetAudit.length < requiredAuditIds.length ||
+    requiredAuditIds.some((id) => !assetAudit.some((asset) => asset.id === id && asset.loaded && asset.grade === 'pass')) ||
+    assetAudit.some((asset) => asset.failed || asset.fallbackVisible || asset.expectedFormat !== 'glb' || !asset.path.includes('.glb')) ||
+    assetAudit.some((asset) => !['sneak-game-seed', 'repo-generated-glb'].includes(asset.source))
+  ) {
+    throw new Error(`Expected explicit GLB provenance audit with no visible fallbacks, got ${JSON.stringify(assetAudit)}`);
   }
   if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {
     throw new Error(`Expected coordinate geometry diagnostics for doors and scene objects, got ${JSON.stringify(state.geometry)}`);

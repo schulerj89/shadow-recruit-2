@@ -20,6 +20,7 @@ Required evidence:
 - A screenshot-to-coordinate ledger for every visual complaint. Each row must name the screenshot, visible issue, runtime object IDs, authored IDs, min/max edges, gap/overlap width, and open/closed state.
 - Coordinate proof for anything that looks like a wall gap between doors, a broken door opening, a buried/hovering asset, or a title hero facing problem. Screenshots discover the defect, but coordinate/projection data decides whether it passes.
 - Asset-quality diagnostics covering floor/wall meshes, generated-image texture quality, wall-door seams and gaps, door-over-wall visual priority, objective models, sentries, door panels, extraction marker, and hero placement.
+- Runtime asset provenance diagnostics for active hero, sentry, objectives, and set-dressing kits. The tester must see the intended GLB path, source/provenance, requirement level, load status, fallback policy, and whether any visible primitive or placeholder stand-in exists.
 - Per-zone or whole-level density diagnostics with floor area, cover/blocker footprint, set-dressing footprint, landmark/interactable counts, repeated-material exposure, and sparse coordinate regions.
 - Frame pacing metrics for gameplay changes.
 - Any console/page errors.
@@ -33,6 +34,7 @@ Report in this order:
 - **P1 coordinate/readability failures:** screenshot-visible wall gaps, door openings, floating or buried assets, or suspicious seams must be cross-checked against coordinates. Fail when door extents, wall segment endpoints, frame bounds, or continuity mesh bounds leave a positive unintentional gap beyond tolerance, even if the screenshot is ambiguous.
 - **P1 wall-run failures:** fail any wall line where the sorted interval ledger shows a positive unowned span between nearby doors, adjacent wall segments, frame returns, or continuity/back-wall pieces. This includes spans between two door openings, not only gaps immediately beside one door.
 - **P1 asset failures:** missing required GLB/model, invisible objective, sentry below/inside ground, unclear extraction marker, missing or corrupted door panel texture, obvious holes/gaps at wall-door seams, broken wall/floor mesh, door openings that lack wall/portal continuity when the door is open, or title hero staging that shows the back/side so strongly that the player cannot read the recruit's face, suit, or silhouette.
+- **P1 provenance/fallback failures:** missing runtime asset audit, unknown source/provenance, non-GLB path for hero/sentry/objective/set-dressing assets, failed load status, or any visible primitive/placeholder fallback standing in for a required Shadow Recruit asset.
 - **P1 instrumentation failures:** missing world bounds, missing wall-run ledgers, missing title hero facing vectors, missing screen-space hero occupancy, or missing per-zone density numbers are test failures when the screenshot raises that class of concern. Do not convert missing data into a pass.
 - **P1 performance:** no visible 60 FPS path, high p95 frame time, excessive draw calls, frame spikes after loading/unlock.
 - **P1 AAA environment gaps:** a large level with mostly empty floor, repeated bare walls, no readable cover/dressing/landmarks, or missing tactical props is not AAA-quality just because the level is big. Fail sparse rooms and corridors when asset density, material variation, lighting detail, and gameplay dressing do not support the infiltration fantasy from the active gameplay camera.
@@ -110,6 +112,7 @@ Use this stricter ledger when a screenshot shows gaps between doors or between w
 Never let visual review and coordinate review run as separate approvals:
 
 - When a screenshot suggests a gap, overlap, buried asset, floating asset, empty room, or title-camera mistake, the report must pair the screenshot name with the matching runtime object IDs and min/max coordinates.
+- When a screenshot shows a prop, character, objective, or dressing object, the report must pair the visual asset with runtime provenance. A visible box/capsule/placeholder is not acceptable evidence for a loaded GLB unless the manifest explicitly declares that authored replacement and QA grades it as final art.
 - When coordinates show a defect that the screenshot angle hides, still fail it and request a QA screenshot from a better camera or debug overlay. A defect does not become acceptable because the default camera missed it.
 - For door priority, capture or inspect both open and closed states. The tester must confirm that an open sliding door visually overrides the wall/portal surface without leaving a hole, and that the closed door does not hide missing surrounding wall geometry.
 - For title screens, inspect the screenshot plus camera target, hero world position, and hero forward/rotation data when exposed. Fail if the torso/head/visor points mostly away from the camera, if the hero-to-camera facing dot is below the project readability threshold, or if the camera is so distant that the recruit identity is unreadable.
@@ -150,6 +153,7 @@ Tester Feedback
 - Coordinate QA: wall-door bounds, seam/gap edge deltas, frame/continuity mesh bounds, grounded object bounds, title hero orientation, and any missing debug instrumentation.
 - Wall-run interval QA: sorted interval ledger per interrupted wall line, adjacent interval gaps, door-to-door spans, and whether every positive span is owned by a wall, frame, return, continuity mesh, or door surface.
 - Asset grading: wall/floor mesh quality, generated wall/floor/object texture richness, material variation, AAA prop density, empty-space ratio, door-wall seam/gap quality, whether a wall/portal still visually exists behind an opening door, objective-model clarity, terminal/keycard/codes readability, extraction visibility, sentry grounding, door-panel texture clarity.
+- Runtime asset provenance: active GLB ids, paths, source/provenance, load/failure status, fallback policy, and visible placeholder/fallback count.
 - Control/camera feel.
 - Objective clarity.
 - Threat clarity.

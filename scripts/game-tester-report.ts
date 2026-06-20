@@ -54,7 +54,14 @@ type Metrics = {
     geometries: number;
     textures: number;
   };
-  memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[]; failedAssetIds?: readonly string[] };
+  memory?: {
+    loadedAssets: number;
+    characterAssets: number;
+    staticAssets: number;
+    loadedAssetIds: readonly string[];
+    failedAssetIds?: readonly string[];
+    assetAudit?: readonly RuntimeAssetAudit[];
+  };
   audio?: AudioState;
   assetQuality?: readonly AssetQualityCheck[];
   geometry?: GeometryDiagnostics;
@@ -157,6 +164,23 @@ type AssetQualityCheck = {
   grounded: boolean;
   position?: { x: number; y: number; z: number };
   bounds?: { minY: number; maxY: number; height: number; width?: number; depth?: number };
+  notes: readonly string[];
+};
+
+type RuntimeAssetAudit = {
+  id: string;
+  label: string;
+  kind: string;
+  requirement: 'required' | 'optional';
+  source: string;
+  path: string;
+  expectedFormat: string;
+  fallbackPolicy: string;
+  loaded: boolean;
+  failed: boolean;
+  failure?: string;
+  fallbackVisible: boolean;
+  grade: 'pass' | 'review' | 'fail';
   notes: readonly string[];
 };
 
@@ -283,6 +307,7 @@ const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
 const renderer = metrics?.renderer;
 const memory = metrics?.memory;
+const assetAudit = memory?.assetAudit ?? [];
 const assetQuality = metrics?.assetQuality ?? [];
 const geometry = metrics?.geometry ?? (playthrough?.finalState?.geometry as GeometryDiagnostics | undefined);
 const loading = metrics?.loading ?? (playthrough?.finalState?.loading as LoadingState | undefined);
@@ -291,6 +316,7 @@ const metricAudio = metrics?.audio;
 const completionAudio = playthrough?.finalState?.audio as AudioState | undefined;
 const playthroughSettings = playthrough?.finalState?.settings as { debug: boolean; muted: boolean; performanceProfile: string } | undefined;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
+const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
@@ -324,6 +350,7 @@ Date: ${date}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
+- Runtime asset audit: ${assetAudit.length > 0 ? describeAssetAuditSummary(assetAudit) : 'not captured'}
 - Audio state: gameplay metrics=${formatAudioState(metricAudio)}; completion playthrough=${formatAudioState(completionAudio)}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
@@ -350,6 +377,10 @@ ${formatWallRunContinuity(geometry)}
 
 ${formatAssetGrades(assetQuality)}
 
+## Runtime Asset Provenance
+
+${formatAssetAudit(assetAudit)}
+
 ## Screenshot Coverage
 
 ${formatScreenshotCoverage(screenshotCoverage)}
@@ -372,6 +403,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 ${frameFinding}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
+${assetAuditFindings}
 ${tutorialFindings}
 ${assetFindings}
 ${titleFindings}
@@ -423,6 +455,45 @@ function formatAssetGrades(checks: readonly AssetQualityCheck[]): string {
       : '';
     return `- ${check.grade.toUpperCase()} ${check.category}/${check.id}: ${check.label}; visible=${check.visible}; grounded=${check.grounded}.${placement} ${check.notes.join(' ')}`;
   }).join('\n');
+}
+
+function describeAssetAuditSummary(checks: readonly RuntimeAssetAudit[]): string {
+  const pass = checks.filter((check) => check.grade === 'pass').length;
+  const review = checks.filter((check) => check.grade === 'review').length;
+  const fail = checks.filter((check) => check.grade === 'fail').length;
+  const visibleFallbacks = checks.filter((check) => check.fallbackVisible).length;
+  const sources = [...new Set(checks.map((check) => check.source))].sort().join(', ');
+  return `${pass} pass, ${review} review, ${fail} fail; visibleFallbacks=${visibleFallbacks}; sources=${sources}`;
+}
+
+function formatAssetAudit(checks: readonly RuntimeAssetAudit[]): string {
+  if (checks.length === 0) return '- Runtime asset provenance audit not captured.';
+  return checks.map((check) => {
+    const failure = check.failure ? ` failure="${check.failure}"` : '';
+    return `- ${check.grade.toUpperCase()} ${check.kind}/${check.id}: ${check.label}; requirement=${check.requirement}; source=${check.source}; format=${check.expectedFormat}; loaded=${check.loaded}; failed=${check.failed}; fallbackVisible=${check.fallbackVisible}; policy=${check.fallbackPolicy}; path=${check.path}.${failure} ${check.notes.join(' ')}`;
+  }).join('\n');
+}
+
+function describeAssetAuditFindings(checks: readonly RuntimeAssetAudit[]): string {
+  if (checks.length === 0) {
+    return '- P1: Runtime asset provenance audit missing; tester cannot prove GLB source, load state, or no-visible-fallback policy.';
+  }
+  const findings: string[] = [];
+  for (const check of checks) {
+    if (check.expectedFormat !== 'glb' || !check.path.includes('.glb')) {
+      findings.push(`- P1: Runtime asset ${check.id} does not prove a GLB path: format=${check.expectedFormat}; path=${check.path}.`);
+    }
+    if (check.source !== 'sneak-game-seed' && check.source !== 'repo-generated-glb') {
+      findings.push(`- P1: Runtime asset ${check.id} lacks accepted provenance: source=${check.source}.`);
+    }
+    if (!check.loaded || check.failed || check.grade !== 'pass') {
+      findings.push(`- P1: Runtime asset ${check.id} failed provenance/load QA: loaded=${check.loaded}; failed=${check.failed}; grade=${check.grade}; ${check.notes.join(' ')}`);
+    }
+    if (check.fallbackVisible) {
+      findings.push(`- P1: Runtime asset ${check.id} has a visible fallback or placeholder. Replace it with the intended GLB or fail the build.`);
+    }
+  }
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated runtime asset provenance audit.';
 }
 
 function describeTutorialSummary(checks: readonly TutorialAlignmentCheck[]): string {

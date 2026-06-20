@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.13.4 - 2026-06-20
+
+### Patch
+
+- Added runtime asset provenance/no-visible-fallback diagnostics for active GLB hero, sentry, objective, and set-dressing assets, plus tester-report and browser-smoke gates that fail missing GLBs, unknown sources, or visible placeholder stand-ins.
+- Aligned gameplay, memory, asset-builder, and game-tester skills so Shadow Recruit QA treats production primitive stand-ins as failures instead of acceptable AAA assets.
+
 ## 0.13.3 - 2026-06-20
 
 ### Patch

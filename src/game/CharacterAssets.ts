@@ -8,7 +8,13 @@ import commandCodesUrl from '../assets/objectives/command-codes-cinematic.glb?ur
 import keycardUrl from '../assets/objectives/keycard-cinematic.glb?url';
 import terminalUrl from '../assets/objectives/terminal-cinematic.glb?url';
 import { heroOptionById, type HeroId } from './heroes';
-import type { MemoryMetrics, ObjectiveAssetId, SetDressingAssetId } from './types';
+import type {
+  MemoryMetrics,
+  ObjectiveAssetId,
+  RuntimeAssetAudit,
+  RuntimeAssetManifestEntry,
+  SetDressingAssetId,
+} from './types';
 
 type Gltf = { scene: THREE.Group; animations: THREE.AnimationClip[] };
 type RuntimeGltfLoader = { loadAsync: (url: string) => Promise<Gltf> };
@@ -26,6 +32,102 @@ type CharacterAsset = {
 };
 
 type StaticAssetId = ObjectiveAssetId | SetDressingAssetId;
+
+const sentryAssetManifest: RuntimeAssetManifestEntry = {
+  id: 'sentry',
+  label: 'Enemy sentry',
+  kind: 'enemy',
+  requirement: 'required',
+  source: 'sneak-game-seed',
+  path: 'src/assets/characters/sentry/enemy_sentry.glb',
+  expectedFormat: 'glb',
+  fallbackPolicy: 'required-error',
+  notes: [
+    'Hash-matched against the local Shadow Circuit sentry seed asset during the v0.13.4 provenance audit.',
+    'Required enemy model; QA must fail load or grounding issues instead of accepting primitive stand-ins.',
+  ],
+};
+
+const objectiveAssetManifests: Record<ObjectiveAssetId, RuntimeAssetManifestEntry> = {
+  keycard: {
+    id: 'keycard',
+    label: 'Access keycard objective',
+    kind: 'objective',
+    requirement: 'required',
+    source: 'sneak-game-seed',
+    path: 'src/assets/objectives/keycard-cinematic.glb',
+    expectedFormat: 'glb',
+    fallbackPolicy: 'required-error',
+    notes: [
+      'Hash-matched against the local Shadow Circuit keycard seed asset during the v0.13.4 provenance audit.',
+      'Required objective model; QA must fail missing or unreadable runtime geometry.',
+    ],
+  },
+  terminal: {
+    id: 'terminal',
+    label: 'Security terminal objective',
+    kind: 'objective',
+    requirement: 'required',
+    source: 'sneak-game-seed',
+    path: 'src/assets/objectives/terminal-cinematic.glb',
+    expectedFormat: 'glb',
+    fallbackPolicy: 'required-error',
+    notes: [
+      'Hash-matched against the local Shadow Circuit terminal seed asset during the v0.13.4 provenance audit.',
+      'Required objective model; QA must fail missing or unreadable runtime geometry.',
+    ],
+  },
+  codes: {
+    id: 'codes',
+    label: 'Command codes objective',
+    kind: 'objective',
+    requirement: 'required',
+    source: 'repo-generated-glb',
+    path: 'src/assets/objectives/command-codes-cinematic.glb',
+    expectedFormat: 'glb',
+    fallbackPolicy: 'required-error',
+    notes: [
+      'Repo-generated cinematic command-codes GLB.',
+      'Required objective model; QA must fail missing or unreadable runtime geometry.',
+    ],
+  },
+};
+
+const setDressingAssetManifests: Record<SetDressingAssetId, RuntimeAssetManifestEntry> = {
+  'cable-tray': {
+    id: 'cable-tray',
+    label: 'Cable tray dressing kit',
+    kind: 'set-dressing',
+    requirement: 'optional',
+    source: 'repo-generated-glb',
+    path: 'src/assets/environment/cable-tray-kit.glb',
+    expectedFormat: 'glb',
+    fallbackPolicy: 'optional-omit',
+    notes: ['Repo-generated modular GLB kit for tactical cable and floor dressing.'],
+  },
+  'wall-machinery': {
+    id: 'wall-machinery',
+    label: 'Wall machinery dressing kit',
+    kind: 'set-dressing',
+    requirement: 'optional',
+    source: 'repo-generated-glb',
+    path: 'src/assets/environment/wall-machinery-kit.glb',
+    expectedFormat: 'glb',
+    fallbackPolicy: 'optional-omit',
+    notes: ['Repo-generated modular GLB kit for machinery, vents, and wall silhouette breaks.'],
+  },
+  'extraction-beacon': {
+    id: 'extraction-beacon',
+    label: 'Extraction beacon dressing kit',
+    kind: 'set-dressing',
+    requirement: 'optional',
+    source: 'repo-generated-glb',
+    path: 'src/assets/environment/extraction-beacon-kit.glb',
+    expectedFormat: 'glb',
+    fallbackPolicy: 'optional-omit',
+    notes: ['Repo-generated modular GLB kit for extraction staging and green beacon readability.'],
+  },
+};
 
 export type CharacterInstance = {
   object: THREE.Object3D;
@@ -154,16 +256,9 @@ export class AssetLibrary {
     return this.createStatic(assetId, name);
   }
 
-  createSetDressing(assetId: SetDressingAssetId, name: string): THREE.Object3D {
+  createSetDressing(assetId: SetDressingAssetId, name: string): THREE.Object3D | null {
     const source = this.staticAssets.get(assetId);
-    if (!source) {
-      const object = new THREE.Group();
-      object.name = name;
-      object.visible = false;
-      object.userData.assetId = assetId;
-      object.userData.missingAsset = true;
-      return object;
-    }
+    if (!source) return null;
     return this.createStatic(assetId, name);
   }
 
@@ -192,7 +287,7 @@ export class AssetLibrary {
     this.staticAssets.clear();
   }
 
-  metrics(): Omit<MemoryMetrics, 'runtimeObjects'> {
+  metrics(): Omit<MemoryMetrics, 'runtimeObjects' | 'assetAudit'> {
     const characterAssetIds = [...this.characterAssets.keys()].sort();
     const staticAssetIds = [...this.staticAssets.keys()].sort();
     const failedAssetIds = [...this.staticAssetFailures.keys()].sort();
@@ -203,6 +298,23 @@ export class AssetLibrary {
       loadedAssetIds: [...characterAssetIds, ...staticAssetIds],
       failedAssetIds,
     };
+  }
+
+  assetAudit(
+    heroId: HeroId,
+    activeSetDressingAssetIds: readonly SetDressingAssetId[],
+    visibleFallbackAssetIds: ReadonlySet<string> = new Set(),
+  ): readonly RuntimeAssetAudit[] {
+    const setDressingEntries = [...new Set(activeSetDressingAssetIds)]
+      .sort()
+      .map((assetId) => setDressingAssetManifests[assetId]);
+    const entries = [
+      heroAssetManifest(heroId),
+      sentryAssetManifest,
+      ...Object.values(objectiveAssetManifests),
+      ...setDressingEntries,
+    ];
+    return entries.map((entry) => this.auditManifestEntry(entry, visibleFallbackAssetIds));
   }
 
   isStaticLoaded(assetId: StaticAssetId): boolean {
@@ -252,10 +364,61 @@ export class AssetLibrary {
     this.loaderPromise ??= import('three/examples/jsm/loaders/GLTFLoader.js').then(({ GLTFLoader }) => new GLTFLoader());
     return this.loaderPromise;
   }
+
+  private auditManifestEntry(
+    entry: RuntimeAssetManifestEntry,
+    visibleFallbackAssetIds: ReadonlySet<string>,
+  ): RuntimeAssetAudit {
+    const loaded = entry.kind === 'hero' || entry.kind === 'enemy'
+      ? this.characterAssets.has(entry.id)
+      : this.staticAssets.has(entry.id as StaticAssetId);
+    const failure = entry.kind === 'objective' || entry.kind === 'set-dressing'
+      ? this.staticAssetFailures.get(entry.id as StaticAssetId)
+      : undefined;
+    const fallbackVisible = visibleFallbackAssetIds.has(entry.id);
+    const failed = !loaded || Boolean(failure) || fallbackVisible;
+    const notes = [
+      ...entry.notes,
+      loaded
+        ? 'Loaded through the runtime GLTFLoader asset path.'
+        : 'Runtime GLB is not loaded; tester must fail this asset instead of accepting a primitive stand-in.',
+      fallbackVisible
+        ? 'Visible primitive or placeholder fallback detected in the scene.'
+        : 'No visible primitive or placeholder fallback is reported for this asset ID.',
+    ];
+    return {
+      ...entry,
+      loaded,
+      failed,
+      ...(failure ? { failure } : {}),
+      fallbackVisible,
+      grade: failed ? 'fail' : 'pass',
+      notes,
+    };
+  }
 }
 
 function heroKey(heroId: HeroId): string {
   return `hero:${heroId}`;
+}
+
+function heroAssetManifest(heroId: HeroId): RuntimeAssetManifestEntry {
+  const hero = heroOptionById(heroId);
+  return {
+    id: heroKey(hero.id),
+    label: hero.name,
+    kind: 'hero',
+    requirement: 'required',
+    source: hero.provenance,
+    path: `${hero.idlePath}; ${hero.runPath}`,
+    expectedFormat: 'glb',
+    fallbackPolicy: 'required-error',
+    notes: [
+      ...hero.provenanceNotes,
+      `${hero.name} uses separate idle and run GLBs with runtime clip mapping through AnimationMixer.`,
+      'Required playable character model; QA must fail missing or unreadable runtime geometry.',
+    ],
+  };
 }
 
 function staticAccent(id: StaticAssetId): string {
