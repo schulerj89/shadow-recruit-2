@@ -14,6 +14,8 @@ const titleCompositionPath = `${outputDir}/title-composition.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
 const screenshotDir = `${outputDir}/screenshots`;
+const aaaReadyZoneFootprintRatio = 0.2;
+const aaaReadyLevelFootprintRatio = 0.18;
 const expectedScreenshots = [
   'title.png',
   'title-orbit-preview.png',
@@ -383,7 +385,7 @@ Date: ${date}
 - Tutorial alignment: ${describeTutorialSummary(tutorialAlignment)}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
-- Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
+- Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); aaaReady=${describeAaaDensitySummary(geometry)}; zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
 
@@ -424,7 +426,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
 - Coordinate QA: verify door/wall continuity by edge coordinates, not screenshot impression alone. Wall gaps must name door ID, wall IDs, frame/continuity bounds, and measured gap widths.
 - Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the gameplay camera to the current player position.
-- Asset QA: verify objective GLBs, sentry GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
+- Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate)}
 
@@ -526,6 +528,15 @@ function describeAssetSummary(checks: readonly AssetQualityCheck[]): string {
   const review = checks.filter((check) => check.grade === 'review').length;
   const fail = checks.filter((check) => check.grade === 'fail').length;
   return `${pass} pass, ${review} review, ${fail} fail`;
+}
+
+function describeAaaDensitySummary(geometry: GeometryDiagnostics): string {
+  const zones = geometry.levelDensity.zones ?? [];
+  const weakZones = zones.filter((zone) => zone.totalFootprintRatio < aaaReadyZoneFootprintRatio);
+  const levelReady = geometry.levelDensity.setDressingRatio >= aaaReadyLevelFootprintRatio && weakZones.length === 0;
+  return levelReady
+    ? `yes; level=${formatRatio(geometry.levelDensity.setDressingRatio)}; minZone>=${formatRatio(aaaReadyZoneFootprintRatio)}`
+    : `no; level=${formatRatio(geometry.levelDensity.setDressingRatio)} target=${formatRatio(aaaReadyLevelFootprintRatio)}; weakZones=${weakZones.map((zone) => `${zone.id}:${formatRatio(zone.totalFootprintRatio)}`).join(', ') || 'none'}`;
 }
 
 function formatAssetGrades(checks: readonly AssetQualityCheck[]): string {
@@ -773,6 +784,9 @@ function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): st
     findings.push('- P1: Per-zone level density diagnostics missing; tester cannot prove large-level room density from the active camera.');
   } else {
     for (const zone of geometry.levelDensity.zones) {
+      if (zone.totalFootprintRatio < aaaReadyZoneFootprintRatio) {
+        findings.push(`- P1: Zone ${zone.id} is not AAA presentation-ready from its mapped gameplay screenshot (${zone.screenshot ?? 'no screenshot'}): ${(zone.totalFootprintRatio * 100).toFixed(1)}% tactical footprint is below the ${(aaaReadyZoneFootprintRatio * 100).toFixed(0)}% camera-readiness target. Add foreground, midground, and background props, cover silhouettes, decals, lighting fixtures, cables, security equipment, and objective context.`);
+      }
       if (zone.grade === 'fail') {
         findings.push(`- P1: Zone ${zone.id} is below AAA density target: ${(zone.totalFootprintRatio * 100).toFixed(1)}% total footprint, landmarks ${zone.landmarkCount}/${zone.expectedLandmarks.length}. ${zone.notes.join(' ')}`);
       } else if (zone.grade === 'review') {
@@ -790,6 +804,9 @@ function describeGeometryFindings(geometry: GeometryDiagnostics | undefined): st
     findings.push(`- P1: Level density is below AAA presentation target: ${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}% floor coverage. ${geometry.levelDensity.notes.join(' ')}`);
   } else if (geometry.levelDensity.grade === 'review') {
     findings.push(`- P2: Level density needs review: ${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}% floor coverage. ${geometry.levelDensity.notes.join(' ')}`);
+  }
+  if (geometry.levelDensity.setDressingRatio < aaaReadyLevelFootprintRatio) {
+    findings.push(`- P1: Whole-level AAA presentation readiness is not proven: ${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}% tactical footprint is below the ${(aaaReadyLevelFootprintRatio * 100).toFixed(0)}% readiness target, so the tester should still call out empty floor/wall reads despite functional density passing.`);
   }
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated coordinate geometry diagnostics.';
 }

@@ -44,6 +44,7 @@ export type DoorDefinition = RectSpec & {
 export type ObjectiveType = 'keycard' | 'terminal' | 'codes';
 export type ObjectiveAssetId = 'keycard' | 'terminal' | 'codes';
 export type SetDressingAssetId = 'cable-tray' | 'wall-machinery' | 'extraction-beacon';
+export type CoverAssetId = 'cover-barricade';
 
 export type ObjectiveDefinition = {
   id: string;
@@ -145,7 +146,7 @@ export type RendererMetrics = {
   pixelRatio: number;
 };
 
-export type RuntimeAssetKind = 'hero' | 'enemy' | 'objective' | 'set-dressing';
+export type RuntimeAssetKind = 'hero' | 'enemy' | 'objective' | 'set-dressing' | 'cover';
 export type RuntimeAssetRequirement = 'required' | 'optional';
 export type RuntimeAssetSource = 'sneak-game-seed' | 'repo-generated-glb';
 export type RuntimeAssetFallbackPolicy = 'required-error' | 'optional-omit';
@@ -185,7 +186,7 @@ export type AssetQualityGrade = 'pass' | 'review' | 'fail';
 export type AssetQualityCheck = {
   id: string;
   label: string;
-  category: 'level-mesh' | 'set-dressing' | 'door' | 'objective' | 'enemy' | 'extraction' | 'hero';
+  category: 'level-mesh' | 'set-dressing' | 'blocker' | 'door' | 'objective' | 'enemy' | 'extraction' | 'hero';
   grade: AssetQualityGrade;
   visible: boolean;
   grounded: boolean;

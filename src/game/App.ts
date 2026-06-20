@@ -420,11 +420,12 @@ export class ShadowRecruitApp {
     this.audio.unlock();
     this.setPhase('loading');
     await this.audio.play('loading');
-    this.setLoading('preloading hero, sentry, objectives', 0.18);
+    this.setLoading('preloading hero, sentry, objectives, cover', 0.18);
     await Promise.all([
       this.assets.preloadHero(this.selectedHero),
       this.assets.preloadSentry(),
       this.assets.preloadObjectives(),
+      ...(this.level.blockers.length > 0 ? [this.assets.preloadCover()] : []),
     ]);
     this.setLoading('preloading tactical dressing', 0.42);
     await this.assets.preloadSetDressing(this.level.setDressing.map((item) => item.asset));
@@ -499,7 +500,7 @@ export class ShadowRecruitApp {
     }
 
     for (const blocker of this.level.blockers) {
-      this.addBox(blocker, 'blocker', 0.1);
+      this.addBlockerVisual(blocker);
     }
 
     this.level.setDressing.forEach((dressing) => {
@@ -540,6 +541,16 @@ export class ShadowRecruitApp {
   private addSetDressing(rect: SetDressingDefinition): THREE.Object3D | null {
     const object = this.assets.createSetDressing(rect.asset, rect.id);
     if (!object) return null;
+    this.fitObjectToRect(object, rect);
+    this.applyObjectQuality(object);
+    this.scene.add(object);
+    this.runtimeObjects.push({ object, disposeResources: false });
+    this.anchorObjects.set(rect.id, object);
+    return object;
+  }
+
+  private addBlockerVisual(rect: RectSpec): THREE.Object3D {
+    const object = this.assets.createCoverBlocker(rect.id);
     this.fitObjectToRect(object, rect);
     this.applyObjectQuality(object);
     this.scene.add(object);
@@ -1676,6 +1687,7 @@ export class ShadowRecruitApp {
       assetAudit: this.assets.assetAudit(
         this.selectedHero,
         this.level.setDressing.map((item) => item.asset),
+        this.level.blockers.length > 0,
         visibleFallbackAssetIds,
       ),
     };
@@ -1685,6 +1697,20 @@ export class ShadowRecruitApp {
     const checks: AssetQualityCheck[] = [];
     const setDressingChecks = this.setDressingVisibilityChecks();
     const setDressingFailures = setDressingChecks.filter((check) => check.grade !== 'pass');
+    const blockerChecks = this.level.blockers.map((blocker) => this.checkAnchoredAsset(
+      blocker.id,
+      `${blocker.id} cover module`,
+      'blocker',
+      'Required cover-barricade GLB is visible, grounded, and fitted to the authored blocker collision proxy.',
+      `${blocker.id} blocker is missing its required cover-barricade GLB visual.`,
+      'pass',
+      'Collision remains authored from the level blocker rectangle; runtime visual must not be a primitive fallback.',
+      {
+        minWidth: Math.max(0.2, blocker.size.x * 0.72),
+        minDepth: Math.max(0.2, blocker.size.z * 0.72),
+      },
+    ));
+    const blockerFailures = blockerChecks.filter((check) => check.grade !== 'pass');
     checks.push(this.checkAnchoredAsset(
       'level-floor',
       'Floor mesh',
@@ -1732,6 +1758,18 @@ export class ShadowRecruitApp {
         ? [`${this.doors.length} sliding-door openings have door frames plus wall/portal continuity meshes behind the door layer, so the door panels visually take priority without reading as missing wall gaps.`]
         : ['Door seam review cannot pass because one or more door, frame, wall-continuity, or wall meshes are missing.'],
     });
+    checks.push({
+      id: 'level-blocker-cover',
+      label: 'Blocker cover GLB visuals',
+      category: 'blocker',
+      grade: blockerFailures.length === 0 ? 'pass' : 'fail',
+      visible: blockerChecks.every((check) => check.visible),
+      grounded: blockerChecks.every((check) => check.grounded),
+      notes: blockerFailures.length === 0
+        ? [`${this.level.blockers.length} authored blocker collision proxies are represented by fitted cover-barricade GLB visuals with no primitive stand-ins.`]
+        : [`Blocker cover QA failed for ${blockerFailures.map((item) => `${item.id}:${item.notes.join(' ')}`).join('; ')}`],
+    });
+    checks.push(...blockerChecks);
     checks.push({
       id: 'level-set-dressing',
       label: 'Tactical set dressing',

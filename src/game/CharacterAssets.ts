@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import sentryUrl from '../assets/characters/sentry/enemy_sentry.glb?url';
 import cableTrayUrl from '../assets/environment/cable-tray-kit.glb?url';
+import coverBarricadeUrl from '../assets/environment/cover-barricade-kit.glb?url';
 import extractionBeaconUrl from '../assets/environment/extraction-beacon-kit.glb?url';
 import wallMachineryUrl from '../assets/environment/wall-machinery-kit.glb?url';
 import commandCodesUrl from '../assets/objectives/command-codes-cinematic.glb?url';
@@ -11,6 +12,7 @@ import { heroOptionById, type HeroId } from './heroes';
 import type {
   MemoryMetrics,
   ObjectiveAssetId,
+  CoverAssetId,
   RuntimeAssetAudit,
   RuntimeAssetManifestEntry,
   SetDressingAssetId,
@@ -31,7 +33,7 @@ type CharacterAsset = {
   clips: CharacterAnimationClips;
 };
 
-type StaticAssetId = ObjectiveAssetId | SetDressingAssetId;
+type StaticAssetId = ObjectiveAssetId | SetDressingAssetId | CoverAssetId;
 
 const sentryAssetManifest: RuntimeAssetManifestEntry = {
   id: 'sentry',
@@ -127,6 +129,21 @@ const setDressingAssetManifests: Record<SetDressingAssetId, RuntimeAssetManifest
     fallbackPolicy: 'optional-omit',
     notes: ['Repo-generated modular GLB kit for extraction staging and green beacon readability.'],
   },
+};
+
+const coverAssetManifest: RuntimeAssetManifestEntry = {
+  id: 'cover-barricade',
+  label: 'Tactical cover barricade kit',
+  kind: 'cover',
+  requirement: 'required',
+  source: 'repo-generated-glb',
+  path: 'src/assets/environment/cover-barricade-kit.glb',
+  expectedFormat: 'glb',
+  fallbackPolicy: 'required-error',
+  notes: [
+    'Repo-generated modular GLB kit for Level 1 blocker and cover visuals.',
+    'Gameplay collision remains authored in level blocker proxies; QA must fail if primitive blocker stand-ins are visible.',
+  ],
 };
 
 export type CharacterInstance = {
@@ -229,6 +246,10 @@ export class AssetLibrary {
     ]);
   }
 
+  async preloadCover(): Promise<void> {
+    await this.loadStatic('cover-barricade', coverBarricadeUrl, 1.0);
+  }
+
   async preloadSetDressing(assetIds: readonly SetDressingAssetId[]): Promise<void> {
     const uniqueIds = [...new Set(assetIds)];
     await Promise.all(uniqueIds.map(async (id) => {
@@ -260,6 +281,10 @@ export class AssetLibrary {
     const source = this.staticAssets.get(assetId);
     if (!source) return null;
     return this.createStatic(assetId, name);
+  }
+
+  createCoverBlocker(name: string): THREE.Object3D {
+    return this.createStatic('cover-barricade', name);
   }
 
   private createStatic(assetId: StaticAssetId, name: string): THREE.Object3D {
@@ -303,6 +328,7 @@ export class AssetLibrary {
   assetAudit(
     heroId: HeroId,
     activeSetDressingAssetIds: readonly SetDressingAssetId[],
+    hasCoverBlockers: boolean,
     visibleFallbackAssetIds: ReadonlySet<string> = new Set(),
   ): readonly RuntimeAssetAudit[] {
     const setDressingEntries = [...new Set(activeSetDressingAssetIds)]
@@ -312,6 +338,7 @@ export class AssetLibrary {
       heroAssetManifest(heroId),
       sentryAssetManifest,
       ...Object.values(objectiveAssetManifests),
+      ...(hasCoverBlockers ? [coverAssetManifest] : []),
       ...setDressingEntries,
     ];
     return entries.map((entry) => this.auditManifestEntry(entry, visibleFallbackAssetIds));
@@ -372,7 +399,7 @@ export class AssetLibrary {
     const loaded = entry.kind === 'hero' || entry.kind === 'enemy'
       ? this.characterAssets.has(entry.id)
       : this.staticAssets.has(entry.id as StaticAssetId);
-    const failure = entry.kind === 'objective' || entry.kind === 'set-dressing'
+    const failure = entry.kind !== 'hero' && entry.kind !== 'enemy'
       ? this.staticAssetFailures.get(entry.id as StaticAssetId)
       : undefined;
     const fallbackVisible = visibleFallbackAssetIds.has(entry.id);
@@ -427,6 +454,7 @@ function staticAccent(id: StaticAssetId): string {
   if (id === 'cable-tray') return '#6fffe2';
   if (id === 'wall-machinery') return '#67d7ff';
   if (id === 'extraction-beacon') return '#8eff81';
+  if (id === 'cover-barricade') return '#ffd45a';
   return '#72ffd8';
 }
 

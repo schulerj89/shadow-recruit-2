@@ -64,6 +64,7 @@ await mkdir(outputRoot, { recursive: true });
 await writeGlb('cable-tray-kit', buildCableTray());
 await writeGlb('wall-machinery-kit', buildWallMachinery());
 await writeGlb('extraction-beacon-kit', buildExtractionBeacon());
+await writeGlb('cover-barricade-kit', buildCoverBarricade());
 
 function buildCableTray() {
   const scene = namedScene('cable-tray-kit');
@@ -110,6 +111,32 @@ function buildExtractionBeacon() {
   mast.name = 'exfil-light-mast';
   mast.position.set(-0.72, 1.22, -0.05);
   scene.add(mast);
+  prepareScene(scene);
+  return scene;
+}
+
+function buildCoverBarricade() {
+  const scene = namedScene('cover-barricade-kit');
+  addBox(scene, 'armored-cover-base', [3.2, 0.22, 1.2], [0, 0.11, 0], palette.darkMetal);
+  addBox(scene, 'left-weighted-crate', [1.05, 0.82, 1.05], [-1.0, 0.62, 0], palette.panel);
+  addBox(scene, 'right-weighted-crate', [1.05, 0.82, 1.05], [1.0, 0.62, 0], palette.panel);
+  addBox(scene, 'center-armor-slab', [1.4, 1.18, 0.32], [0, 0.8, -0.36], palette.darkMetal);
+  addBox(scene, 'front-hazard-rail', [3.05, 0.08, 0.08], [0, 1.22, -0.6], palette.amber);
+  addBox(scene, 'rear-cyan-status-rail', [2.8, 0.06, 0.08], [0, 1.04, 0.58], palette.cyan);
+  addBox(scene, 'left-side-service-panel', [0.14, 0.52, 0.78], [-1.63, 0.72, 0], palette.darkMetal);
+  addBox(scene, 'right-side-service-panel', [0.14, 0.52, 0.78], [1.63, 0.72, 0], palette.darkMetal);
+
+  for (let index = 0; index < 4; index += 1) {
+    addBox(scene, `front-bolt-${index + 1}`, [0.14, 0.08, 0.08], [-1.2 + index * 0.8, 0.34, -0.64], palette.amber);
+    addBox(scene, `top-rib-${index + 1}`, [0.08, 0.1, 1.0], [-1.2 + index * 0.8, 1.08, 0], palette.darkMetal);
+  }
+
+  const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.1, 18), palette.cyan);
+  dish.name = 'low-profile-sensor-dish';
+  dish.position.set(0, 1.45, 0.1);
+  dish.rotation.x = Math.PI / 2;
+  scene.add(dish);
+
   prepareScene(scene);
   return scene;
 }

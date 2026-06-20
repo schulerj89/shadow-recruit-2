@@ -21,6 +21,7 @@ Required evidence:
 - Coordinate proof for anything that looks like a wall gap between doors, a broken door opening, a buried/hovering asset, or a title hero facing problem. Screenshots discover the defect, but coordinate/projection data decides whether it passes.
 - Asset-quality diagnostics covering floor/wall meshes, generated-image texture quality, wall-door seams and gaps, door-over-wall visual priority, objective models, sentries, door panels, extraction marker, and hero placement.
 - Runtime asset provenance diagnostics for active hero, sentry, objectives, and set-dressing kits. The tester must see the intended GLB path, source/provenance, requirement level, load status, fallback policy, and whether any visible primitive or placeholder stand-in exists.
+- Runtime blocker/cover provenance diagnostics for every gameplay blocker that is visible to the player. Collision proxies may stay simple, but the visual object must be an approved GLB/generated asset with loaded bounds; primitive boxes used as visible cover are P1 production-art failures.
 - Per-zone or whole-level density diagnostics with floor area, cover/blocker footprint, set-dressing footprint, landmark/interactable counts, repeated-material exposure, and sparse coordinate regions.
 - Frame pacing metrics for gameplay changes.
 - Any console/page errors.
@@ -35,6 +36,7 @@ Report in this order:
 - **P1 wall-run failures:** fail any wall line where the sorted interval ledger shows a positive unowned span between nearby doors, adjacent wall segments, frame returns, or continuity/back-wall pieces. This includes spans between two door openings, not only gaps immediately beside one door.
 - **P1 asset failures:** missing required GLB/model, invisible objective, sentry below/inside ground, unclear extraction marker, missing or corrupted door panel texture, obvious holes/gaps at wall-door seams, broken wall/floor mesh, door openings that lack wall/portal continuity when the door is open, or title hero staging that shows the back/side so strongly that the player cannot read the recruit's face, suit, or silhouette.
 - **P1 provenance/fallback failures:** missing runtime asset audit, unknown source/provenance, non-GLB path for hero/sentry/objective/set-dressing assets, failed load status, or any visible primitive/placeholder fallback standing in for a required Shadow Recruit asset.
+- **P1 cover/blocker failures:** authored blocker collision proxies may be simple rectangles, but the player-facing visual must be a fitted approved GLB or generated asset. Fail visible placeholder boxes, bland cover slabs, missing floor contact, incorrect scale, or blocker visuals that do not match the authored coordinates.
 - **P1 instrumentation failures:** missing world bounds, missing wall-run ledgers, missing title hero facing vectors, missing screen-space hero occupancy, or missing per-zone density numbers are test failures when the screenshot raises that class of concern. Do not convert missing data into a pass.
 - **P1 performance:** no visible 60 FPS path, high p95 frame time, excessive draw calls, frame spikes after loading/unlock.
 - **P1 AAA environment gaps:** a large level with mostly empty floor, repeated bare walls, no readable cover/dressing/landmarks, or missing tactical props is not AAA-quality just because the level is big. Fail sparse rooms and corridors when asset density, material variation, lighting detail, and gameplay dressing do not support the infiltration fantasy from the active gameplay camera.
@@ -51,6 +53,7 @@ When the user or a screenshot points out something the build should already know
 - For door openings, verify both open and closed states. A closed door can cover an opening, but the open state still needs a wall/portal/continuity surface behind it and a clear priority relationship so the player does not see through a hole.
 - For title hero issues, pair the screenshot with camera position/target, hero world position, forward vector or yaw, facing dot/yaw-to-camera, projected bounds, and screen occupancy. Fail if the recruit is looking away from the player, mostly back-facing, too small, or staged so the face/visor/front torso cannot be read.
 - For empty AAA spaces, pair each screenshot with zone coordinates and density metrics. A scene can pass collision, wall continuity, and FPS while still failing art/design QA because the player view lacks foreground, midground, background, props, landmarks, lighting hierarchy, or tactical cover language.
+- For gameplay-camera density, grade the near, mid, and far depth bands separately. Fail the screenshot if the active player view is mostly empty floor/walls in any primary mission beat, even when the whole level average looks acceptable.
 - If the current debug state cannot answer the coordinate question, file a P1 instrumentation failure and request the missing debug bounds/projection metric rather than guessing.
 
 ## Hard-Fail Evidence Rules
@@ -63,6 +66,7 @@ Fail the tester pass when any of these are true:
 - A large room passes because the whole level is big or technically navigable, while the active gameplay camera shows empty floor, repeated wall panels, and no measured nearby cover/prop/landmark density.
 - Texture/material grading says "acceptable" without proving wall, floor, and major object materials use authored or generated image textures at appropriate scale, with variation visible from the gameplay camera.
 - The test report cannot distinguish between final GLB/generated assets and primitive fallback visuals for walls, doors, props, objectives, sentries, extraction, or hero presentation.
+- Visible blocker or cover geometry is approved because it has collision coordinates, but the rendered asset is a primitive box, blockout material, or unknown fallback instead of a named generated/GLB cover asset.
 
 ## Artifact Workflow
 

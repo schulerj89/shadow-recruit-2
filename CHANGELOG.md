@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.15.2 - 2026-06-20
+
+### Patch
+
+- Replaced visible Level 1 blocker boxes with a required generated `cover-barricade` GLB visual while preserving authored blocker rectangles as collision truth.
+- Added blocker-cover asset provenance, browser-smoke gates, and asset-quality checks so primitive cover stand-ins cannot pass as production-ready gameplay art.
+- Tightened tester, designer, QA automation, and world-builder skills around blocker GLB provenance, gameplay-camera density bands, title hero identity reads, and empty-space AAA failures.
+
 ## 0.15.1 - 2026-06-20
 
 ### Patch

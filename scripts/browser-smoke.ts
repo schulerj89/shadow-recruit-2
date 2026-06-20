@@ -199,10 +199,11 @@ try {
     throw new Error(`Expected live renderer metrics, got ${JSON.stringify(state.renderer)}`);
   }
   if (
-    state.memory.loadedAssets < 8 ||
+    state.memory.loadedAssets < 9 ||
     state.memory.failedAssetIds.length > 0 ||
     !state.memory.loadedAssetIds.includes('sentry') ||
     !state.memory.loadedAssetIds.includes('codes') ||
+    !state.memory.loadedAssetIds.includes('cover-barricade') ||
     !state.memory.loadedAssetIds.includes('cable-tray') ||
     !state.memory.loadedAssetIds.includes('wall-machinery') ||
     !state.memory.loadedAssetIds.includes('extraction-beacon')
@@ -215,6 +216,7 @@ try {
     'keycard',
     'terminal',
     'codes',
+    'cover-barricade',
     'cable-tray',
     'wall-machinery',
     'extraction-beacon',
@@ -227,6 +229,11 @@ try {
     assetAudit.some((asset) => !['sneak-game-seed', 'repo-generated-glb'].includes(asset.source))
   ) {
     throw new Error(`Expected explicit GLB provenance audit with no visible fallbacks, got ${JSON.stringify(assetAudit)}`);
+  }
+  const blockerCover = state.assetQuality.find((check) => check.id === 'level-blocker-cover');
+  const blockerChecks = state.assetQuality.filter((check) => check.category === 'blocker');
+  if (!blockerCover || blockerCover.grade !== 'pass' || blockerChecks.length < defaultLevel.blockers.length + 1 || blockerChecks.some((check) => check.grade !== 'pass')) {
+    throw new Error(`Expected every Level 1 blocker to use required cover-barricade GLB visuals, got ${JSON.stringify(blockerChecks)}`);
   }
   if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {
     throw new Error(`Expected coordinate geometry diagnostics for doors and scene objects, got ${JSON.stringify(state.geometry)}`);
