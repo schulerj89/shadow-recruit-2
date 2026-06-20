@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.21.0 - 2026-06-20
+
+### Minor
+
+- Added the registered Relay Vault mission with coordinate-authored bounds, split wall runs, sliding-door objectives, three sentries, density zones, GLB set-dressing placements, and in-world tutorial copy.
+- Expanded the full tester runner to execute a browser playthrough matrix for every registered mission while preserving the default playthrough artifact for the game-tester report.
+- Added game-tester report evidence and findings for the browser playthrough matrix so registered missions cannot ship without browser completion proof.
+
 ## 0.20.0 - 2026-06-20
 
 ### Minor

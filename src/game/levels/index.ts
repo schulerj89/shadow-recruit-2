@@ -1,8 +1,9 @@
 import { levelOne } from './levelOne';
+import { relayVaultLevel } from './relayVault';
 import type { LevelCatalogEntry, LevelDefinition } from '../types';
 
 export const defaultLevel = levelOne;
-export const levels = [levelOne] as const satisfies readonly LevelDefinition[];
+export const levels = [levelOne, relayVaultLevel] as const satisfies readonly LevelDefinition[];
 
 export const levelCatalog: readonly LevelCatalogEntry[] = levels.map((level) => ({
   id: level.id,

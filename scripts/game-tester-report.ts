@@ -7,11 +7,13 @@ const date = process.env.QA_DATE ?? '2026-06-20';
 const outputDir = process.env.TESTER_REPORT_DIR ?? `docs/qa/${date}/v${packageInfo.version}`;
 const smokeDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
 const playthroughReportPath = process.env.PLAYTHROUGH_REPORT_PATH ?? `artifacts/playthrough/v${packageInfo.version}/playthrough-report.json`;
+const playthroughMatrixPath = process.env.PLAYTHROUGH_MATRIX_PATH ?? `artifacts/playthrough/v${packageInfo.version}/matrix.json`;
 const failureRetryReportPath = process.env.FAILURE_RETRY_REPORT_PATH ?? `artifacts/failure-retry/v${packageInfo.version}/failure-retry-report.json`;
 const fpsMetricsPath = process.env.FPS_METRICS_PATH ?? `artifacts/fps/v${packageInfo.version}/metrics.json`;
 const reportPath = `${outputDir}/game-tester-report.md`;
 const committedMetricsPath = `${outputDir}/metrics.json`;
 const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
+const committedPlaythroughMatrixPath = `${outputDir}/playthrough-matrix.json`;
 const committedFailureRetryPath = `${outputDir}/failure-retry-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
 const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
@@ -233,6 +235,18 @@ type FailureRetryReport = {
   screenshots: readonly string[];
   pageErrors: readonly string[];
   consoleIssues: readonly string[];
+};
+
+type PlaythroughMatrixEntry = {
+  levelId: string;
+  reportPath: string;
+  status: 'pass' | 'fail';
+};
+
+type PlaythroughMatrix = {
+  build: string;
+  generatedAt?: string;
+  levels: readonly PlaythroughMatrixEntry[];
 };
 
 type AudioState = {
@@ -579,6 +593,10 @@ const playthroughReport = existsSync(playthroughReportPath)
   ? await readFile(playthroughReportPath, 'utf8')
   : null;
 const playthrough = playthroughReport ? JSON.parse(playthroughReport) : null;
+const playthroughMatrixReport = existsSync(playthroughMatrixPath)
+  ? await readFile(playthroughMatrixPath, 'utf8')
+  : null;
+const playthroughMatrix = playthroughMatrixReport ? JSON.parse(playthroughMatrixReport) as PlaythroughMatrix : null;
 const failureRetryReport = existsSync(failureRetryReportPath)
   ? await readFile(failureRetryReportPath, 'utf8')
   : null;
@@ -625,6 +643,7 @@ const operativeCatalog = operativeTraitsArtifact?.catalog ?? [];
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate, fpsScenes);
 const renderBudgetFindings = describeRenderBudgetFindings(renderBudget, fpsScenes);
 const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
+const playthroughMatrixFindings = describePlaythroughMatrixFindings(playthroughMatrix, missionCatalog);
 const operativeFindings = describeOperativeFindings(operative, operativeCatalog);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
@@ -646,6 +665,9 @@ if (metrics) {
 if (playthroughReport) {
   await writeFile(committedPlaythroughPath, playthroughReport);
 }
+if (playthroughMatrixReport) {
+  await writeFile(committedPlaythroughMatrixPath, playthroughMatrixReport);
+}
 if (failureRetryReport) {
   await writeFile(committedFailureRetryPath, failureRetryReport);
 }
@@ -658,6 +680,7 @@ Date: ${date}
 
 - Smoke screenshots: \`${smokeDir}\`
 - Browser playthrough: \`${committedPlaythroughPath}\` (${playthroughReport ? 'captured' : 'not captured'})
+- Browser playthrough matrix: \`${committedPlaythroughMatrixPath}\` (${playthroughMatrix ? formatPlaythroughMatrixSummary(playthroughMatrix) : 'not captured'})
 - Failure/retry route: \`${committedFailureRetryPath}\` (${failureRetryReport ? 'captured' : 'not captured'})
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
@@ -725,6 +748,10 @@ ${formatOperativeTraits(operative, operativeCatalog)}
 
 ${formatMissionCatalog(missionCatalog, selectedMissionId, missionBrief)}
 
+## Browser Playthrough Matrix
+
+${formatPlaythroughMatrix(playthroughMatrix, missionCatalog)}
+
 ## Wall-Run Interval QA
 
 ${formatWallRunContinuity(geometry)}
@@ -767,6 +794,7 @@ ${frameFinding}
 ${renderBudgetFindings}
 ${operativeFindings}
 ${missionCatalogFindings}
+${playthroughMatrixFindings}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
 ${failureRetryFindings}
@@ -879,6 +907,56 @@ function formatMissionCatalog(
     `- ${selected ? 'PASS' : 'FAIL'} mission-selected: selected=${selectedMissionId ?? 'missing'}; label=${selected?.name ?? 'missing'}; brief=${missionBrief ? JSON.stringify(missionBrief) : 'not captured'}`,
     ...catalog.map((mission) => `- PASS mission/${mission.id}: ${mission.chapter} / ${mission.name}; objectives=${mission.objectiveCount}; enemies=${mission.enemyCount}`),
   ].join('\n');
+}
+
+function formatPlaythroughMatrixSummary(matrix: PlaythroughMatrix): string {
+  const passed = matrix.levels.filter((entry) => entry.status === 'pass').length;
+  return `${passed}/${matrix.levels.length} mission browser playthroughs passed`;
+}
+
+function formatPlaythroughMatrix(
+  matrix: PlaythroughMatrix | null,
+  catalog: readonly LevelCatalogEntry[],
+): string {
+  if (!matrix) return '- Browser playthrough matrix not captured.';
+  const catalogIds = new Set(catalog.map((mission) => mission.id));
+  const rows = matrix.levels.map((entry) => {
+    const known = catalogIds.size === 0 || catalogIds.has(entry.levelId);
+    const status = entry.status === 'pass' && known ? 'PASS' : 'FAIL';
+    return `- ${status} playthrough/${entry.levelId}: status=${entry.status}; report=${entry.reportPath}; catalogKnown=${known}`;
+  });
+  return [
+    `- Matrix build=${matrix.build}; generatedAt=${matrix.generatedAt ?? 'not captured'}; ${formatPlaythroughMatrixSummary(matrix)}`,
+    ...rows,
+  ].join('\n');
+}
+
+function describePlaythroughMatrixFindings(
+  matrix: PlaythroughMatrix | null,
+  catalog: readonly LevelCatalogEntry[],
+): string {
+  if (!matrix) {
+    return catalog.length > 1
+      ? '- P1: Browser playthrough matrix missing; tester cannot prove every registered mission completes in the browser.'
+      : '- P1: None from generated browser playthrough matrix.';
+  }
+
+  const findings: string[] = [];
+  const matrixIds = new Set(matrix.levels.map((entry) => entry.levelId));
+  for (const mission of catalog) {
+    if (!matrixIds.has(mission.id)) {
+      findings.push(`- P1: Registered mission ${mission.id} is missing from the browser playthrough matrix.`);
+    }
+  }
+  for (const entry of matrix.levels) {
+    if (entry.status !== 'pass') {
+      findings.push(`- P1: Browser playthrough matrix failed for ${entry.levelId}: status=${entry.status}; report=${entry.reportPath}.`);
+    }
+    if (catalog.length > 0 && !catalog.some((mission) => mission.id === entry.levelId)) {
+      findings.push(`- P1: Browser playthrough matrix includes ${entry.levelId}, but it is not exposed in the mission catalog.`);
+    }
+  }
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated browser playthrough matrix.';
 }
 
 function describeMissionCatalogFindings(

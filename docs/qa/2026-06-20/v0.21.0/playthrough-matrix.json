@@ -1,0 +1,16 @@
+{
+  "build": "v0.21.0",
+  "generatedAt": "2026-06-20T10:57:59.905Z",
+  "levels": [
+    {
+      "levelId": "blacksite-threshold",
+      "reportPath": "artifacts\\playthrough\\v0.21.0\\playthrough-report.json",
+      "status": "pass"
+    },
+    {
+      "levelId": "relay-vault",
+      "reportPath": "artifacts\\playthrough\\v0.21.0\\relay-vault\\playthrough-report.json",
+      "status": "pass"
+    }
+  ]
+}
