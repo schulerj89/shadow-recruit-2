@@ -96,6 +96,7 @@ export type EnemyRuntime = EnemyDefinition & {
 export type FramePacingSample = {
   fps: number;
   frameMs: number;
+  latestFrameMs: number;
   p95FrameMs: number;
   samples: number;
 };

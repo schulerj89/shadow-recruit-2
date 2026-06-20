@@ -929,10 +929,12 @@ export class ShadowRecruitApp {
   private framePacing(): FramePacingSample {
     const samples = [...this.frameDeltas].sort((a, b) => a - b);
     const latest = this.frameDeltas[this.frameDeltas.length - 1] ?? 16.7;
+    const median = samples[Math.floor(samples.length * 0.5)] ?? latest;
     const p95 = samples[Math.min(samples.length - 1, Math.floor(samples.length * 0.95))] ?? latest;
     return {
-      fps: latest > 0 ? 1000 / latest : 0,
-      frameMs: latest,
+      fps: median > 0 ? 1000 / median : 0,
+      frameMs: median,
+      latestFrameMs: latest,
       p95FrameMs: p95,
       samples: this.frameDeltas.length,
     };

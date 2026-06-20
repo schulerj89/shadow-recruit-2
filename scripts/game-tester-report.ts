@@ -11,7 +11,17 @@ const committedMetricsPath = `${outputDir}/metrics.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 
 type Metrics = {
-  framePacing?: { fps: number; frameMs: number; p95FrameMs: number; samples: number };
+  framePacing?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
+  browserBaseline?: { fps: number; frameMs: number; latestFrameMs?: number; p95FrameMs: number; samples: number };
+  fpsGate?: {
+    targetFrameMs: number;
+    toleranceMs: number;
+    maxP95FrameMs: number;
+    strictTargetMet: boolean;
+    browserCanProve60: boolean;
+    tracksBaseline: boolean;
+    status: 'pass' | 'environment-limited' | 'fail';
+  };
   renderer?: { drawCalls: number; triangles: number; geometries: number; textures: number };
 };
 
@@ -19,10 +29,10 @@ const metrics = existsSync(fpsMetricsPath)
   ? JSON.parse(await readFile(fpsMetricsPath, 'utf8')) as Metrics
   : null;
 const frame = metrics?.framePacing;
+const baseline = metrics?.browserBaseline;
+const fpsGate = metrics?.fpsGate;
 const renderer = metrics?.renderer;
-const frameFinding = frame && frame.p95FrameMs > 16.7
-  ? `- P1: Headed FPS artifact measured ${frame.fps.toFixed(1)} FPS with ${frame.p95FrameMs.toFixed(1)} ms p95. This is steady and low-cost (${renderer?.drawCalls ?? '?'} draw calls, ${renderer?.triangles ?? '?'} triangles), but it needs a stricter 16.7 ms verification pass on a true 60 Hz visible browser before the 60 FPS gate is fully proven.`
-  : '- P1: None from generated metrics.';
+const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 
 await mkdir(outputDir, { recursive: true });
 if (metrics) {
@@ -39,7 +49,9 @@ Date: ${date}
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
 - Metrics available: ${metrics ? 'yes' : 'no'}
-- Frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
+- Game frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms median, ${(frame.latestFrameMs ?? frame.frameMs).toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
+- Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
+- FPS gate: ${fpsGate ? `${fpsGate.status}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures` : 'not captured'}
 
 ## Tester Feedback
@@ -48,7 +60,7 @@ Date: ${date}
 - Tutorial: verify General Caldwell text aligns with the camera target and final step includes "Good luck, cadet."
 - Level: verify keycard, terminal, command codes, sliding doors, sentries, and extraction are readable.
 - Completion: verify triumphant cue starts and level stats appear.
-- Performance: current artifact is steady but slightly above the strict 16.7 ms frame budget in this Playwright environment.
+- Performance: ${describePerformance(frame, baseline, fpsGate)}
 
 ## Required Fixes
 
@@ -60,3 +72,29 @@ ${frameFinding}
 `);
 
 console.info(`[tester-report] wrote ${reportPath}`);
+
+function describeFrameFinding(
+  frame: Metrics['framePacing'] | undefined,
+  baseline: Metrics['browserBaseline'] | undefined,
+  fpsGate: Metrics['fpsGate'] | undefined
+): string {
+  if (!frame) return '- P1: FPS metrics missing.';
+  if (fpsGate?.status === 'pass') return '- P1: None from generated FPS metrics.';
+  if (fpsGate?.status === 'environment-limited' && baseline) {
+    return `- P1: Current headed browser baseline measured ${baseline.fps.toFixed(1)} FPS / ${baseline.frameMs.toFixed(1)} ms median and cannot prove strict 16.7 ms. The game tracks that baseline within tolerance, so rerun on a true 60 Hz visible browser before marking the 60 FPS gate fully proven.`;
+  }
+  return `- P1: Game FPS gate failed at ${frame.fps.toFixed(1)} FPS / ${frame.frameMs.toFixed(1)} ms median / ${frame.p95FrameMs.toFixed(1)} ms p95 against the configured frame budget.`;
+}
+
+function describePerformance(
+  frame: Metrics['framePacing'] | undefined,
+  baseline: Metrics['browserBaseline'] | undefined,
+  fpsGate: Metrics['fpsGate'] | undefined
+): string {
+  if (!frame) return 'FPS metrics were not captured.';
+  if (fpsGate?.status === 'pass') return 'game frame pacing passed the configured 60 FPS gate.';
+  if (fpsGate?.status === 'environment-limited' && baseline) {
+    return `game pacing matches the ${baseline.fps.toFixed(1)} FPS browser baseline, but this environment cannot prove strict 16.7 ms frame cadence.`;
+  }
+  return 'game frame pacing failed the configured FPS gate and needs optimization or a lower-quality fallback.';
+}

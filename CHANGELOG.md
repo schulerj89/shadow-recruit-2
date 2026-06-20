@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.1 - 2026-06-19
+
+### Patch
+
+- Added calibrated FPS baseline reporting so game frame pacing is compared against both the 60 FPS target and the current browser cadence.
+
 ## 0.1.0 - 2026-06-19
 
 ### Minor
