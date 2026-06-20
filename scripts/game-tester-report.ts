@@ -99,6 +99,20 @@ type TitleComposition = {
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   levelPreviewBounds?: Bounds3;
+  titleTreatment?: TitleTreatmentState;
+  notes: readonly string[];
+};
+
+type TitleTreatmentState = {
+  active: boolean;
+  wordmarkText: string;
+  kickerText: string;
+  copyText: string;
+  wordmarkVisible: boolean;
+  wordmarkReadable: boolean;
+  wordmarkBounds?: ScreenBounds;
+  panelOverlapRatio: number;
+  heroOverlapRatio: number;
   notes: readonly string[];
 };
 
@@ -289,6 +303,7 @@ Date: ${date}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
 - Loading state: ${loading ? `${loading.history.length} steps; latest="${loading.label}" ${(loading.value * 100).toFixed(0)}%; captured=${loading.history.map((step) => `${step.label}:${(step.value * 100).toFixed(0)}%`).join(' -> ')}` : 'not captured'}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
+- Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
@@ -448,6 +463,16 @@ function formatAudioState(audio: AudioState | undefined): string {
 
 function describeTitleFindings(composition: TitleComposition | undefined): string {
   if (!composition) return '- P1: Title composition metrics missing.';
+  const titleTreatment = composition.titleTreatment;
+  if (!titleTreatment) {
+    return '- P1: Title treatment metrics missing, so the tester cannot prove the native wordmark replaces the removed placeholder logo.';
+  }
+  if (!titleTreatment.wordmarkBounds) {
+    return `- P1: Title wordmark screen-space bounds are missing, so the tester cannot prove the title treatment is visible. ${titleTreatment.notes.join(' ')}`;
+  }
+  if (!titleTreatment.wordmarkReadable) {
+    return `- P1: Title wordmark is not production-readable: text="${titleTreatment.wordmarkText}"; kicker="${titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleTreatment.heroOverlapRatio)}. ${titleTreatment.notes.join(' ')}`;
+  }
   if (!composition.heroScreenBounds) {
     return `- P1: Title hero screen-space bounds are missing, so the tester cannot prove the recruit is large enough to read. ${composition.notes.join(' ')}`;
   }

@@ -31,6 +31,7 @@ try {
     throw new Error('Expected title hero model to be visible.');
   }
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
+  const titleTreatment = titleComposition?.titleTreatment;
   if (
     !titleComposition?.heroReadable ||
     titleComposition.facingDot < 0.65 ||
@@ -38,9 +39,14 @@ try {
     titleComposition.heroScreenOccupancy < 0.012 ||
     !titleComposition.heroScreenBounds ||
     !titleComposition.levelPreviewVisible ||
-    titleComposition.orbitRadius < 5
+    titleComposition.orbitRadius < 5 ||
+    !titleTreatment?.wordmarkReadable ||
+    !titleTreatment.wordmarkBounds ||
+    titleTreatment.wordmarkBounds.areaRatio < 0.04 ||
+    titleTreatment.panelOverlapRatio > 0.01 ||
+    titleTreatment.heroOverlapRatio > 0.32
   ) {
-    throw new Error(`Expected title hero and Level 1 preview orbit to be readable, got ${JSON.stringify(titleComposition)}`);
+    throw new Error(`Expected title hero, native wordmark, and Level 1 preview orbit to be readable, got ${JSON.stringify(titleComposition)}`);
   }
   await expectAudioState('title', { muted: false, unlocked: false });
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });

@@ -184,6 +184,19 @@ export type ScreenBounds = {
   areaRatio: number;
 };
 
+export type TitleTreatmentState = {
+  active: boolean;
+  wordmarkText: string;
+  kickerText: string;
+  copyText: string;
+  wordmarkVisible: boolean;
+  wordmarkReadable: boolean;
+  wordmarkBounds?: ScreenBounds;
+  panelOverlapRatio: number;
+  heroOverlapRatio: number;
+  notes: readonly string[];
+};
+
 export type SceneObjectBounds = {
   id: string;
   category: 'wall' | 'blocker' | 'set-dressing' | 'door' | 'door-frame' | 'door-continuity' | 'objective' | 'enemy' | 'hero' | 'extraction';
@@ -309,6 +322,7 @@ export type TitleComposition = {
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
   levelPreviewBounds?: Bounds3;
+  titleTreatment: TitleTreatmentState;
   notes: readonly string[];
 };
 

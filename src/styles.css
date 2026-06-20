@@ -109,22 +109,46 @@ input[type="checkbox"] {
   text-transform: uppercase;
   font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0;
 }
 
 .title-logo {
+  position: relative;
+  display: grid;
+  width: max-content;
   margin: 8px 0 0;
-  max-width: 8.4ch;
+  max-width: min(8.6ch, 92vw);
   color: #f7fbff;
   font-size: clamp(3rem, 7.4vw, 7.2rem);
   line-height: 0.78;
   letter-spacing: 0;
   text-transform: uppercase;
   border-left: 5px solid rgba(111, 255, 226, 0.86);
+  border-bottom: 1px solid rgba(111, 255, 226, 0.42);
   padding-left: clamp(14px, 2vw, 24px);
+  padding-bottom: 6px;
   text-shadow:
     0 0 28px rgba(111, 255, 226, 0.28),
     0 6px 0 rgba(4, 7, 11, 0.95);
+}
+
+.title-logo::after {
+  content: "";
+  position: absolute;
+  left: clamp(14px, 2vw, 24px);
+  right: 0;
+  bottom: -7px;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(111, 255, 226, 0.92), rgba(111, 255, 226, 0.08));
+  box-shadow: 0 0 18px rgba(111, 255, 226, 0.36);
+}
+
+.title-logo span {
+  display: block;
+}
+
+.title-logo span:last-child {
+  color: #6fffe2;
 }
 
 .title-copy {

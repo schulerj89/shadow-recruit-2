@@ -41,6 +41,7 @@ import type {
   SetDressingVisibilityCheck,
   TesterState,
   TitleComposition,
+  TitleTreatmentState,
   TutorialState,
   Vec2,
   WallRunInterval,
@@ -1303,15 +1304,15 @@ export class ShadowRecruitApp {
     if (this.phase === 'title') {
       this.overlay.innerHTML = `
         <div class="title-layout" data-testid="title-panel">
-          <section class="title-mark">
-            <div class="title-kicker">Tactical infiltration prototype</div>
-            <h1 class="title-logo">Shadow Recruit 2</h1>
-            <p class="title-copy">A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.</p>
+          <section class="title-mark" data-testid="title-mark">
+            <div class="title-kicker" data-testid="title-kicker">Operation Blackglass</div>
+            <h1 class="title-logo" data-testid="title-wordmark" aria-label="Shadow Recruit 2"><span>Shadow</span><span>Recruit</span><span>2</span></h1>
+            <p class="title-copy" data-testid="title-copy">A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.</p>
           </section>
           <section class="command-panel">
             <div class="screen-kicker">Ready room</div>
             <h2 class="panel-title">Prepare the insertion.</h2>
-            <p class="panel-copy">The staged recruit and door set preview the mission tone. Configure debug and performance, then begin the cinematic tutorial.</p>
+            <p class="panel-copy">The staged recruit and door set preview the mission tone. Tune field options, then begin the cinematic tutorial.</p>
             <div class="button-row is-stacked">
               <button type="button" data-action="start">Start</button>
               <button type="button" data-action="hero-select">Change Hero</button>
@@ -2455,6 +2456,7 @@ export class ShadowRecruitApp {
     const heroScreenBounds = hero ? this.projectObjectScreenBounds(hero) : undefined;
     const heroScreenOccupancy = heroScreenBounds?.areaRatio ?? 0;
     const heroScreenHeightRatio = heroScreenBounds?.heightRatio ?? 0;
+    const titleTreatment = this.titleTreatmentState(heroScreenBounds);
 
     if (hero && heroPosition) {
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hero.quaternion).normalize();
@@ -2479,6 +2481,7 @@ export class ShadowRecruitApp {
       : [
         active ? 'Title hero does not meet facing/readability thresholds.' : 'Title composition is not active in the current phase.',
         levelPreviewVisible ? 'Level 1 preview map is visible.' : 'Level 1 preview map is missing from the title scene.',
+        titleTreatment.wordmarkReadable ? 'Native title wordmark passes visibility and overlap checks.' : `Native title wordmark needs review: ${titleTreatment.notes.join(' ')}`,
         `facingDot=${roundMetric(facingDot)}, cameraDistance=${roundMetric(cameraDistance)}, screenHeight=${roundMetric(heroScreenHeightRatio)}, screenOccupancy=${roundMetric(heroScreenOccupancy)}.`,
       ];
 
@@ -2500,8 +2503,93 @@ export class ShadowRecruitApp {
       cameraPosition: this.vectorSnapshot(cameraPosition),
       cameraTarget: this.vectorSnapshot(cameraTarget),
       ...(levelPreviewBounds ? { levelPreviewBounds } : {}),
+      titleTreatment,
       notes,
     };
+  }
+
+  private titleTreatmentState(heroScreenBounds?: ScreenBounds): TitleTreatmentState {
+    const active = this.phase === 'title';
+    const wordmark = this.overlay.querySelector<HTMLElement>('[data-testid="title-wordmark"]');
+    const kicker = this.overlay.querySelector<HTMLElement>('[data-testid="title-kicker"]');
+    const copy = this.overlay.querySelector<HTMLElement>('[data-testid="title-copy"]');
+    const panel = this.overlay.querySelector<HTMLElement>('.command-panel');
+    const wordmarkText = this.compactElementText(wordmark);
+    const kickerText = this.compactElementText(kicker);
+    const copyText = this.compactElementText(copy);
+    const wordmarkBounds = wordmark ? this.elementScreenBounds(wordmark) : undefined;
+    const panelBounds = panel ? this.elementScreenBounds(panel) : undefined;
+    const panelOverlapRatio = wordmarkBounds && panelBounds ? this.screenOverlapRatio(wordmarkBounds, panelBounds) : 0;
+    const heroOverlapRatio = wordmarkBounds && heroScreenBounds ? this.screenOverlapRatio(wordmarkBounds, heroScreenBounds) : 0;
+    const wordmarkVisible = Boolean(wordmarkBounds && wordmarkBounds.widthRatio >= 0.2 && wordmarkBounds.heightRatio >= 0.18);
+    const hasFinalTitleCopy = wordmarkText.toLowerCase() === 'shadow recruit 2' && !/prototype/i.test(kickerText);
+    const wordmarkReadable = active &&
+      wordmarkVisible &&
+      hasFinalTitleCopy &&
+      (wordmarkBounds?.areaRatio ?? 0) >= 0.04 &&
+      panelOverlapRatio <= 0.01 &&
+      heroOverlapRatio <= 0.32;
+    const notes = wordmarkReadable
+      ? ['Native CSS wordmark is visible, final-title branded, and does not collide with the command panel or staged hero.']
+      : [
+        active ? 'Title phase is active.' : 'Title phase is not active.',
+        wordmarkBounds ? `wordmarkBounds=${this.formatScreenMetric(wordmarkBounds)}.` : 'Wordmark bounds are missing.',
+        hasFinalTitleCopy ? 'Title text and kicker avoid prototype language.' : `Title text or kicker needs final branding: "${wordmarkText}" / "${kickerText}".`,
+        `panelOverlap=${roundMetric(panelOverlapRatio)}, heroOverlap=${roundMetric(heroOverlapRatio)}.`,
+      ];
+
+    return {
+      active,
+      wordmarkText,
+      kickerText,
+      copyText,
+      wordmarkVisible,
+      wordmarkReadable,
+      ...(wordmarkBounds ? { wordmarkBounds } : {}),
+      panelOverlapRatio: roundMetric(panelOverlapRatio),
+      heroOverlapRatio: roundMetric(heroOverlapRatio),
+      notes,
+    };
+  }
+
+  private compactElementText(element: HTMLElement | null): string {
+    return (element?.innerText ?? element?.textContent ?? '').replace(/\s+/g, ' ').trim();
+  }
+
+  private elementScreenBounds(element: HTMLElement): ScreenBounds | undefined {
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || this.canvas.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || this.canvas.clientHeight;
+    if (viewportWidth <= 0 || viewportHeight <= 0) return undefined;
+    const rect = element.getBoundingClientRect();
+    const minX = clamp(rect.left, 0, viewportWidth);
+    const minY = clamp(rect.top, 0, viewportHeight);
+    const maxX = clamp(rect.right, 0, viewportWidth);
+    const maxY = clamp(rect.bottom, 0, viewportHeight);
+    const visibleWidth = Math.max(0, maxX - minX);
+    const visibleHeight = Math.max(0, maxY - minY);
+    if (visibleWidth <= 0 || visibleHeight <= 0) return undefined;
+
+    return {
+      min: { x: roundMetric(minX), y: roundMetric(minY) },
+      max: { x: roundMetric(maxX), y: roundMetric(maxY) },
+      size: { x: roundMetric(visibleWidth), y: roundMetric(visibleHeight) },
+      center: { x: roundMetric(minX + visibleWidth / 2), y: roundMetric(minY + visibleHeight / 2) },
+      viewport: { width: roundMetric(viewportWidth), height: roundMetric(viewportHeight) },
+      widthRatio: roundMetric(visibleWidth / viewportWidth),
+      heightRatio: roundMetric(visibleHeight / viewportHeight),
+      areaRatio: roundMetric((visibleWidth * visibleHeight) / (viewportWidth * viewportHeight)),
+    };
+  }
+
+  private screenOverlapRatio(a: ScreenBounds, b: ScreenBounds): number {
+    const width = Math.max(0, Math.min(a.max.x, b.max.x) - Math.max(a.min.x, b.min.x));
+    const height = Math.max(0, Math.min(a.max.y, b.max.y) - Math.max(a.min.y, b.min.y));
+    const area = Math.max(0.0001, a.size.x * a.size.y);
+    return Math.min(1, (width * height) / area);
+  }
+
+  private formatScreenMetric(bounds: ScreenBounds): string {
+    return `x=${bounds.min.x}..${bounds.max.x}, y=${bounds.min.y}..${bounds.max.y}, area=${roundMetric(bounds.areaRatio)}`;
   }
 
   private projectObjectScreenBounds(object: THREE.Object3D): ScreenBounds | undefined {

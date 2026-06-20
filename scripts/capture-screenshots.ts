@@ -20,6 +20,7 @@ try {
   await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(0.35));
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
   await writeFile(`${qaDir}/title-composition.json`, JSON.stringify(titleComposition, null, 2));
+  const titleTreatment = titleComposition?.titleTreatment;
   if (
     !titleComposition?.heroReadable ||
     titleComposition.facingDot < 0.65 ||
@@ -27,9 +28,14 @@ try {
     titleComposition.heroScreenOccupancy < 0.012 ||
     !titleComposition.heroScreenBounds ||
     !titleComposition.levelPreviewVisible ||
-    titleComposition.orbitRadius < 5
+    titleComposition.orbitRadius < 5 ||
+    !titleTreatment?.wordmarkReadable ||
+    !titleTreatment.wordmarkBounds ||
+    titleTreatment.wordmarkBounds.areaRatio < 0.04 ||
+    titleTreatment.panelOverlapRatio > 0.01 ||
+    titleTreatment.heroOverlapRatio > 0.32
   ) {
-    throw new Error(`Title hero is not readable from camera: ${JSON.stringify(titleComposition)}`);
+    throw new Error(`Title hero or native wordmark is not readable from camera: ${JSON.stringify(titleComposition)}`);
   }
   await page.screenshot({ path: `${outputDir}/title.png`, fullPage: true });
   await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(1.85));

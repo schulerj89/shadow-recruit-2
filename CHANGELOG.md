@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.2 - 2026-06-20
+
+### Patch
+
+- Strengthened the native title wordmark treatment and added title-wordmark QA diagnostics to prove the title text is final-branded, visible, and not colliding with the hero or command panel.
+
 ## 0.13.1 - 2026-06-20
 
 ### Patch
