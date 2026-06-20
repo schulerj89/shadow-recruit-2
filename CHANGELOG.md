@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.19.1 - 2026-06-20
+
+### Patch
+
+- Tightened tester, QA automation, designer, and geometry-validator skills so visible wall issues between doors require screenshot-to-wall-line coordinate lookups, inter-door owner spans, projected coverage, and camera first-hit proof.
+- Strengthened title and AAA density skill gates so testers fail back-facing or unreadable title heroes and large gameplay spaces that read as empty from the active player camera.
+
 ## 0.19.0 - 2026-06-20
 
 ### Minor

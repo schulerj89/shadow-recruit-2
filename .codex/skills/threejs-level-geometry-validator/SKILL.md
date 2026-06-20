@@ -44,6 +44,8 @@ Use this workflow when screenshots show wall gaps around sliding doors or the te
 10. If the runtime lacks bounds for frame, continuity meshes, wall-run ledgers, door-to-door ownership rows, connection graphs, or camera-probe handoff rows, mark an instrumentation failure and route to `$threejs-qa-automation` or `$threejs-webgpu-webgl-expert` for debug overlays.
 11. Treat a screenshot-visible span between two doors as a full wall-line problem, not a door-local problem. Prove which object owns the space between the door bounds. If no wall, return, trim, frame, continuity/back-wall, or intentional door-priority surface owns it within epsilon, the geometry fails.
 12. Treat screenshot language like "wall gaps between doors" as a request for coordinates. Identify the nearest adjacent door intervals on the same physical wall line, compute the exact span between their edges, and return a pass/fail row naming the owner surface for that span.
+13. Treat "the door opens over the wall" as a priority problem, not permission to omit the wall. The open state still needs an authored wall, portal, back-wall, return, trim, or continuity surface behind/between the doors, and the moving door surface must have an explicit priority relationship over that owner.
+14. Provide a screenshot-to-wall-line resolver when QA points at a visual defect. The resolver should map a screenshot region or projected bounds to the nearest door pair, wall-line ID, candidate owner intervals, depth match, and camera-probe handoff so testers do not have to guess from pixels.
 
 ## Validation Pipeline
 
@@ -80,7 +82,9 @@ For every new or modified level blockout:
 - When a wall contains an opening, model the remaining wall pieces as separate rectangles so the validator can prove the opening exists.
 - When a sliding door overlays a wall opening, also model the frame, returns, and continuity/back-wall pieces as named data or debug bounds. The tester must be able to prove that the door takes visual priority over a still-present wall/portal surface.
 - When multiple door openings share one wall run, validate the entire run as a single sorted interval set. Do not approve each door in isolation; the span between two doors must be explicitly owned by wall, frame, return, trim, continuity/back-wall, or a deliberate door-priority surface.
+- For adjacent door pairs, compute the span between `previousDoor.max` and `nextDoor.min` on the interrupted axis and require a single named owner set to cover that span. If the owner is split into multiple pieces, the pieces must themselves form a connected interval ledger with no positive void.
 - Keep door state ownership explicit. `closed` intervals should name the visible door surface; `open` intervals should name the wall/portal/continuity surface that remains visible, plus the sliding door's priority surface if it overlaps the wall plane.
+- Keep visual priority separate from geometric existence. A sliding panel can render in front of a wall or portal surface, but it cannot be the only proof that a wall exists behind the opening when the panel moves away.
 - Keep adjacency ownership explicit. For every pair of neighboring intervals on a suspect wall line, record whether the surfaces touch, overlap, are covered by a priority surface, or leave a void. Local seam checks cannot replace this full-run graph.
 - Require screenshot-to-coordinate parity for wall-run complaints. The validator output should let QA name the screenshot, wall line, door IDs, edge coordinates, owner interval, gap width, and state without reverse-engineering from rendered pixels.
 - Require a camera-probe handoff for screenshot-visible voids. Geometry validation decides whether the surface exists; QA still needs the active-camera probe or projected-depth row that proves what the player sees through the suspect screen region.
@@ -102,6 +106,7 @@ Accept a level blockout only when:
 - Wall-line connection graphs can prove every expected adjacency between doors, frames, returns, trims, wall fragments, and continuity pieces is owned by a named surface rather than assumed from proximity.
 - Door-to-door ownership tables can name the exact authored surface that covers every span between adjacent doors on the same wall run, including open and closed state priority.
 - The validator can answer a screenshot complaint by returning the matching wall-line ID, adjacent door IDs, min/max edges, span width, graph edge state, owner ID, depth match, camera-probe handoff status, and whether the open door state still leaves a visible wall/portal surface.
+- The validator can answer "what is between these two doors?" with a deterministic row: shared wall-line ID, previous door max edge, next door min edge, span width, expected owner type, actual owner IDs, owner min/max, depth coverage, open/closed priority state, and pass/fail.
 
 ## Scripted Check
 

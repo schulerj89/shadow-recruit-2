@@ -23,6 +23,9 @@ Required evidence:
 - Screen-space projection proof for any coordinate-sensitive visual finding. Project the relevant bounds or points into the active camera view so the tester can say both "these objects fail mathematically" and "this is what the player can actually see in this screenshot."
 - Screen-space ray/probe proof for any suspected visible void. Cast from the active camera through the suspect screenshot region or use an equivalent projected-bounds/depth debug probe, then record the first hit object, expected owner surface, hit distance, and whether background/empty space is visible before a wall, frame, return, trim, continuity mesh, or door surface.
 - A door-to-door wall ownership table for every interrupted wall run. For each adjacent door pair, name the physical wall line, previous door max edge, next door min edge, span width, expected owner surface, actual owner interval, depth match, and open/closed priority result.
+- A screenshot-triggered coordinate investigation for every visible wall/door concern. When a screenshot appears to show a "wallop," hole, door-to-door gap, or missing surface between openings, the tester must identify the nearest doors, find their shared wall line, compute the span between their intervals, and prove which wall, return, trim, frame, portal, continuity/back-wall, or open-door priority surface owns that span.
+- A player-camera occupancy and identity ledger for the title hero. The title pass must prove the recruit is not merely present, but facing/readable to the player with projected head/visor/chest/body bounds, camera-relative facing, UI occlusion, and first-frame screenshot evidence.
+- A camera-space AAA density ledger for every primary gameplay screenshot. The tester must grade the actual player view, not the entire authored level, and must record whether near, mid, and far bands contain readable functional props, cover, lighting, decals, cables, terminals, signage, patrol context, objective dressing, and material variation.
 - Asset-quality diagnostics covering floor/wall meshes, generated-image texture quality, wall-door seams and gaps, door-over-wall visual priority, objective models, sentries, door panels, extraction marker, and hero placement.
 - Runtime asset provenance diagnostics for active hero, sentry, objectives, and set-dressing kits. The tester must see the intended GLB path, source/provenance, requirement level, load status, fallback policy, and whether any visible primitive or placeholder stand-in exists.
 - Runtime blocker/cover provenance diagnostics for every gameplay blocker that is visible to the player. Collision proxies may stay simple, but the visual object must be an approved GLB/generated asset with loaded bounds; primitive boxes used as visible cover are P1 production-art failures.
@@ -42,6 +45,7 @@ Report in this order:
 - **P1 readability:** unclear objective, enemy, door, extraction, camera target, tutorial text mismatch, bad hero framing.
 - **P1 coordinate/readability failures:** screenshot-visible wall gaps, door openings, floating or buried assets, or suspicious seams must be cross-checked against coordinates. Fail when door extents, wall segment endpoints, frame bounds, or continuity mesh bounds leave a positive unintentional gap beyond tolerance, even if the screenshot is ambiguous.
 - **P1 wall-run failures:** fail any wall line where the sorted interval ledger shows a positive unowned span between nearby doors, adjacent wall segments, frame returns, or continuity/back-wall pieces. This includes spans between two door openings, not only gaps immediately beside one door.
+- **P1 inter-door ownership failures:** fail when the tester can see or suspect missing wall between two door openings and the report does not name the nearest adjacent door pair, compute the exact between-door coordinate span, and prove a named owner surface covers it at the correct depth in both door states.
 - **P1 connection-graph failures:** fail any shared wall line where adjacent doors, frames, returns, trims, or wall pieces are only locally valid but the graph leaves an unconnected node, a positive void, or an ownerless span that the player can see between them.
 - **P1 asset failures:** missing required GLB/model, invisible objective, sentry below/inside ground, unclear extraction marker, missing or corrupted door panel texture, obvious holes/gaps at wall-door seams, broken wall/floor mesh, door openings that lack wall/portal continuity when the door is open, or title hero staging that shows the back/side so strongly that the player cannot read the recruit's face, suit, or silhouette.
 - **P1 provenance/fallback failures:** missing runtime asset audit, unknown source/provenance, non-GLB path for hero/sentry/objective/set-dressing assets, failed load status, or any visible primitive/placeholder fallback standing in for a required Shadow Recruit asset.
@@ -52,6 +56,7 @@ Report in this order:
 - **P1 ray/probe failures:** missing first-hit or projected-depth evidence is a test failure when a screenshot appears to show empty space through a wall or door opening. A bounds table can prove authored geometry, but a ray/probe result proves what the active camera can actually see through the suspect pixels.
 - **P1 performance:** no visible 60 FPS path, high p95 frame time, excessive draw calls, frame spikes after loading/unlock.
 - **P1 AAA environment gaps:** a large level with mostly empty floor, repeated bare walls, no readable cover/dressing/landmarks, or missing tactical props is not AAA-quality just because the level is big. Fail sparse rooms and corridors when asset density, material variation, lighting detail, and gameplay dressing do not support the infiltration fantasy from the active gameplay camera.
+- **P1 active-camera emptiness:** fail large rooms that read as empty from the normal player camera, even when global density metrics or off-screen props look acceptable. A player-facing AAA view needs layered foreground, midground, and background function in the screenshot itself.
 - **P2 polish:** bland, flat, stretched, blurry, repetitive, procedural-only, or non-AAA wall/floor/object textures; wall/floor materials that are not generated image textures attached to the relevant mesh; weak composition, UI fit issues, repeated text, music mismatch, low-impact feedback.
 
 Separate "test failed" from "game feels unclear." A passing smoke test can still produce a P1 tester finding.
@@ -60,6 +65,7 @@ Separate "test failed" from "game feels unclear." A passing smoke test can still
 
 When the user or a screenshot points out something the build should already know mathematically, do not answer from the screenshot alone:
 
+- Start from the screenshot complaint, then immediately resolve it to runtime geometry. A good tester should say "the suspect region maps to wallLine X between door A max edge and door B min edge," not "the screenshot is inconclusive."
 - For apparent gaps between doors, inspect the wall-run ledger first. Name the physical wall line, sorted interval owners, adjacent edge values, and gap width. If two door openings have no owned wall/frame/return/continuity interval between them, fail it even if each door's local seam check passes.
 - For any screenshot-visible "wall gap between doors" complaint, treat the span between the two door openings as the primary defect until the ledger proves otherwise. Compute `nextDoor.min - previousDoor.max` on the interrupted axis, then require a named wall, frame return, trim, back-wall, or door-priority surface to own that span with matching depth. A screenshot-only pass is invalid.
 - For wall gaps between two doors, do not stop at "the doors have frames." Compare the coordinates between the door extents and prove the span is owned by a wall/return/trim/continuity surface. If there is no owner, fail the wall run even if both door-local seam checks pass.
@@ -76,13 +82,28 @@ When the user or a screenshot points out something the build should already know
 - Treat every screenshot as a hypothesis, not a verdict. The tester must name the coordinate source that confirms or rejects the visual read: object bounds, wall-run intervals, door-to-door ownership rows, projected screen rectangles, asset provenance, density zones, or FPS scene rows.
 - Treat every "I can see a gap" report as a request for a pixel-to-world explanation. Name the screenshot region, ray/probe origin, ray direction or projected rectangle, first hit, expected hit, and the coordinate span that should have blocked the view.
 - When the user points at "wall gaps between doors" or "wallops" in a screenshot, identify the two nearest door openings, compute the interval between their edges on the shared wall line, and prove that a named wall/return/trim/continuity surface owns that interval. Do not answer with a general statement that the door has a frame.
+- When the user says "shouldn't we be able to see the coordinates," treat missing coordinate evidence as the defect. The tester must either produce object IDs, min/max edges, projection rows, and first-hit probes, or file a P1 instrumentation failure that blocks approval.
+
+## Inter-Door Wall Span Audit
+
+Use this audit whenever a screenshot shows missing wall between two doors, even if the doors individually look framed:
+
+- Identify every door opening on the suspect physical wall line by axis, centerline, thickness/depth, room boundary, and state.
+- Sort door intervals and visual owner intervals on the interrupted axis. For each adjacent door pair, compute `betweenDoorSpan = nextDoor.min - previousDoor.max` and record its world-space min/max bounds.
+- Require a named owner surface for that span: wall segment, jamb return, trim, header/side return, portal/back-wall continuity mesh, or an explicit open-door priority surface. The owner must cover both length and depth; touching on one axis is not enough.
+- Check closed and open states separately. A closed sliding door may hide an opening, but the open state still needs visible wall/portal continuity so the player does not see background, floor void, or an unrelated far surface.
+- Project the span and owner surface into the screenshot. If the projected owner does not cover the visible suspect region, add a camera ray/probe row and fail until the first hit is the intended owner.
+- Record the pass/fail in language a level creator can act on: `wallLineId`, `previousDoorId`, `nextDoorId`, `spanMin`, `spanMax`, `spanWidth`, `ownerId`, `ownerMin`, `ownerMax`, `depthDelta`, `projectedCoverage`, `firstHit`, `doorState`, and `finding`.
+- Do not accept a report that only says walls "connect near the door." The approval target is the entire uninterrupted physical wall run between adjacent openings.
 
 ## Hard-Fail Evidence Rules
 
 Fail the tester pass when any of these are true:
 
 - A screenshot shows a likely wall, door, seam, floor-contact, title-facing, or empty-space defect and the report does not include matching runtime object IDs plus coordinates or projections.
+- A tester notices a screenshot-visible wall/door issue but does not translate it into a coordinate query against the nearest wall line, adjacent door pair, projected bounds, and camera first-hit data.
 - A report approves a possible wall gap between doors without a door-to-door ownership table proving the intervening span is covered by a named surface in both relevant door states.
+- A report approves a door-local seam while ignoring the larger shared wall run between two adjacent door openings, adjacent wall fragments, or frame intervals.
 - A report approves a possible wall gap between doors without a wall-line connection graph and camera probe proving the visible pixel region is blocked by the intended door, frame, wall, return, trim, or continuity surface.
 - Wall-run QA only checks the left and right side of each door independently and never checks the space between adjacent doors, wall fragments, or frame intervals on the same physical line.
 - The title screenshot is judged by menu readability alone while the hero forward vector, camera-to-hero vector, projected bounds, and screen occupancy are missing.
@@ -95,7 +116,9 @@ Fail the tester pass when any of these are true:
 - Visible blocker or cover geometry is approved because it has collision coordinates, but the rendered asset is a primitive box, blockout material, or unknown fallback instead of a named generated/GLB cover asset.
 - FPS reporting includes only one sampled state for a player-facing release. Title, gameplay, completion, and failure/caught screens must either have rows in the FPS scene matrix or a documented reason the missing state is not reachable in this build.
 - A title pass is based on the hero being present in frame while the recruit's face/visor/chest identity, facing dot or yaw-to-camera, projected body bounds, and UI occlusion are missing.
+- A title pass ignores that the hero is looking away from the player, back-facing, side-facing without identity read, or staged too far away for the face/visor/chest silhouette to be inspected.
 - AAA level readiness is approved from a whole-level density average while the primary gameplay screenshot lacks foreground, midground, or background detail from the actual player camera.
+- AAA level readiness is approved because the level is large, while the player-camera screenshots show broad empty floor, repeated walls, no close prop silhouettes, weak lighting hierarchy, or missing tactical/narrative dressing.
 
 ## Artifact Workflow
 
@@ -180,6 +203,7 @@ Never let visual review and coordinate review run as separate approvals:
 
 Judge large levels by production detail, not only size:
 
+- Treat "large but empty" as a failing art/design result, not neutral space. The player should see a believable infiltration site: machinery, terminals, keycard readers, sentry infrastructure, door hardware, power conduits, warning decals, lighting fixtures, vents, cover, cables, patrol props, extraction staging, and localized material breakup.
 - Report empty-space ratio by room or corridor when broad areas contain only floor texture and walls with no cover, terminals, vents, signage, pipes, crates, lighting fixtures, cables, security props, patrol landmarks, or extraction staging.
 - Require tactical readability: each zone should have landmarks, cover language, objective dressing, enemy patrol context, and lighting/material variation that helps the player orient.
 - Distinguish blockout from finished art. A blockout can pass geometry, but it must fail AAA art/readability if it lacks set dressing, varied materials, generated/GLB props, and believable functional detail.
@@ -197,6 +221,7 @@ Judge large levels by production detail, not only size:
 - Treat a band as capped at `2` when it is mostly negative space: broad empty floor, repeated flat wall, no foreground silhouette, or no readable tactical/narrative object near the player route. Treat it as capped at `3` when useful props exist but are too small, off to the edge, or not tied to the objective or patrol route.
 - Treat wall/floor texture quality and scene density as separate gates. A generated image texture can fix bland surfaces, but it cannot compensate for missing terminals, keycard readers, security cameras, pipes, signage, ceiling fixtures, cables, decals, cover, patrol markers, extraction lighting, or room-specific storytelling.
 - When scoring active-camera density, use the screenshot first to pick the suspect area, then use coordinates to prove which density zone and which near/mid/far band are sparse. If the current metrics cannot map a screenshot pixel region to a zone or camera-depth band, mark the tester evidence incomplete.
+- If the player camera is zoomed out enough that floor/wall material quality or prop craftsmanship cannot be inspected, fail the camera/design evidence before grading the assets. The tester needs a normal gameplay shot close enough to judge the hero, nearby wall seams, texture scale, terminals, objectives, cover, and sentries.
 
 ## FPS Scene Matrix QA
 
