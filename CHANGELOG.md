@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.16.0 - 2026-06-20
+
+### Minor
+
+- Added a registered-level `level:density` doctor and wired it into `verify` so future big missions must meet whole-level, per-zone, landmark, and interactable density gates before release.
+- Upgraded `level:scaffold` so newly generated missions start with non-overlapping wall geometry, safe validation routes, and enough non-solid GLB dressing to pass the same AAA density targets.
+- Documented the level-density gate decision and validated the scaffold by temporarily registering a generated mission through doctor, density, playthrough, and build checks.
+- Strengthened tester, designer, QA automation, and geometry skills so future reports must pair screenshots with door-to-door ownership tables, screen-space projection, title hero facing metrics, and active-camera near/mid/far density bands.
+
 ## 0.15.3 - 2026-06-20
 
 ### Patch

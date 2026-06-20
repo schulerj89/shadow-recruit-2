@@ -37,6 +37,7 @@ Every browser smoke should define:
 - Assert canvas is nonblank before relying on screenshots.
 - Assert scene state through exposed debug APIs: phase, level, player position, enemies, assets, errors, renderer metrics.
 - Assert coordinate-backed QA state through exposed debug APIs when screenshots cover walls, doors, title hero staging, object grounding, or level density. The captured state should include stable object IDs, world-space bounds, wall-run interval ledgers, door open/closed priority surfaces, title camera/hero facing metrics, projected hero bounds, and per-zone density data.
+- Assert screenshot-to-coordinate fusion data for defect-prone captures. Door screenshots should include door-to-door wall ownership tables, title screenshots should include hero facing/projection and UI occlusion metrics, and gameplay screenshots should include near/mid/far density-band metrics for the active camera.
 - Assert runtime asset provenance and quality categories for visible gameplay cover/blockers. Smoke should fail when a required cover/blocker visual is a primitive fallback, missing GLB, unloaded generated asset, buried mesh, or mismatched to its authored collision proxy.
 - Assert frame pacing or an explicit performance profile for gameplay scenes.
 - Exercise reset/retry/load transitions for any feature that allocates resources.
@@ -51,6 +52,8 @@ Every browser smoke should define:
 - Keep screenshots named by feature, viewport, and state.
 - Pair defect-prone screenshots with JSON evidence. Door-focus captures should include the matching wall-run ledger; title captures should include hero facing and projection metrics; gameplay density captures should include zone IDs, footprint counts, and sparse-region coordinates.
 - Pair primary gameplay screenshots with density-band evidence. A screenshot with empty near/mid/far space should fail even if global density metrics pass, because the player judges AAA detail from the active camera view.
+- Pair wall-gap screenshots with projected bounds or debug overlays when possible. QA should prove whether wall, door, frame, return, trim, or continuity objects actually own the visible space between doors instead of relying on pixel impressions alone.
+- Pair title screenshots with projected hero body regions. QA should prove the face/visor/chest silhouette is visible, facing the camera enough to read, and not hidden behind title/menu UI.
 - Add targeted debug-overlay captures when the normal camera cannot make a coordinate defect visible. The overlay should make bounds, intervals, floor-contact planes, and sparse zones readable without replacing the normal gameplay screenshot.
 
 ## Accessibility And Input QA

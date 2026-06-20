@@ -1,6 +1,6 @@
 # Source Notes
 
-Research date: 2026-06-19.
+Research date: 2026-06-20.
 
 - Playwright visual comparisons: https://playwright.dev/docs/test-snapshots
   - `expect(page).toHaveScreenshot()` can create and compare screenshot baselines.
@@ -18,5 +18,9 @@ Research date: 2026-06-19.
   - The callback cadence generally matches display refresh rate, with 60 Hz described as the most common refresh rate.
 - web.dev animation smoothness: https://web.dev/articles/smoothness
   - FPS is useful but incomplete; smoothness work should consider frame updates and perceived quality, not only a single average number.
+- Three.js Box3: https://threejs.org/docs/pages/Box3.html
+  - Object-derived world bounds support runtime QA for rendered wall, door, prop, hero, and sentry placement.
+- Three.js Vector3 projection: https://threejs.org/docs/pages/Vector3.html
+  - `Vector3.project(camera)` converts world-space points into camera/NDC space, which supports screenshot-to-coordinate fusion, title hero occupancy, and UI-occlusion checks.
 
-Re-check Playwright docs before changing runner setup, screenshot thresholds, or trace collection.
+Re-check Playwright and Three.js docs before changing runner setup, screenshot thresholds, trace collection, coordinate projection, or bounds instrumentation.

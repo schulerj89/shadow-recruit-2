@@ -1,6 +1,6 @@
 {
   "name": "shadow-recruit-2",
-  "version": "0.15.3",
+  "version": "0.16.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,7 @@
     "assets:command-codes": "node scripts/generate-command-codes-asset.mjs",
     "assets:environment-kit": "node scripts/generate-environment-dressing-assets.mjs",
     "level:doctor": "node scripts/level-authoring-doctor.mjs",
+    "level:density": "tsx scripts/level-density-doctor.ts",
     "level:registry": "node scripts/generate-level-registry.mjs",
     "level:registry:check": "node scripts/generate-level-registry.mjs --check",
     "level:scaffold": "node scripts/scaffold-level.mjs",
@@ -21,7 +22,7 @@
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "tester:report": "tsx scripts/game-tester-report.ts",
     "tester:play": "node scripts/game-tester-play.mjs",
-    "verify": "npm run level:doctor && npm run test:geometry && npm run test:playthrough && npm run build && npm run test:browser"
+    "verify": "npm run level:doctor && npm run level:density && npm run test:geometry && npm run test:playthrough && npm run build && npm run test:browser"
   },
   "dependencies": {
     "@types/three": "^0.176.0",

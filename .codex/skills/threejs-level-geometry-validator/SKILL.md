@@ -37,9 +37,10 @@ Use this workflow when screenshots show wall gaps around sliding doors or the te
 3. For an `x`-axis door, validate X edge alignment between the door span and adjacent wall ends, then validate Z depth coverage between the wall, frame, door panel, and back-wall continuity. For a `z`-axis door, swap X/Z.
 4. When several doors, frame pieces, or wall pieces share a wall line, sort their intervals and inspect every adjacent span. A missing wall segment between two doors is still a defect even if each individual door has a local frame.
 5. Produce a wall-run interval ledger for each interrupted wall line. Include every wall, door opening, closed-door surface, open-door swept/priority surface when applicable, frame, return, trim, and continuity/back-wall interval sorted along the interrupted axis, plus each adjacent gap or overlap.
-6. Report a machine-readable finding with `doorId`, `wallIds`, compared edges, interval neighbors, gap width, overlap depth, epsilon, and open/closed door state.
-7. If the runtime lacks bounds for frame, continuity meshes, or wall-run ledgers, mark an instrumentation failure and route to `$threejs-qa-automation` or `$threejs-webgpu-webgl-expert` for debug overlays.
-8. Treat a screenshot-visible span between two doors as a full wall-line problem, not a door-local problem. Prove which object owns the space between the door bounds. If no wall, return, trim, frame, continuity/back-wall, or intentional door-priority surface owns it within epsilon, the geometry fails.
+6. Produce a door-to-door ownership table whenever two or more doors share a wall run. Each row should include `wallLineId`, `previousDoorId`, `previousDoorMax`, `nextDoorId`, `nextDoorMin`, `spanWidth`, `ownerId`, `ownerType`, `ownerMin`, `ownerMax`, `depthMatch`, `closedPriority`, and `openPriority`.
+7. Report a machine-readable finding with `doorId`, `wallIds`, compared edges, interval neighbors, gap width, overlap depth, epsilon, and open/closed door state.
+8. If the runtime lacks bounds for frame, continuity meshes, wall-run ledgers, or door-to-door ownership rows, mark an instrumentation failure and route to `$threejs-qa-automation` or `$threejs-webgpu-webgl-expert` for debug overlays.
+9. Treat a screenshot-visible span between two doors as a full wall-line problem, not a door-local problem. Prove which object owns the space between the door bounds. If no wall, return, trim, frame, continuity/back-wall, or intentional door-priority surface owns it within epsilon, the geometry fails.
 
 ## Validation Pipeline
 
@@ -92,6 +93,7 @@ Accept a level blockout only when:
 - Debug views can draw bounds, collision proxies, overlap pairs, narrow gaps, capsule clearance, and nav blockers with stable IDs.
 - Door continuity reports can prove the edge relationship between wall pieces, door panels, frames, returns, and back-wall surfaces for every door state that QA screenshots capture.
 - Multi-door wall-run interval ledgers can prove there is no unowned positive gap between nearby doors, adjacent wall segments, returns, trim, open-door priority surfaces, or continuity pieces.
+- Door-to-door ownership tables can name the exact authored surface that covers every span between adjacent doors on the same wall run, including open and closed state priority.
 
 ## Scripted Check
 
