@@ -4,6 +4,7 @@ import sentryUrl from '../assets/characters/sentry/enemy_sentry.glb?url';
 import keycardUrl from '../assets/objectives/keycard-cinematic.glb?url';
 import terminalUrl from '../assets/objectives/terminal-cinematic.glb?url';
 import { heroOptionById, type HeroId } from './heroes';
+import type { MemoryMetrics } from './types';
 
 type Gltf = { scene: THREE.Group; animations: THREE.AnimationClip[] };
 type RuntimeGltfLoader = { loadAsync: (url: string) => Promise<Gltf> };
@@ -148,6 +149,17 @@ export class AssetLibrary {
     this.staticAssets.forEach((asset) => disposeObject(asset));
     this.characterAssets.clear();
     this.staticAssets.clear();
+  }
+
+  metrics(): Omit<MemoryMetrics, 'runtimeObjects'> {
+    const characterAssetIds = [...this.characterAssets.keys()].sort();
+    const staticAssetIds = [...this.staticAssets.keys()].sort();
+    return {
+      loadedAssets: characterAssetIds.length + staticAssetIds.length,
+      characterAssets: characterAssetIds.length,
+      staticAssets: staticAssetIds.length,
+      loadedAssetIds: [...characterAssetIds, ...staticAssetIds],
+    };
   }
 
   private async loadStatic(id: 'keycard' | 'terminal', url: string, targetHeight: number): Promise<void> {

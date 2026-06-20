@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.4 - 2026-06-20
+
+### Patch
+
+- Added real loaded-asset memory metrics to the debug/tester state and browser smoke assertions.
+
 ## 0.1.3 - 2026-06-20
 
 ### Patch

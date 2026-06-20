@@ -55,6 +55,9 @@ try {
   if (state.renderer.drawCalls <= 0 || state.renderer.triangles <= 0) {
     throw new Error(`Expected live renderer metrics, got ${JSON.stringify(state.renderer)}`);
   }
+  if (state.memory.loadedAssets < 5 || !state.memory.loadedAssetIds.includes('sentry')) {
+    throw new Error(`Expected loaded GLB asset metrics, got ${JSON.stringify(state.memory)}`);
+  }
 
   const errorLogs = logs
     .filter((line) => /^\[(error|warning)\]/i.test(line))

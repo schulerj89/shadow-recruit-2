@@ -15,6 +15,7 @@ import type {
   GameSettings,
   LevelCatalogEntry,
   LevelDefinition,
+  MemoryMetrics,
   ObjectiveRuntime,
   Phase,
   RectSpec,
@@ -47,7 +48,7 @@ type ShadowRecruitDebugApi = {
   doors: () => readonly { id: string; open: boolean; progress: number }[];
   rendererMetrics: () => RendererMetrics;
   framePacing: () => FramePacingSample;
-  memoryMetrics: () => { runtimeObjects: number; loadedAssets: number };
+  memoryMetrics: () => MemoryMetrics;
   selectMission: (missionId: string) => Promise<void>;
   movePlayerTo: (point: Vec2) => void;
   collectObjective: (objectiveId: string) => void;
@@ -928,6 +929,13 @@ export class ShadowRecruitApp {
     };
   }
 
+  private memoryMetrics(): MemoryMetrics {
+    return {
+      runtimeObjects: this.runtimeObjects.length,
+      ...this.assets.metrics(),
+    };
+  }
+
   private framePacing(): FramePacingSample {
     const samples = [...this.frameDeltas].sort((a, b) => a - b);
     const latest = this.frameDeltas[this.frameDeltas.length - 1] ?? 16.7;
@@ -972,6 +980,7 @@ export class ShadowRecruitApp {
       doors: this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
       renderer: this.rendererMetrics(),
       framePacing: this.framePacing(),
+      memory: this.memoryMetrics(),
     };
   }
 
@@ -989,7 +998,7 @@ export class ShadowRecruitApp {
       doors: () => this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
       rendererMetrics: () => this.rendererMetrics(),
       framePacing: () => this.framePacing(),
-      memoryMetrics: () => ({ runtimeObjects: this.runtimeObjects.length, loadedAssets: 0 }),
+      memoryMetrics: () => this.memoryMetrics(),
       selectMission: (missionId) => this.selectMission(missionId),
       movePlayerTo: (point) => this.movePlayerTo(point),
       collectObjective: (objectiveId) => this.collectObjective(objectiveId),

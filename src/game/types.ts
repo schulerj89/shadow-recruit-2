@@ -117,6 +117,14 @@ export type RendererMetrics = {
   pixelRatio: number;
 };
 
+export type MemoryMetrics = {
+  runtimeObjects: number;
+  loadedAssets: number;
+  characterAssets: number;
+  staticAssets: number;
+  loadedAssetIds: readonly string[];
+};
+
 export type TesterState = {
   phase: Phase;
   levelId: string;
@@ -126,4 +134,5 @@ export type TesterState = {
   doors: readonly { id: string; open: boolean; progress: number }[];
   renderer: RendererMetrics;
   framePacing: FramePacingSample;
+  memory: MemoryMetrics;
 };
