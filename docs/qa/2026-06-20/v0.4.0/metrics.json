@@ -1,0 +1,98 @@
+{
+  "phase": "playing",
+  "levelId": "blacksite-threshold",
+  "selectedHero": "shadow-operative",
+  "settings": {
+    "debug": false,
+    "muted": false,
+    "performanceProfile": "performance"
+  },
+  "tutorial": {
+    "index": 0,
+    "total": 5,
+    "step": {
+      "id": "hero",
+      "title": "Insertion",
+      "target": "hero",
+      "text": "Cadet, this is your first Shadow Recruit field operation. Move quietly, keep your suit low, and read the room before you cross open ground."
+    }
+  },
+  "cinematicFocus": {
+    "active": false,
+    "target": "hero",
+    "remainingMs": 0
+  },
+  "playerPosition": {
+    "x": 0,
+    "z": -29
+  },
+  "objectives": {
+    "collectedRequired": 0,
+    "totalRequired": 3,
+    "exitUnlocked": false
+  },
+  "doors": [
+    {
+      "id": "lobby-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "server-door",
+      "open": false,
+      "progress": 0
+    },
+    {
+      "id": "extraction-door",
+      "open": false,
+      "progress": 0
+    }
+  ],
+  "renderer": {
+    "performanceProfile": "performance",
+    "shadowsEnabled": false,
+    "shadowMapSize": 0,
+    "drawCalls": 12,
+    "triangles": 184629,
+    "geometries": 24,
+    "textures": 13,
+    "pixelRatio": 0.75
+  },
+  "framePacing": {
+    "fps": 56.17977505515221,
+    "frameMs": 17.800000071525574,
+    "latestFrameMs": 17.700000047683716,
+    "p95FrameMs": 18.199999928474426,
+    "samples": 240
+  },
+  "memory": {
+    "runtimeObjects": 33,
+    "loadedAssets": 5,
+    "characterAssets": 2,
+    "staticAssets": 3,
+    "loadedAssetIds": [
+      "hero:shadow-operative",
+      "sentry",
+      "codes",
+      "keycard",
+      "terminal"
+    ]
+  },
+  "browserBaseline": {
+    "fps": 55.86592178770921,
+    "frameMs": 17.90000000000009,
+    "latestFrameMs": 18,
+    "p95FrameMs": 18.100000000000364,
+    "samples": 240
+  },
+  "fpsGate": {
+    "performanceProfile": "performance",
+    "targetFrameMs": 16.7,
+    "toleranceMs": 0.4,
+    "maxP95FrameMs": 20,
+    "strictTargetMet": false,
+    "browserCanProve60": false,
+    "tracksBaseline": true,
+    "status": "environment-limited"
+  }
+}

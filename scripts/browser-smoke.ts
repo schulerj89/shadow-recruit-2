@@ -105,8 +105,11 @@ try {
   if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {
     throw new Error(`Expected persisted settings in tester state, got ${JSON.stringify(state.settings)}`);
   }
-  if (state.renderer.pixelRatio > 0.82) {
+  if (state.renderer.pixelRatio > 0.75) {
     throw new Error(`Expected performance profile pixel ratio cap, got ${state.renderer.pixelRatio}`);
+  }
+  if (state.renderer.performanceProfile !== 'performance' || state.renderer.shadowsEnabled) {
+    throw new Error(`Expected performance render quality without shadows, got ${JSON.stringify(state.renderer)}`);
   }
 
   const errorLogs = logs

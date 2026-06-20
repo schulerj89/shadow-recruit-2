@@ -9,6 +9,7 @@ const targetFrameMs = Number(process.env.FPS_TARGET_FRAME_MS ?? 16.7);
 const toleranceMs = Number(process.env.FPS_TOLERANCE_MS ?? 0.4);
 const maxP95FrameMs = Number(process.env.FPS_MAX_P95_MS ?? 20);
 const sampleCount = Number(process.env.FPS_SAMPLE_COUNT ?? 240);
+const performanceProfile = process.env.FPS_PROFILE ?? 'performance';
 
 const browser = await chromium.launch({
   headless,
@@ -22,13 +23,14 @@ try {
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
-  await page.evaluate(async () => {
+  await page.evaluate(async (profile) => {
+    window.__shadowRecruitDebug?.setPerformanceProfile(profile);
     await window.__shadowRecruitDebug?.startGame('shadow-operative');
     while (window.__shadowRecruitDebug?.phase() === 'tutorial') {
       document.querySelector<HTMLButtonElement>('[data-action="skip-tutorial"]')?.click();
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
-  });
+  }, performanceProfile);
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.resetFramePacing?.());
   await page.waitForTimeout(Math.max(3000, sampleCount * 20));
@@ -44,6 +46,7 @@ try {
     ...state,
     browserBaseline,
     fpsGate: {
+      performanceProfile,
       targetFrameMs,
       toleranceMs,
       maxP95FrameMs,

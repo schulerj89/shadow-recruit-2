@@ -110,6 +110,9 @@ export type FramePacingSample = {
 };
 
 export type RendererMetrics = {
+  performanceProfile: PerformanceProfile;
+  shadowsEnabled: boolean;
+  shadowMapSize: number;
   drawCalls: number;
   triangles: number;
   geometries: number;

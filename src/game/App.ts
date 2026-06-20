@@ -7,7 +7,7 @@ import { AudioDirector } from './AudioDirector';
 import { defaultHeroId, heroOptionById, heroOptions, isHeroId, type HeroId } from './heroes';
 import { defaultLevel, getLevelById, levelCatalog } from './levels';
 import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract } from './math';
-import { loadSettings, saveSettings } from './settings';
+import { isPerformanceProfile, loadSettings, saveSettings } from './settings';
 import type {
   CinematicFocusState,
   DoorRuntime,
@@ -18,6 +18,7 @@ import type {
   LevelDefinition,
   MemoryMetrics,
   ObjectiveRuntime,
+  PerformanceProfile,
   Phase,
   RectSpec,
   RendererMetrics,
@@ -35,6 +36,58 @@ type RuntimeObject = {
   object: THREE.Object3D;
   dispose?: () => void;
   disposeResources?: boolean;
+};
+
+type RenderQuality = {
+  pixelRatioCap: number;
+  shadowsEnabled: boolean;
+  shadowMapSize: number;
+  floorSegments: number;
+  detectionConeSegments: number;
+  titleStageSegments: number;
+  titleRingSegments: number;
+  extractionRingSegments: number;
+  lightIntensityScale: number;
+  textureAnisotropy: number;
+};
+
+const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
+  performance: {
+    pixelRatioCap: 0.75,
+    shadowsEnabled: false,
+    shadowMapSize: 0,
+    floorSegments: 6,
+    detectionConeSegments: 18,
+    titleStageSegments: 20,
+    titleRingSegments: 36,
+    extractionRingSegments: 32,
+    lightIntensityScale: 0.62,
+    textureAnisotropy: 1,
+  },
+  balanced: {
+    pixelRatioCap: 1,
+    shadowsEnabled: true,
+    shadowMapSize: 1024,
+    floorSegments: 24,
+    detectionConeSegments: 32,
+    titleStageSegments: 36,
+    titleRingSegments: 72,
+    extractionRingSegments: 64,
+    lightIntensityScale: 1,
+    textureAnisotropy: 4,
+  },
+  cinematic: {
+    pixelRatioCap: 1.3,
+    shadowsEnabled: true,
+    shadowMapSize: 2048,
+    floorSegments: 36,
+    detectionConeSegments: 48,
+    titleStageSegments: 48,
+    titleRingSegments: 96,
+    extractionRingSegments: 96,
+    lightIntensityScale: 1.18,
+    textureAnisotropy: 8,
+  },
 };
 
 type ShadowRecruitDebugApi = {
@@ -63,6 +116,7 @@ type ShadowRecruitDebugApi = {
   forceSuccess: () => void;
   resetMission: () => Promise<void>;
   startGame: (heroId?: string) => Promise<void>;
+  setPerformanceProfile: (profile: string) => void;
   completeMission: () => void;
   resetFramePacing: () => void;
   captureTesterState: () => TesterState;
@@ -146,10 +200,11 @@ export class ShadowRecruitApp {
 
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
     this.renderer.setClearColor(0x04070b);
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = this.quality().shadowsEnabled;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop((time) => this.frame(time));
     this.doorTexture.colorSpace = THREE.SRGBColorSpace;
-    this.doorTexture.anisotropy = 4;
+    this.doorTexture.anisotropy = this.quality().textureAnisotropy;
 
     this.installEvents();
     this.installDebugApi();
@@ -182,6 +237,7 @@ export class ShadowRecruitApp {
     this.titleHero.object.position.copy(this.titleHeroStagePosition);
     this.titleHero.object.scale.multiplyScalar(1.35);
     this.titleHero.object.rotation.y = -0.4;
+    this.applyObjectQuality(this.titleHero.object);
     this.scene.add(this.titleHero.object);
     this.anchorObjects.set('hero', this.titleHero.object);
     this.camera.position.set(22, 15, -24);
@@ -233,28 +289,32 @@ export class ShadowRecruitApp {
   }
 
   private createBaseScene(): void {
+    const quality = this.quality();
+    this.renderer.shadowMap.enabled = quality.shadowsEnabled;
+    this.renderer.shadowMap.autoUpdate = quality.shadowsEnabled;
     this.scene.background = new THREE.Color(0x04070b);
     this.scene.fog = new THREE.Fog(0x05080d, 32, 118);
 
-    const ambient = new THREE.AmbientLight(0x8fb8c8, 1.1);
-    const key = new THREE.DirectionalLight(0x9de8ff, 2.1);
+    const ambient = new THREE.AmbientLight(0x8fb8c8, quality.shadowsEnabled ? 1.1 : 1.28);
+    const key = new THREE.DirectionalLight(0x9de8ff, quality.shadowsEnabled ? 2.1 : 1.55);
     key.position.set(-12, 24, -10);
-    key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
-    const rim = new THREE.DirectionalLight(0xff5a65, 1.15);
+    key.castShadow = quality.shadowsEnabled;
+    if (quality.shadowsEnabled) key.shadow.mapSize.set(quality.shadowMapSize, quality.shadowMapSize);
+    const rim = new THREE.DirectionalLight(0xff5a65, 1.15 * quality.lightIntensityScale);
     rim.position.set(18, 12, 22);
     this.scene.add(ambient, key, rim);
   }
 
   private buildLevelShell(includeDoors: boolean): void {
+    const quality = this.quality();
     const floorSizeX = this.level.bounds.max.x - this.level.bounds.min.x;
     const floorSizeZ = this.level.bounds.max.z - this.level.bounds.min.z;
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(floorSizeX, floorSizeZ, 24, 24),
+      new THREE.PlaneGeometry(floorSizeX, floorSizeZ, quality.floorSegments, quality.floorSegments),
       new THREE.MeshStandardMaterial({ color: '#111821', roughness: 0.78, metalness: 0.18 }),
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
+    floor.receiveShadow = quality.shadowsEnabled;
     floor.name = 'level-floor';
     this.scene.add(floor);
     this.runtimeObjects.push({ object: floor });
@@ -280,6 +340,7 @@ export class ShadowRecruitApp {
   }
 
   private addBox(rect: RectSpec, color: string, emissive = 0): THREE.Mesh {
+    const quality = this.quality();
     const height = rect.height ?? 1;
     const mesh = new THREE.Mesh(
       new THREE.BoxGeometry(rect.size.x, height, rect.size.z),
@@ -291,8 +352,8 @@ export class ShadowRecruitApp {
       }),
     );
     mesh.position.set(rect.center.x, height / 2, rect.center.z);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    mesh.castShadow = quality.shadowsEnabled;
+    mesh.receiveShadow = quality.shadowsEnabled;
     mesh.name = rect.id;
     this.scene.add(mesh);
     this.runtimeObjects.push({ object: mesh });
@@ -301,6 +362,7 @@ export class ShadowRecruitApp {
   }
 
   private addDoor(door: DoorRuntime): void {
+    const quality = this.quality();
     const material = new THREE.MeshStandardMaterial({
       map: this.doorTexture,
       color: '#d5e2e8',
@@ -315,10 +377,10 @@ export class ShadowRecruitApp {
       : new THREE.Vector3(door.size.x, height, door.size.z / 2);
     const left = new THREE.Mesh(new THREE.BoxGeometry(panelSize.x, panelSize.y, panelSize.z), material.clone());
     const right = new THREE.Mesh(new THREE.BoxGeometry(panelSize.x, panelSize.y, panelSize.z), material.clone());
-    left.castShadow = true;
-    right.castShadow = true;
-    left.receiveShadow = true;
-    right.receiveShadow = true;
+    left.castShadow = quality.shadowsEnabled;
+    right.castShadow = quality.shadowsEnabled;
+    left.receiveShadow = quality.shadowsEnabled;
+    right.receiveShadow = quality.shadowsEnabled;
     left.name = `${door.id}:left-panel`;
     right.name = `${door.id}:right-panel`;
     const group = new THREE.Group();
@@ -348,15 +410,17 @@ export class ShadowRecruitApp {
   }
 
   private addLightStrip(x: number, z: number, color: string): void {
-    const light = new THREE.PointLight(color, 2.8, 14);
+    const quality = this.quality();
+    const light = new THREE.PointLight(color, 2.8 * quality.lightIntensityScale, 14 * quality.lightIntensityScale);
     light.position.set(x, 2.6, z);
     this.scene.add(light);
     this.runtimeObjects.push({ object: light });
   }
 
   private addTitleHeroStage(position: THREE.Vector3): void {
+    const quality = this.quality();
     const stage = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.55, 1.75, 0.18, 36),
+      new THREE.CylinderGeometry(1.55, 1.75, 0.18, quality.titleStageSegments),
       new THREE.MeshStandardMaterial({
         color: '#10222c',
         roughness: 0.42,
@@ -367,10 +431,10 @@ export class ShadowRecruitApp {
     );
     stage.name = 'title-hero-stage';
     stage.position.set(position.x, 0.09, position.z);
-    stage.receiveShadow = true;
+    stage.receiveShadow = quality.shadowsEnabled;
 
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.72, 0.035, 8, 72),
+      new THREE.TorusGeometry(1.72, 0.035, 8, quality.titleRingSegments),
       new THREE.MeshBasicMaterial({ color: '#6fffe2' }),
     );
     ring.name = 'title-hero-stage-ring';
@@ -389,6 +453,7 @@ export class ShadowRecruitApp {
     this.player = this.assets.createHero(this.selectedHero, `player:${this.selectedHero}`);
     this.player.object.position.set(this.playerPosition.x, 0, this.playerPosition.z);
     this.player.object.rotation.y = Math.PI;
+    this.applyObjectQuality(this.player.object);
     this.scene.add(this.player.object);
     this.anchorObjects.set('hero', this.player.object);
   }
@@ -398,12 +463,13 @@ export class ShadowRecruitApp {
       const instance = this.assets.createSentry(enemy.id);
       instance.object.position.set(enemy.position.x, 0, enemy.position.z);
       instance.object.rotation.y = Math.atan2(enemy.forward.x, enemy.forward.z);
+      this.applyObjectQuality(instance.object);
       this.scene.add(instance.object);
       this.runtimeObjects.push({ object: instance.object, dispose: () => instance.animator?.dispose(), disposeResources: false });
       this.anchorObjects.set(enemy.id, instance.object);
 
       const cone = new THREE.Mesh(
-        new THREE.ConeGeometry(enemy.detectionRadius, 0.04, 32),
+        new THREE.ConeGeometry(enemy.detectionRadius, 0.04, this.quality().detectionConeSegments),
         new THREE.MeshBasicMaterial({ color: '#ff5a65', transparent: true, opacity: 0.14, depthWrite: false }),
       );
       cone.rotation.x = -Math.PI / 2;
@@ -417,6 +483,7 @@ export class ShadowRecruitApp {
       const object = this.assets.createObjective(objective.asset, objective.id);
       object.position.set(objective.position.x, 0, objective.position.z);
       object.rotation.y = objective.asset === 'terminal' ? -Math.PI / 2 : 0;
+      this.applyObjectQuality(object);
       this.scene.add(object);
       this.runtimeObjects.push({ object, disposeResources: false });
       this.anchorObjects.set(objective.id, object);
@@ -424,8 +491,9 @@ export class ShadowRecruitApp {
   }
 
   private createExtractionMarker(): void {
+    const quality = this.quality();
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(2.4, 0.08, 10, 64),
+      new THREE.TorusGeometry(2.4, 0.08, 10, quality.extractionRingSegments),
       new THREE.MeshStandardMaterial({ color: '#8eff81', emissive: '#2c6b30', emissiveIntensity: 1.2 }),
     );
     ring.position.set(this.level.extraction.x, 0.08, this.level.extraction.z);
@@ -883,8 +951,8 @@ export class ShadowRecruitApp {
       if (setting === 'debug' && target instanceof HTMLInputElement) this.settings.debug = target.checked;
       if (setting === 'muted' && target instanceof HTMLInputElement) this.settings.muted = target.checked;
       if (setting === 'performanceProfile' && target instanceof HTMLSelectElement) {
-        this.settings.performanceProfile = target.value === 'performance' || target.value === 'cinematic' ? target.value : 'balanced';
-        this.applyPerformanceProfile();
+        this.setPerformanceProfile(target.value === 'performance' || target.value === 'cinematic' ? target.value : 'balanced');
+        return;
       }
       saveSettings(this.settings);
       this.audio.updateSettings(this.settings);
@@ -931,6 +999,11 @@ export class ShadowRecruitApp {
   }
 
   private applyPerformanceProfile(): void {
+    const quality = this.quality();
+    this.renderer.shadowMap.enabled = quality.shadowsEnabled;
+    this.renderer.shadowMap.autoUpdate = quality.shadowsEnabled;
+    this.doorTexture.anisotropy = quality.textureAnisotropy;
+    this.applyObjectQuality(this.scene);
     this.resize();
   }
 
@@ -938,9 +1011,32 @@ export class ShadowRecruitApp {
     const rect = this.shell.getBoundingClientRect();
     this.camera.aspect = Math.max(1, rect.width) / Math.max(1, rect.height);
     this.camera.updateProjectionMatrix();
-    const maxRatio = this.settings.performanceProfile === 'cinematic' ? 1.3 : this.settings.performanceProfile === 'balanced' ? 1 : 0.82;
+    const maxRatio = this.quality().pixelRatioCap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxRatio));
     this.renderer.setSize(Math.max(1, rect.width), Math.max(1, rect.height), false);
+  }
+
+  private setPerformanceProfile(profile: string): void {
+    this.settings.performanceProfile = isPerformanceProfile(profile) ? profile : 'balanced';
+    saveSettings(this.settings);
+    this.audio.updateSettings(this.settings);
+    this.applyPerformanceProfile();
+    this.renderOverlay();
+    this.renderHud();
+  }
+
+  private quality(): RenderQuality {
+    return renderQualityByProfile[this.settings.performanceProfile];
+  }
+
+  private applyObjectQuality(object: THREE.Object3D): void {
+    const shadowsEnabled = this.quality().shadowsEnabled;
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = shadowsEnabled;
+        child.receiveShadow = shadowsEnabled;
+      }
+    });
   }
 
   private clearRuntime(): void {
@@ -967,7 +1063,11 @@ export class ShadowRecruitApp {
   }
 
   private rendererMetrics(): RendererMetrics {
+    const quality = this.quality();
     return {
+      performanceProfile: this.settings.performanceProfile,
+      shadowsEnabled: quality.shadowsEnabled && this.renderer.shadowMap.enabled,
+      shadowMapSize: quality.shadowMapSize,
       drawCalls: this.renderer.info.render.calls,
       triangles: this.renderer.info.render.triangles,
       geometries: this.renderer.info.memory.geometries,
@@ -1081,6 +1181,7 @@ export class ShadowRecruitApp {
       forceSuccess: () => this.completeMission(),
       resetMission: () => this.startRun(this.selectedHero),
       startGame: (heroId) => this.startRun(isHeroId(heroId) ? heroId : this.selectedHero),
+      setPerformanceProfile: (profile) => this.setPerformanceProfile(profile),
       completeMission: () => this.completeMission(),
       resetFramePacing: () => {
         this.frameDeltas.length = 0;

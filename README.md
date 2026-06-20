@@ -35,6 +35,8 @@ npm run screenshots
 npm run tester:report
 ```
 
+`npm run test:fps` measures the low-cost `performance` profile by default. Override with `FPS_PROFILE=balanced` or `FPS_PROFILE=cinematic` when comparing richer profiles on a machine that can prove a visible 60 FPS browser baseline.
+
 Skill edits should also run:
 
 ```powershell

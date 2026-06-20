@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-06-20
+
+### Minor
+
+- Added render-quality behavior for performance, balanced, and cinematic profiles, with FPS QA measuring the low-cost performance path by default.
+
 ## 0.3.2 - 2026-06-20
 
 ### Patch
