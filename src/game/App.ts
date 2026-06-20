@@ -39,6 +39,7 @@ import type {
   PerformanceProfile,
   Phase,
   RectSpec,
+  RenderBudgetState,
   RendererMetrics,
   SceneObjectBounds,
   ScreenBounds,
@@ -80,6 +81,11 @@ type RenderQuality = {
   lightIntensityScale: number;
   textureAnisotropy: number;
 };
+
+type RenderBudgetLimits = Pick<
+  RenderBudgetState,
+  'maxDrawCalls' | 'maxTriangles' | 'maxGeometries' | 'maxTextures' | 'maxPixelRatio' | 'shadowsAllowed'
+>;
 
 type AssetQualityOptions = {
   planarGround?: boolean;
@@ -134,6 +140,33 @@ const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
     extractionRingSegments: 96,
     lightIntensityScale: 1.18,
     textureAnisotropy: 8,
+  },
+};
+
+const renderBudgetByProfile: Record<PerformanceProfile, RenderBudgetLimits> = {
+  performance: {
+    maxDrawCalls: 760,
+    maxTriangles: 420_000,
+    maxGeometries: 130,
+    maxTextures: 34,
+    maxPixelRatio: 0.75,
+    shadowsAllowed: false,
+  },
+  balanced: {
+    maxDrawCalls: 900,
+    maxTriangles: 520_000,
+    maxGeometries: 160,
+    maxTextures: 48,
+    maxPixelRatio: 1,
+    shadowsAllowed: true,
+  },
+  cinematic: {
+    maxDrawCalls: 1_050,
+    maxTriangles: 680_000,
+    maxGeometries: 190,
+    maxTextures: 64,
+    maxPixelRatio: 1.3,
+    shadowsAllowed: true,
   },
 };
 
@@ -1740,6 +1773,50 @@ export class ShadowRecruitApp {
     };
   }
 
+  private renderBudgetState(): RenderBudgetState {
+    const renderer = this.rendererMetrics();
+    const limits = renderBudgetByProfile[this.settings.performanceProfile];
+    const drawCallHeadroom = limits.maxDrawCalls - renderer.drawCalls;
+    const triangleHeadroom = limits.maxTriangles - renderer.triangles;
+    const geometryHeadroom = limits.maxGeometries - renderer.geometries;
+    const textureHeadroom = limits.maxTextures - renderer.textures;
+    const pixelRatioHeadroom = roundMetric(limits.maxPixelRatio - renderer.pixelRatio);
+    const withinBudget = drawCallHeadroom >= 0 &&
+      triangleHeadroom >= 0 &&
+      geometryHeadroom >= 0 &&
+      textureHeadroom >= 0 &&
+      pixelRatioHeadroom >= -0.01 &&
+      (limits.shadowsAllowed || !renderer.shadowsEnabled);
+    const notes = withinBudget
+      ? [`${renderer.performanceProfile} profile render counters are inside the explicit 60 FPS path budget.`]
+      : [
+        drawCallHeadroom < 0 ? `Draw calls exceed budget by ${Math.abs(drawCallHeadroom)}.` : `Draw-call headroom ${drawCallHeadroom}.`,
+        triangleHeadroom < 0 ? `Triangles exceed budget by ${Math.abs(triangleHeadroom)}.` : `Triangle headroom ${triangleHeadroom}.`,
+        geometryHeadroom < 0 ? `Geometries exceed budget by ${Math.abs(geometryHeadroom)}.` : `Geometry headroom ${geometryHeadroom}.`,
+        textureHeadroom < 0 ? `Textures exceed budget by ${Math.abs(textureHeadroom)}.` : `Texture headroom ${textureHeadroom}.`,
+        pixelRatioHeadroom < -0.01 ? `Pixel ratio ${renderer.pixelRatio} exceeds profile cap ${limits.maxPixelRatio}.` : `Pixel ratio headroom ${pixelRatioHeadroom}.`,
+        !limits.shadowsAllowed && renderer.shadowsEnabled ? 'Performance profile unexpectedly has shadows enabled.' : 'Shadow policy matches profile.',
+      ];
+
+    return {
+      performanceProfile: renderer.performanceProfile,
+      grade: withinBudget ? 'pass' : 'fail',
+      ...limits,
+      drawCalls: renderer.drawCalls,
+      triangles: renderer.triangles,
+      geometries: renderer.geometries,
+      textures: renderer.textures,
+      pixelRatio: renderer.pixelRatio,
+      shadowsEnabled: renderer.shadowsEnabled,
+      drawCallHeadroom,
+      triangleHeadroom,
+      geometryHeadroom,
+      textureHeadroom,
+      pixelRatioHeadroom,
+      notes,
+    };
+  }
+
   private memoryMetrics(): MemoryMetrics {
     const visibleFallbackAssetIds = new Set(
       this.runtimeObjects
@@ -2944,6 +3021,7 @@ export class ShadowRecruitApp {
       objectives: this.getObjectiveProgress(),
       doors: this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
       renderer: this.rendererMetrics(),
+      renderBudget: this.renderBudgetState(),
       framePacing: this.framePacing(),
       memory: this.memoryMetrics(),
       assetQuality: this.assetQualityChecks(),

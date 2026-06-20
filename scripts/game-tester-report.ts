@@ -64,6 +64,29 @@ type FpsGateMetric = {
   environmentLimitedScenes?: readonly string[];
 };
 
+type RenderBudgetMetric = {
+  performanceProfile?: string;
+  grade: string;
+  maxDrawCalls: number;
+  maxTriangles: number;
+  maxGeometries: number;
+  maxTextures: number;
+  maxPixelRatio: number;
+  shadowsAllowed: boolean;
+  drawCalls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+  pixelRatio: number;
+  shadowsEnabled: boolean;
+  drawCallHeadroom: number;
+  triangleHeadroom: number;
+  geometryHeadroom: number;
+  textureHeadroom: number;
+  pixelRatioHeadroom: number;
+  notes: readonly string[];
+};
+
 type Metrics = {
   levelId?: string;
   missionCatalog?: readonly LevelCatalogEntry[];
@@ -81,6 +104,7 @@ type Metrics = {
     textures: number;
     pixelRatio?: number;
   };
+  renderBudget?: RenderBudgetMetric;
   memory?: {
     loadedAssets: number;
     characterAssets: number;
@@ -116,6 +140,7 @@ type FpsSceneMetric = {
     textures: number;
     pixelRatio?: number;
   };
+  renderBudget?: RenderBudgetMetric;
   audioTrack?: AudioState['activeTrack'];
   titleComposition?: TitleComposition;
   fpsGate: FpsGateMetric;
@@ -529,6 +554,7 @@ const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
 const fpsScenes = metrics?.fpsScenes ?? [];
 const renderer = metrics?.renderer;
+const renderBudget = metrics?.renderBudget;
 const memory = metrics?.memory;
 const assetAudit = memory?.assetAudit ?? [];
 const assetQuality = metrics?.assetQuality ?? [];
@@ -542,6 +568,7 @@ const missionCatalog = missionCatalogArtifact?.missions ?? metrics?.missionCatal
 const selectedMissionId = missionCatalogArtifact?.selectedMissionId ?? metrics?.levelId ?? playthrough?.finalState?.levelId;
 const missionBrief = missionCatalogArtifact?.missionBrief;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate, fpsScenes);
+const renderBudgetFindings = describeRenderBudgetFindings(renderBudget, fpsScenes);
 const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
@@ -588,6 +615,7 @@ Date: ${date}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}; overhead=${formatMs(fpsGate.frameOverheadMs)} median/${formatMs(fpsGate.p95OverheadMs)} p95; headroom=${formatMs(fpsGate.gameHeadroomMs)} game/${formatMs(fpsGate.browserBaselineHeadroomMs)} browser` : 'not captured'}
 - FPS scene matrix: ${formatFpsSceneSummary(fpsScenes)}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, pixelRatio=${renderer.pixelRatio ?? 'unknown'}, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
+- Render budget: ${formatRenderBudgetSummary(renderBudget)}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Runtime asset audit: ${assetAudit.length > 0 ? describeAssetAuditSummary(assetAudit) : 'not captured'}
 - Audio state: gameplay metrics=${formatAudioState(metricAudio)}; completion playthrough=${formatAudioState(completionAudio)}
@@ -610,6 +638,10 @@ ${formatGeometryDiagnostics(geometry)}
 ## FPS Scene Matrix
 
 ${formatFpsSceneMatrix(fpsScenes, baseline)}
+
+## Render Budget QA
+
+${formatRenderBudget(renderBudget, fpsScenes)}
 
 ## Tutorial Alignment QA
 
@@ -664,11 +696,13 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate, fpsScenes)}
+- Render budget: ${describeRenderBudgetSummary(renderBudget, fpsScenes)}
 
 ## Required Fixes
 
 - P0: None recorded by generated report.
 ${frameFinding}
+${renderBudgetFindings}
 ${missionCatalogFindings}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
@@ -790,12 +824,68 @@ function formatFpsSceneMatrix(
     const renderer = scene.renderer
       ? `renderer=${scene.renderer.drawCalls} calls/${scene.renderer.triangles} tris/${scene.renderer.textures} textures/pixelRatio=${scene.renderer.pixelRatio ?? 'unknown'}`
       : 'renderer=not captured';
+    const budget = scene.renderBudget
+      ? ` budget=${scene.renderBudget.grade}; headroom=${scene.renderBudget.drawCallHeadroom} calls/${scene.renderBudget.triangleHeadroom} tris/${scene.renderBudget.textureHeadroom} tex`
+      : ' budget=not captured';
     const title = scene.titleComposition
       ? ` titleHero=facingDot=${scene.titleComposition.facingDot}; screenHeight=${formatRatio(scene.titleComposition.heroScreenHeightRatio)}; occupancy=${formatRatio(scene.titleComposition.heroScreenOccupancy)}`
       : '';
-    return `- ${scene.fpsGate.status.toUpperCase()} fps/${scene.id}: label="${scene.label}"; phase=${scene.phase}; screenshot=${scene.screenshot}; frame=${scene.framePacing.fps.toFixed(1)} FPS / ${scene.framePacing.frameMs.toFixed(1)} ms median / ${scene.framePacing.p95FrameMs.toFixed(1)} ms p95; strict=${scene.fpsGate.strictTargetMet}; tracksBaseline=${scene.fpsGate.tracksBaseline}; overhead=${formatMs(scene.fpsGate.frameOverheadMs)} median/${formatMs(scene.fpsGate.p95OverheadMs)} p95; audio=${scene.audioTrack ?? 'none'}; ${renderer}.${title}`;
+    return `- ${scene.fpsGate.status.toUpperCase()} fps/${scene.id}: label="${scene.label}"; phase=${scene.phase}; screenshot=${scene.screenshot}; frame=${scene.framePacing.fps.toFixed(1)} FPS / ${scene.framePacing.frameMs.toFixed(1)} ms median / ${scene.framePacing.p95FrameMs.toFixed(1)} ms p95; strict=${scene.fpsGate.strictTargetMet}; tracksBaseline=${scene.fpsGate.tracksBaseline}; overhead=${formatMs(scene.fpsGate.frameOverheadMs)} median/${formatMs(scene.fpsGate.p95OverheadMs)} p95; audio=${scene.audioTrack ?? 'none'}; ${renderer};${budget}.${title}`;
   });
   return [baselineLine, ...rows].join('\n');
+}
+
+function formatRenderBudgetSummary(budget: RenderBudgetMetric | undefined): string {
+  if (!budget) return 'not captured';
+  return `${budget.grade}; profile=${budget.performanceProfile ?? 'unknown'}; calls=${budget.drawCalls}/${budget.maxDrawCalls}; triangles=${budget.triangles}/${budget.maxTriangles}; geometries=${budget.geometries}/${budget.maxGeometries}; textures=${budget.textures}/${budget.maxTextures}; pixelRatio=${budget.pixelRatio}/${budget.maxPixelRatio}; shadows=${budget.shadowsEnabled}/${budget.shadowsAllowed}`;
+}
+
+function describeRenderBudgetSummary(
+  budget: RenderBudgetMetric | undefined,
+  scenes: readonly FpsSceneMetric[],
+): string {
+  if (!budget) return 'Render-budget metrics were not captured.';
+  const failedScenes = scenes.filter((scene) => scene.renderBudget?.grade === 'fail');
+  if (budget.grade === 'pass' && failedScenes.length === 0) {
+    return `${budget.performanceProfile ?? 'active'} profile render counters are inside explicit draw-call, triangle, geometry, texture, pixel-ratio, and shadow budgets.`;
+  }
+  return `Render-budget overage needs optimization before approving more assets: ${[budget, ...failedScenes.map((scene) => scene.renderBudget).filter((item): item is RenderBudgetMetric => Boolean(item))].map(formatRenderBudgetSummary).join('; ')}.`;
+}
+
+function describeRenderBudgetFindings(
+  budget: RenderBudgetMetric | undefined,
+  scenes: readonly FpsSceneMetric[],
+): string {
+  if (!budget) return '- P1: Render-budget diagnostics missing; tester cannot prove the lower-cost 60 FPS profile is protected from renderer counter regressions.';
+  const failedScenes = scenes.filter((scene) => scene.renderBudget?.grade === 'fail');
+  if (budget.grade !== 'pass' || failedScenes.length > 0) {
+    const failures = [
+      budget.grade !== 'pass' ? `active=${formatRenderBudgetSummary(budget)}` : '',
+      ...failedScenes.map((scene) => `${scene.id}=${formatRenderBudgetSummary(scene.renderBudget)}`),
+    ].filter(Boolean);
+    return `- P1: Render-budget gate failed: ${failures.join('; ')}.`;
+  }
+  return '- P1: None from generated render-budget diagnostics.';
+}
+
+function formatRenderBudget(
+  budget: RenderBudgetMetric | undefined,
+  scenes: readonly FpsSceneMetric[],
+): string {
+  const rows: string[] = [];
+  if (budget) {
+    rows.push(`- ${budget.grade.toUpperCase()} render-budget/active: ${formatRenderBudgetSummary(budget)}; headroom=${budget.drawCallHeadroom} calls, ${budget.triangleHeadroom} triangles, ${budget.geometryHeadroom} geometries, ${budget.textureHeadroom} textures, ${budget.pixelRatioHeadroom} pixel ratio. ${budget.notes.join(' ')}`);
+  } else {
+    rows.push('- FAIL render-budget/active: not captured.');
+  }
+  for (const scene of scenes) {
+    if (!scene.renderBudget) {
+      rows.push(`- FAIL render-budget/${scene.id}: not captured.`);
+      continue;
+    }
+    rows.push(`- ${scene.renderBudget.grade.toUpperCase()} render-budget/${scene.id}: ${formatRenderBudgetSummary(scene.renderBudget)}; screenshot=${scene.screenshot}; headroom=${scene.renderBudget.drawCallHeadroom} calls, ${scene.renderBudget.triangleHeadroom} triangles, ${scene.renderBudget.geometryHeadroom} geometries, ${scene.renderBudget.textureHeadroom} textures, ${scene.renderBudget.pixelRatioHeadroom} pixel ratio.`);
+  }
+  return rows.join('\n');
 }
 
 async function copyFpsSceneScreenshots(

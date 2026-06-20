@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import packageInfo from '../package.json';
-import type { FramePacingSample, Phase, RendererMetrics, TesterState } from '../src/game/types';
+import type { FramePacingSample, Phase, RenderBudgetState, RendererMetrics, TesterState } from '../src/game/types';
 
 type BrowserBaseline = {
   fps: number;
@@ -38,6 +38,7 @@ type FpsSceneSample = {
   screenshot: string;
   framePacing: FramePacingSample;
   renderer: RendererMetrics;
+  renderBudget: RenderBudgetState;
   audioTrack: TesterState['audio']['activeTrack'];
   titleComposition?: TesterState['titleComposition'];
   fpsGate: FpsSceneGate;
@@ -105,6 +106,7 @@ try {
 
   const scenes = [title, gameplay, complete, caught];
   const fpsScenes = scenes.map((scene) => scene.sample);
+  const renderBudgetFailures = fpsScenes.filter((scene) => scene.renderBudget.grade === 'fail');
   const result = {
     ...gameplay.state,
     browserBaseline,
@@ -117,7 +119,10 @@ try {
   if (result.fpsGate.status === 'fail') {
     throw new Error(`Frame pacing gate failed: ${JSON.stringify(result.fpsGate)} scenes=${JSON.stringify(fpsScenes)}`);
   }
-  console.info(`[fps-gate] ${JSON.stringify(result.fpsGate)} scenes=${fpsScenes.map((scene) => `${scene.id}:${scene.fpsGate.status}:${scene.framePacing.frameMs.toFixed(1)}ms/${scene.framePacing.p95FrameMs.toFixed(1)}ms`).join(', ')} baseline=${JSON.stringify(browserBaseline)} wrote ${outputDir}/metrics.json`);
+  if (renderBudgetFailures.length > 0) {
+    throw new Error(`Render budget gate failed: ${renderBudgetFailures.map((scene) => `${scene.id}:${scene.renderBudget.notes.join(' ')}`).join('; ')}`);
+  }
+  console.info(`[fps-gate] ${JSON.stringify(result.fpsGate)} scenes=${fpsScenes.map((scene) => `${scene.id}:${scene.fpsGate.status}:${scene.framePacing.frameMs.toFixed(1)}ms/${scene.framePacing.p95FrameMs.toFixed(1)}ms:${scene.renderBudget.grade}`).join(', ')} baseline=${JSON.stringify(browserBaseline)} wrote ${outputDir}/metrics.json`);
 } finally {
   await browser.close();
 }
@@ -157,6 +162,7 @@ async function sampleScene(
       screenshot: `${outputDir}/${screenshot}`,
       framePacing: state.framePacing,
       renderer: state.renderer,
+      renderBudget: state.renderBudget,
       audioTrack: state.audio.activeTrack,
       ...(id === 'title' ? { titleComposition: state.titleComposition } : {}),
       fpsGate,

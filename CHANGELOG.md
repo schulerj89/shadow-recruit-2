@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.19.0 - 2026-06-20
+
+### Minor
+
+- Added explicit render-budget diagnostics for each performance profile, exposing draw-call, triangle, geometry, texture, pixel-ratio, shadow-policy, and headroom checks through the tester state.
+- Wired browser smoke, FPS scene sampling, and the game-tester report to fail or report render-budget overages alongside frame-pacing evidence.
+
 ## 0.18.0 - 2026-06-20
 
 ### Minor

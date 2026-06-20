@@ -315,6 +315,19 @@ try {
   if (state.renderer.performanceProfile !== 'performance' || state.renderer.shadowsEnabled) {
     throw new Error(`Expected performance render quality without shadows, got ${JSON.stringify(state.renderer)}`);
   }
+  if (
+    !state.renderBudget ||
+    state.renderBudget.performanceProfile !== 'performance' ||
+    state.renderBudget.grade !== 'pass' ||
+    state.renderBudget.drawCallHeadroom < 0 ||
+    state.renderBudget.triangleHeadroom < 0 ||
+    state.renderBudget.geometryHeadroom < 0 ||
+    state.renderBudget.textureHeadroom < 0 ||
+    state.renderBudget.pixelRatioHeadroom < -0.01 ||
+    state.renderBudget.shadowsEnabled
+  ) {
+    throw new Error(`Expected performance profile render budget to pass with headroom, got ${JSON.stringify(state.renderBudget)}`);
+  }
 
   const errorLogs = logs
     .filter((line) => /^\[(error|warning)\]/i.test(line))

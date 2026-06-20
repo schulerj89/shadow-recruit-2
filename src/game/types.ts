@@ -146,6 +146,29 @@ export type RendererMetrics = {
   pixelRatio: number;
 };
 
+export type RenderBudgetState = {
+  performanceProfile: PerformanceProfile;
+  grade: AssetQualityGrade;
+  maxDrawCalls: number;
+  maxTriangles: number;
+  maxGeometries: number;
+  maxTextures: number;
+  maxPixelRatio: number;
+  shadowsAllowed: boolean;
+  drawCalls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+  pixelRatio: number;
+  shadowsEnabled: boolean;
+  drawCallHeadroom: number;
+  triangleHeadroom: number;
+  geometryHeadroom: number;
+  textureHeadroom: number;
+  pixelRatioHeadroom: number;
+  notes: readonly string[];
+};
+
 export type RuntimeAssetKind = 'hero' | 'enemy' | 'objective' | 'set-dressing' | 'cover';
 export type RuntimeAssetRequirement = 'required' | 'optional';
 export type RuntimeAssetSource = 'sneak-game-seed' | 'repo-generated-glb';
@@ -550,6 +573,7 @@ export type TesterState = {
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: readonly { id: string; open: boolean; progress: number }[];
   renderer: RendererMetrics;
+  renderBudget: RenderBudgetState;
   framePacing: FramePacingSample;
   memory: MemoryMetrics;
   assetQuality: readonly AssetQualityCheck[];
