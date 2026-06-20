@@ -619,6 +619,23 @@ export type GameplayViewDensityState = {
   notes: readonly string[];
 };
 
+export type MissionGuidanceState = {
+  active: boolean;
+  targetId: string | null;
+  targetKind: 'objective' | 'extraction' | 'complete';
+  label: string;
+  action: string;
+  distanceMeters: number;
+  bearingDegrees: number;
+  compassDirection: string;
+  targetPoint: Vec2 | null;
+  unlocks: readonly string[];
+  completedRequired: number;
+  totalRequired: number;
+  exitUnlocked: boolean;
+  notes: readonly string[];
+};
+
 export type CompletionStats = {
   active: boolean;
   elapsedSeconds: number;
@@ -642,6 +659,7 @@ export type TesterState = {
   cinematicFocus: CinematicFocusState;
   gameplayCamera: GameplayCameraState;
   gameplayViewDensity: GameplayViewDensityState;
+  missionGuidance: MissionGuidanceState;
   completion: CompletionStats;
   playerPosition: Vec2;
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };

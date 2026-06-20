@@ -102,6 +102,7 @@ Fail the tester pass when any of these are true:
 
 - A screenshot shows a likely wall, door, seam, floor-contact, title-facing, or empty-space defect and the report does not include matching runtime object IDs plus coordinates or projections.
 - A tester notices a screenshot-visible wall/door issue but does not translate it into a coordinate query against the nearest wall line, adjacent door pair, projected bounds, and camera first-hit data.
+- A tester treats a screenshot-visible "wallop," door-to-door hole, or odd wall patch as cosmetic without mapping the suspect pixels to the nearest adjacent door pair, shared wall-line ID, between-door coordinate span, owner surface, projected owner coverage, and first-hit probe.
 - A report approves a possible wall gap between doors without a door-to-door ownership table proving the intervening span is covered by a named surface in both relevant door states.
 - A report approves a door-local seam while ignoring the larger shared wall run between two adjacent door openings, adjacent wall fragments, or frame intervals.
 - A report approves a possible wall gap between doors without a wall-line connection graph and camera probe proving the visible pixel region is blocked by the intended door, frame, wall, return, trim, or continuity surface.
@@ -111,6 +112,7 @@ Fail the tester pass when any of these are true:
 - A large room passes because the whole level is big or technically navigable, while the active gameplay camera shows empty floor, repeated wall panels, and no measured nearby cover/prop/landmark density.
 - A large room passes because global density averages look acceptable, while the active camera's near or mid band is mostly empty floor/walls or lacks readable tactical props.
 - A large room passes because asset counts exist somewhere in the room, while the active camera view is dominated by negative space, repeated walls, unbroken floor, or props placed outside the player's readable near/mid/far bands.
+- A large space passes because it is bigger than Shadow Recruit 1, while the active camera still lacks close cover silhouettes, terminals, cables, decals, security hardware, lighting hierarchy, extraction staging, or other inspectable AAA detail.
 - Texture/material grading says "acceptable" without proving wall, floor, and major object materials use authored or generated image textures at appropriate scale, with variation visible from the gameplay camera.
 - The test report cannot distinguish between final GLB/generated assets and primitive fallback visuals for walls, doors, props, objectives, sentries, extraction, or hero presentation.
 - Visible blocker or cover geometry is approved because it has collision coordinates, but the rendered asset is a primitive box, blockout material, or unknown fallback instead of a named generated/GLB cover asset.

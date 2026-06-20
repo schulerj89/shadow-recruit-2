@@ -227,9 +227,10 @@ try {
   ) {
     throw new Error(`Expected active gameplay camera to have near/mid/far tactical detail, got ${JSON.stringify(gameplayState?.gameplayViewDensity)}`);
   }
-  await collectObjectiveAndExpectFocus('access-keycard', 'lobby-door', '09-focus-lobby-door.png');
-  await collectObjectiveAndExpectFocus('security-terminal', 'server-door', '10-focus-server-door.png');
-  await collectObjectiveAndExpectFocus('command-codes', 'extraction-door', '11-focus-extraction-door.png');
+  await expectMissionGuidance('access-keycard', 'objective');
+  await collectObjectiveAndExpectFocus('access-keycard', 'lobby-door', '09-focus-lobby-door.png', 'security-terminal');
+  await collectObjectiveAndExpectFocus('security-terminal', 'server-door', '10-focus-server-door.png', 'command-codes');
+  await collectObjectiveAndExpectFocus('command-codes', 'extraction-door', '11-focus-extraction-door.png', 'extraction');
   await page.evaluate(() => {
     window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 });
   });
@@ -386,13 +387,19 @@ async function expectPhase(phase: string): Promise<void> {
   await page.waitForFunction((expected) => window.__shadowRecruitDebug?.phase() === expected, phase, { timeout: 30000 });
 }
 
-async function collectObjectiveAndExpectFocus(objectiveId: string, doorId: string, screenshotName: string): Promise<void> {
+async function collectObjectiveAndExpectFocus(
+  objectiveId: string,
+  doorId: string,
+  screenshotName: string,
+  expectedGuidanceTarget: string,
+): Promise<void> {
   await page.evaluate((id) => window.__shadowRecruitDebug?.collectObjective(id), objectiveId);
   await expectPhase('cinematic-focus');
   const focus = await page.evaluate(() => window.__shadowRecruitDebug?.cinematicFocus());
   if (!focus?.active || focus.target !== doorId || focus.remainingMs <= 0) {
     throw new Error(`Expected ${doorId} cinematic focus after ${objectiveId}, got ${JSON.stringify(focus)}`);
   }
+  await expectMissionGuidance(expectedGuidanceTarget, expectedGuidanceTarget === 'extraction' ? 'extraction' : 'objective');
   const door = defaultLevel.doors.find((candidate) => candidate.id === doorId);
   if (!door || !focus.focusPoint || Math.hypot(focus.focusPoint.x - door.center.x, focus.focusPoint.z - door.center.z) > 0.1) {
     throw new Error(`Expected ${doorId} focus point to match authored door center, got ${JSON.stringify({ focus, door })}`);
@@ -403,6 +410,24 @@ async function collectObjectiveAndExpectFocus(objectiveId: string, doorId: strin
   }
   await page.screenshot({ path: `${screenshotDir}/${screenshotName}`, fullPage: true });
   await expectPhase('playing');
+}
+
+async function expectMissionGuidance(expectedTargetId: string, expectedKind: 'objective' | 'extraction'): Promise<void> {
+  const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
+  const guidance = state?.missionGuidance;
+  const hudTarget = await page.locator('[data-testid="mission-guidance"]').getAttribute('data-target-id');
+  const hudLabel = await page.locator('[data-testid="mission-guidance-label"]').innerText();
+  const hudDetail = await page.locator('[data-testid="mission-guidance-detail"]').innerText();
+  if (
+    !guidance?.active ||
+    guidance.targetId !== expectedTargetId ||
+    guidance.targetKind !== expectedKind ||
+    hudTarget !== expectedTargetId ||
+    !hudLabel.trim() ||
+    !/^\d+(\.\d+)?m (N|NE|E|SE|S|SW|W|NW)$/.test(hudDetail.trim())
+  ) {
+    throw new Error(`Expected ${expectedTargetId} ${expectedKind} mission guidance, got ${JSON.stringify({ guidance, hudTarget, hudLabel, hudDetail })}`);
+  }
 }
 
 async function expectStat(testId: string, value: string): Promise<void> {

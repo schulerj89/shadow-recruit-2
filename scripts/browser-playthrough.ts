@@ -75,6 +75,7 @@ try {
 
   await expectPhase('playing');
   await captureScreenshot('02-mission-start.png');
+  await expectMissionGuidance(level.objectives[0]?.id ?? 'extraction');
 
   const pendingObjectives = [...level.objectives];
   for (const point of level.validationRoute) {
@@ -86,7 +87,9 @@ try {
 
     const objective = pendingObjectives.find((candidate) => distance(point, candidate.position) <= candidate.radius + 0.1);
     if (objective) {
-      await interactWithObjective(objective);
+      const objectiveIndex = pendingObjectives.indexOf(objective);
+      const expectedNextTarget = pendingObjectives[objectiveIndex + 1]?.id ?? 'extraction';
+      await interactWithObjective(objective, expectedNextTarget);
       pendingObjectives.splice(pendingObjectives.indexOf(objective), 1);
     }
   }
@@ -101,7 +104,13 @@ try {
   if (finalState.objectives.collectedRequired !== finalState.objectives.totalRequired || !finalState.objectives.exitUnlocked) {
     throw new Error(`Playthrough did not complete all objectives: ${JSON.stringify(finalState.objectives)}`);
   }
-  if (!finalState.completion.active || !finalState.completion.triumphantCue || finalState.completion.objectivesCompleted !== 3 || finalState.completion.objectivesTotal !== 3) {
+  const requiredObjectiveCount = level.objectives.filter((objective) => objective.required).length;
+  if (
+    !finalState.completion.active ||
+    !finalState.completion.triumphantCue ||
+    finalState.completion.objectivesCompleted !== requiredObjectiveCount ||
+    finalState.completion.objectivesTotal !== requiredObjectiveCount
+  ) {
     throw new Error(`Playthrough did not capture completion stats and triumphant cue: ${JSON.stringify(finalState.completion)}`);
   }
   if (finalState.audio.activeTrack !== 'complete' || finalState.audio.muted || !finalState.audio.unlocked) {
@@ -115,6 +124,9 @@ try {
   }
   if (finalState.operative.probes.some((probe) => probe.grade !== 'pass')) {
     throw new Error(`Playthrough operative probes failed: ${JSON.stringify(finalState.operative.probes)}`);
+  }
+  if (finalState.missionGuidance.targetId !== 'extraction' || finalState.missionGuidance.targetKind !== 'extraction') {
+    throw new Error(`Playthrough final state did not retain extraction guidance: ${JSON.stringify(finalState.missionGuidance)}`);
   }
 
   const errorLogs = logs
@@ -143,7 +155,7 @@ async function teleport(point: Vec2): Promise<void> {
   await page.evaluate((target) => window.__shadowRecruitDebug?.teleportPlayerTo(target), point);
 }
 
-async function interactWithObjective(objective: ObjectiveDefinition): Promise<void> {
+async function interactWithObjective(objective: ObjectiveDefinition, expectedNextTarget: string): Promise<void> {
   await page.keyboard.press('KeyE', { delay: 60 });
   const doorId = objective.unlocks[0];
   if (!doorId) throw new Error(`Objective ${objective.id} has no door unlock to verify.`);
@@ -157,7 +169,22 @@ async function interactWithObjective(objective: ObjectiveDefinition): Promise<vo
   const index = interactions.length + 3;
   await captureScreenshot(`${String(index).padStart(2, '0')}-focus-${doorId}.png`);
   interactions.push({ objectiveId: objective.id, doorId, focusMs: focus.remainingMs });
+  await expectMissionGuidance(expectedNextTarget);
   await expectPhase('playing');
+}
+
+async function expectMissionGuidance(expectedTargetId: string): Promise<void> {
+  const state = await captureState();
+  const expectedKind = expectedTargetId === 'extraction' ? 'extraction' : 'objective';
+  if (
+    !state.missionGuidance.active ||
+    state.missionGuidance.targetId !== expectedTargetId ||
+    state.missionGuidance.targetKind !== expectedKind ||
+    !Number.isFinite(state.missionGuidance.distanceMeters) ||
+    !/^(N|NE|E|SE|S|SW|W|NW)$/.test(state.missionGuidance.compassDirection)
+  ) {
+    throw new Error(`Expected ${expectedTargetId} mission guidance, got ${JSON.stringify(state.missionGuidance)}`);
+  }
 }
 
 async function captureScreenshot(fileName: string): Promise<void> {

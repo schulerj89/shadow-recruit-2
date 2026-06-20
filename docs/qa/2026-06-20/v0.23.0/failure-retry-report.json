@@ -1,0 +1,105 @@
+{
+  "build": "v0.23.0",
+  "levelId": "blacksite-threshold",
+  "contactEnemy": {
+    "id": "sentry-lobby",
+    "position": {
+      "x": 15.476813476921437,
+      "z": -24.956401123076795
+    },
+    "start": {
+      "x": 16,
+      "z": -25
+    },
+    "detectionRadius": 2.45,
+    "baseDetectionRadius": 2.45,
+    "effectiveContactRadius": 2.45
+  },
+  "caught": {
+    "phase": "caught",
+    "alerts": 1,
+    "playerPosition": {
+      "x": 15.476813476921437,
+      "z": -24.956401123076795
+    },
+    "playerStartDistance": 15.996,
+    "objectives": {
+      "collectedRequired": 0,
+      "totalRequired": 3,
+      "exitUnlocked": false
+    },
+    "doors": [
+      {
+        "id": "lobby-door",
+        "open": false,
+        "progress": 0
+      },
+      {
+        "id": "server-door",
+        "open": false,
+        "progress": 0
+      },
+      {
+        "id": "extraction-door",
+        "open": false,
+        "progress": 0
+      }
+    ],
+    "audio": {
+      "activeTrack": "gameplay",
+      "muted": false,
+      "unlocked": true
+    },
+    "sentryAssetLoaded": true,
+    "enemyQualityCount": 3,
+    "panelText": "OPERATION FAILED Sentry contact You were too close to a sentry. Reset the mission and use cover timing. Retry Title",
+    "loadingHistoryCount": 4
+  },
+  "retry": {
+    "phase": "tutorial",
+    "alerts": 0,
+    "playerPosition": {
+      "x": 0,
+      "z": -29
+    },
+    "playerStartDistance": 0,
+    "objectives": {
+      "collectedRequired": 0,
+      "totalRequired": 3,
+      "exitUnlocked": false
+    },
+    "doors": [
+      {
+        "id": "lobby-door",
+        "open": false,
+        "progress": 0
+      },
+      {
+        "id": "server-door",
+        "open": false,
+        "progress": 0
+      },
+      {
+        "id": "extraction-door",
+        "open": false,
+        "progress": 0
+      }
+    ],
+    "audio": {
+      "activeTrack": "gameplay",
+      "muted": false,
+      "unlocked": true
+    },
+    "sentryAssetLoaded": true,
+    "enemyQualityCount": 3,
+    "panelText": "GENERAL CALDWELL Insertion Cadet, this is your first Shadow Recruit field operation. Move quietly, keep your suit low, and read the room before you cross open ground. Good luck, cadet. Next Skip",
+    "loadingHistoryCount": 4
+  },
+  "screenshots": [
+    "artifacts/failure-retry/v0.23.0/01-sentry-contact.png",
+    "artifacts/failure-retry/v0.23.0/02-retry-loading.png",
+    "artifacts/failure-retry/v0.23.0/03-retry-tutorial-reset.png"
+  ],
+  "pageErrors": [],
+  "consoleIssues": []
+}

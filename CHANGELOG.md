@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.23.0 - 2026-06-20
+
+### Minor
+
+- Added an active mission-guidance HUD that points players to the next required objective or extraction with player-facing action text, distance, and compass direction.
+- Exposed mission-guidance diagnostics through tester state, browser smoke, screenshot capture, browser playthroughs, and the generated game-tester report so future large missions must prove objective-to-objective guidance.
+- Removed a hardcoded browser-playthrough completion count so future registered missions validate against their authored required-objective total.
+- Tightened tester and designer guidance so screenshot-visible wallops between doors require door-pair coordinate ownership, projected coverage, and first-hit proof, while large empty levels and title heroes looking away remain P1 design failures.
+
 ## 0.22.1 - 2026-06-20
 
 ### Patch

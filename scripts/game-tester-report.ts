@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { basename } from 'node:path';
 import packageInfo from '../package.json';
 import { levels } from '../src/game/levels';
-import type { DoorDefinition as GameDoorDefinition, LevelDefinition as GameLevelDefinition, LevelZoneDefinition as GameLevelZoneDefinition, RectSpec as GameRectSpec, Vec2 as GameVec2 } from '../src/game/types';
+import type { DoorDefinition as GameDoorDefinition, LevelDefinition as GameLevelDefinition, LevelZoneDefinition as GameLevelZoneDefinition, MissionGuidanceState, RectSpec as GameRectSpec, Vec2 as GameVec2 } from '../src/game/types';
 
 const date = process.env.QA_DATE ?? '2026-06-20';
 const outputDir = process.env.TESTER_REPORT_DIR ?? `docs/qa/${date}/v${packageInfo.version}`;
@@ -21,6 +21,7 @@ const committedFailureRetryPath = `${outputDir}/failure-retry-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
 const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
 const gameplayViewDensityPath = `${outputDir}/gameplay-view-density.json`;
+const missionGuidancePath = `${outputDir}/mission-guidance.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
 const missionReadinessPath = `${outputDir}/mission-readiness.json`;
@@ -127,6 +128,7 @@ type Metrics = {
   titleComposition?: TitleComposition;
   gameplayCamera?: GameplayCameraState;
   gameplayViewDensity?: GameplayViewDensityState;
+  missionGuidance?: MissionGuidanceState;
   operative?: OperativeReportState;
   tutorialAlignment?: readonly TutorialAlignmentCheck[];
   loading?: LoadingState;
@@ -756,6 +758,9 @@ const gameplayCamera = existsSync(gameplayCameraPath)
 const gameplayViewDensity = existsSync(gameplayViewDensityPath)
   ? JSON.parse(await readFile(gameplayViewDensityPath, 'utf8')) as GameplayViewDensityState
   : metrics?.gameplayViewDensity ?? (playthrough?.finalState?.gameplayViewDensity as GameplayViewDensityState | undefined);
+const missionGuidance = existsSync(missionGuidancePath)
+  ? JSON.parse(await readFile(missionGuidancePath, 'utf8')) as MissionGuidanceState
+  : metrics?.missionGuidance ?? (playthrough?.finalState?.missionGuidance as MissionGuidanceState | undefined);
 const tutorialAlignment = existsSync(tutorialAlignmentPath)
   ? JSON.parse(await readFile(tutorialAlignmentPath, 'utf8')) as readonly TutorialAlignmentCheck[]
   : metrics?.tutorialAlignment ?? [];
@@ -777,6 +782,7 @@ const completionAudio = playthrough?.finalState?.audio as AudioState | undefined
 const playthroughSettings = playthrough?.finalState?.settings as { debug: boolean; muted: boolean; performanceProfile: string } | undefined;
 const missionCatalog = missionCatalogArtifact?.missions ?? metrics?.missionCatalog ?? playthrough?.finalState?.missionCatalog ?? [];
 const selectedMissionId = missionCatalogArtifact?.selectedMissionId ?? metrics?.levelId ?? playthrough?.finalState?.levelId;
+const selectedMission = levels.find((level) => level.id === selectedMissionId);
 const missionBrief = missionCatalogArtifact?.missionBrief;
 const operative = (operativeTraitsArtifact?.selected ?? metrics?.operative ?? playthrough?.finalState?.operative) as OperativeReportState | undefined;
 const operativeCatalog = operativeTraitsArtifact?.catalog ?? [];
@@ -793,6 +799,7 @@ const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
 const gameplayCameraFindings = describeGameplayCameraFindings(gameplayCamera);
 const gameplayViewDensityFindings = describeGameplayViewDensityFindings(gameplayViewDensity);
+const missionGuidanceFindings = describeMissionGuidanceFindings(missionGuidance, selectedMission);
 const tutorialFindings = describeTutorialFindings(tutorialAlignment);
 const audioFindings = describeAudioFindings(metricAudio, completionAudio, settings, playthroughSettings);
 const failureRetryFindings = describeFailureRetryFindings(failureRetry);
@@ -831,6 +838,7 @@ Date: ${date}
 - Mission readiness matrix: \`${missionReadinessPath}\` (${formatMissionReadinessSummary(missionReadiness)})
 - Operative trait evidence: \`${operativeTraitsPath}\` (${operativeTraitsArtifact ? 'captured' : 'not captured'})
 - Gameplay view density evidence: \`${gameplayViewDensityPath}\` (${gameplayViewDensity ? 'captured' : 'not captured'})
+- Mission guidance evidence: \`${missionGuidancePath}\` (${missionGuidance ? 'captured' : 'not captured'})
 - Screenshot coverage: ${screenshotCoverage.present.length}/${expectedScreenshots.length} expected captures present (${formatKb(screenshotCoverage.totalBytes)})
 - Metrics available: ${metrics ? 'yes' : 'no'}
 - Mission catalog: ${formatMissionCatalogSummary(missionCatalog, selectedMissionId, missionBrief)}
@@ -851,6 +859,7 @@ Date: ${date}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Gameplay camera: ${formatGameplayCameraSummary(gameplayCamera)}
 - Gameplay view density: ${formatGameplayViewDensitySummary(gameplayViewDensity)}
+- Mission guidance: ${formatMissionGuidanceSummary(missionGuidance)}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); aaaReady=${describeAaaDensitySummary(geometry)}; zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Failure/retry evidence: ${formatFailureRetrySummary(failureRetry)}
@@ -883,6 +892,10 @@ ${formatGameplayCamera(gameplayCamera)}
 ## Active Gameplay View Density QA
 
 ${formatGameplayViewDensity(gameplayViewDensity)}
+
+## Mission Guidance QA
+
+${formatMissionGuidance(missionGuidance)}
 
 ## Operative Trait QA
 
@@ -929,7 +942,10 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
 - Failure/retry: verify intentional sentry contact shows the operation-failed overlay, increments alerts, keeps the sentry GLB proven, and Retry returns to a clean mission start without carrying objectives, open doors, or alert count forward.
 - Coordinate QA: verify door/wall continuity by edge coordinates, not screenshot impression alone. Wall gaps must name door ID, wall IDs, frame/continuity bounds, and measured gap widths.
+- Screenshot-to-coordinate QA: verify any wallop, visible door-to-door hole, or odd wall patch is resolved to nearest adjacent door IDs, shared wall-line ID, between-door span, owner surface, projected coverage, and first-hit probe before approval.
 - Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the closer gameplay camera to the current player position, proving player screen occupancy, and proving active-camera near/mid/far tactical density.
+- Title and AAA design QA: verify the title hero faces or reads toward the player with projected face/visor/chest evidence, and verify large rooms contain player-camera AAA detail rather than broad empty floor and repeated walls.
+- Guidance QA: verify the active HUD names the next required objective or extraction, exposes a distance and compass direction, and updates after each objective handoff.
 - Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate, fpsScenes)}
@@ -953,6 +969,7 @@ ${assetFindings}
 ${titleFindings}
 ${gameplayCameraFindings}
 ${gameplayViewDensityFindings}
+${missionGuidanceFindings}
 ${geometryFindings}
 ${screenshotFindings}
 `);
@@ -2095,6 +2112,50 @@ function describeGameplayViewDensityFindings(density: GameplayViewDensityState |
     return `- P1: Active gameplay camera has too much floor/wall negative space in ${density.screenshot}: ${negativeFailures}.`;
   }
   return '- P1: None from generated active gameplay-view density diagnostics.';
+}
+
+function formatMissionGuidanceSummary(guidance: MissionGuidanceState | undefined): string {
+  if (!guidance) return 'not captured';
+  return `active=${guidance.active}; target=${guidance.targetId ?? 'missing'}; kind=${guidance.targetKind}; action="${guidance.action}"; distance=${guidance.distanceMeters}m; direction=${guidance.compassDirection}; progress=${guidance.completedRequired}/${guidance.totalRequired}; exitUnlocked=${guidance.exitUnlocked}`;
+}
+
+function formatMissionGuidance(guidance: MissionGuidanceState | undefined): string {
+  if (!guidance) return '- Mission guidance diagnostics not captured.';
+  const status = guidance.active &&
+    Boolean(guidance.targetId) &&
+    (guidance.targetKind === 'objective' || guidance.targetKind === 'extraction') &&
+    Number.isFinite(guidance.distanceMeters) &&
+    /^(N|NE|E|SE|S|SW|W|NW)$/.test(guidance.compassDirection)
+    ? 'PASS'
+    : 'FAIL';
+  return `- ${status} mission-guidance: target=${guidance.targetId ?? 'missing'}; kind=${guidance.targetKind}; label="${guidance.label}"; action="${guidance.action}"; distance=${guidance.distanceMeters}m; bearing=${guidance.bearingDegrees}; direction=${guidance.compassDirection}; targetPoint=${guidance.targetPoint ? `${guidance.targetPoint.x},${guidance.targetPoint.z}` : 'missing'}; unlocks=${guidance.unlocks.join(', ') || 'none'}; progress=${guidance.completedRequired}/${guidance.totalRequired}; exitUnlocked=${guidance.exitUnlocked}. ${guidance.notes.join(' ')}`;
+}
+
+function describeMissionGuidanceFindings(
+  guidance: MissionGuidanceState | undefined,
+  selectedMission: GameLevelDefinition | undefined,
+): string {
+  if (!guidance) return '- P1: Mission guidance diagnostics missing; tester cannot prove the HUD points players through the big mission space.';
+  const expectedFirstObjective = selectedMission?.objectives.find((objective) => objective.required);
+  if (!guidance.active) {
+    return '- P1: Mission guidance is not active during the primary gameplay screenshot.';
+  }
+  if (!guidance.targetId || guidance.targetKind === 'complete') {
+    return `- P1: Mission guidance does not identify the next objective or extraction target: ${JSON.stringify(guidance)}.`;
+  }
+  if (expectedFirstObjective && guidance.completedRequired === 0 && guidance.targetId !== expectedFirstObjective.id) {
+    return `- P1: Mission guidance should start on ${expectedFirstObjective.id}, but points to ${guidance.targetId}.`;
+  }
+  if (!Number.isFinite(guidance.distanceMeters) || guidance.distanceMeters < 0) {
+    return `- P1: Mission guidance has invalid distance evidence: ${guidance.distanceMeters}.`;
+  }
+  if (!/^(N|NE|E|SE|S|SW|W|NW)$/.test(guidance.compassDirection)) {
+    return `- P1: Mission guidance has invalid compass direction: ${guidance.compassDirection}.`;
+  }
+  if (!guidance.targetPoint) {
+    return '- P1: Mission guidance target coordinates are missing, so QA cannot prove the HUD is tied to authored world positions.';
+  }
+  return '- P1: None from generated mission guidance diagnostics.';
 }
 
 function formatScreenBounds(bounds: ScreenBounds | undefined): string {

@@ -35,6 +35,7 @@ import type {
   LoadingState,
   LoadingStep,
   MemoryMetrics,
+  MissionGuidanceState,
   ObjectiveRuntime,
   OperativeCatalogEntry,
   OperativeMechanicsSnapshot,
@@ -1157,6 +1158,7 @@ export class ShadowRecruitApp {
     this.titleHero?.animator?.update(delta);
     this.player?.animator?.update(delta);
     this.renderer.render(this.scene, this.camera);
+    this.updateMissionGuidanceElement();
     this.syncPrompt();
     this.updateDebugPanel();
     this.pressedKeys.clear();
@@ -1584,10 +1586,16 @@ export class ShadowRecruitApp {
       this.hud.innerHTML = '';
     } else {
       const progress = this.getObjectiveProgress();
+      const guidance = this.missionGuidanceState();
       this.hud.innerHTML = `
         <section class="hud-panel">
           <div class="hud-kicker">${this.level.chapter}</div>
           <strong>${this.level.name}</strong>
+          <div class="hud-guidance" data-testid="mission-guidance" data-target-id="${guidance.targetId ?? ''}" data-target-kind="${guidance.targetKind}" role="status" aria-live="polite">
+            <span class="hud-guidance-kicker" data-testid="mission-guidance-action">${guidance.action}</span>
+            <strong data-testid="mission-guidance-label">${guidance.label}</strong>
+            <span data-testid="mission-guidance-detail">${guidance.distanceMeters}m ${guidance.compassDirection}</span>
+          </div>
           <div class="objective-list">
             ${this.objectives.map((objective) => `
               <span class="objective-chip ${objective.collected ? 'is-complete' : ''}">${objective.label}</span>
@@ -1603,6 +1611,19 @@ export class ShadowRecruitApp {
     }
 
     this.syncPrompt();
+    this.updateMissionGuidanceElement();
+  }
+
+  private updateMissionGuidanceElement(): void {
+    if (this.phase !== 'playing' && this.phase !== 'cinematic-focus') return;
+    const root = this.hud.querySelector<HTMLElement>('[data-testid="mission-guidance"]');
+    if (!root) return;
+    const guidance = this.missionGuidanceState();
+    root.dataset.targetId = guidance.targetId ?? '';
+    root.dataset.targetKind = guidance.targetKind;
+    root.querySelector<HTMLElement>('[data-testid="mission-guidance-action"]')!.textContent = guidance.action;
+    root.querySelector<HTMLElement>('[data-testid="mission-guidance-label"]')!.textContent = guidance.label;
+    root.querySelector<HTMLElement>('[data-testid="mission-guidance-detail"]')!.textContent = `${guidance.distanceMeters}m ${guidance.compassDirection}`;
   }
 
   private syncPrompt(): void {
@@ -2994,6 +3015,73 @@ export class ShadowRecruitApp {
     };
   }
 
+  private missionGuidanceState(): MissionGuidanceState {
+    const progress = this.getObjectiveProgress();
+    const nextObjective = this.objectives.find((objective) => objective.required && !objective.collected);
+    const active = this.phase === 'playing' || this.phase === 'cinematic-focus';
+
+    if (!nextObjective && !progress.exitUnlocked) {
+      return {
+        active,
+        targetId: null,
+        targetKind: 'complete',
+        label: 'Awaiting mission data',
+        action: 'Hold position',
+        distanceMeters: 0,
+        bearingDegrees: 0,
+        compassDirection: 'N',
+        targetPoint: null,
+        unlocks: [],
+        completedRequired: progress.collectedRequired,
+        totalRequired: progress.totalRequired,
+        exitUnlocked: progress.exitUnlocked,
+        notes: ['No required objective or extraction target is currently available.'],
+      };
+    }
+
+    const target = nextObjective?.position ?? this.level.extraction;
+    const delta = subtract(target, this.playerPosition);
+    const bearingDegrees = this.bearingDegrees(delta);
+    const targetKind: MissionGuidanceState['targetKind'] = nextObjective ? 'objective' : 'extraction';
+
+    return {
+      active,
+      targetId: nextObjective?.id ?? 'extraction',
+      targetKind,
+      label: nextObjective?.label ?? 'Extraction point',
+      action: nextObjective ? this.objectiveAction(nextObjective.type) : 'Reach extraction',
+      distanceMeters: roundMetric(distance(this.playerPosition, target)),
+      bearingDegrees,
+      compassDirection: this.compassDirection(bearingDegrees),
+      targetPoint: { x: roundMetric(target.x), z: roundMetric(target.z) },
+      unlocks: nextObjective ? [...nextObjective.unlocks] : [],
+      completedRequired: progress.collectedRequired,
+      totalRequired: progress.totalRequired,
+      exitUnlocked: progress.exitUnlocked,
+      notes: [
+        nextObjective
+          ? `Guidance targets the next required objective ${nextObjective.id}.`
+          : 'Guidance targets extraction after all required objectives are complete.',
+      ],
+    };
+  }
+
+  private objectiveAction(type: ObjectiveRuntime['type']): string {
+    if (type === 'terminal') return 'Hack objective';
+    if (type === 'codes') return 'Copy objective';
+    return 'Recover objective';
+  }
+
+  private bearingDegrees(vector: Vec2): number {
+    if (vector.x === 0 && vector.z === 0) return 0;
+    return roundMetric((Math.atan2(vector.x, -vector.z) * 180 / Math.PI + 360) % 360);
+  }
+
+  private compassDirection(degrees: number): string {
+    const sectors = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return sectors[Math.round(degrees / 45) % sectors.length];
+  }
+
   private cinematicFocusState(): CinematicFocusState {
     const active = this.phase === 'cinematic-focus' || this.phase === 'tutorial';
     return {
@@ -3194,6 +3282,7 @@ export class ShadowRecruitApp {
       cinematicFocus: this.cinematicFocusState(),
       gameplayCamera: this.gameplayCameraState(),
       gameplayViewDensity: this.gameplayViewDensityState(),
+      missionGuidance: this.missionGuidanceState(),
       completion: this.completionStats(),
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),

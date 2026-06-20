@@ -432,6 +432,40 @@ input[type="checkbox"] {
   min-width: min(410px, 56vw);
 }
 
+.hud-guidance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 12px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(111, 255, 226, 0.28);
+  border-radius: 8px;
+  background: rgba(3, 14, 19, 0.72);
+}
+
+.hud-guidance-kicker {
+  grid-column: 1 / -1;
+  color: #93d9e6;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hud-guidance strong {
+  min-width: 0;
+  color: #f5fbff;
+}
+
+.hud-guidance [data-testid="mission-guidance-detail"] {
+  justify-self: end;
+  color: var(--accent);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .objective-list {
   display: flex;
   flex-wrap: wrap;
