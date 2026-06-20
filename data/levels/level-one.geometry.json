@@ -1,0 +1,37 @@
+{
+  "bounds": { "min": [-42, -34], "max": [42, 38] },
+  "walls": [
+    { "id": "outer-north", "center": [0, 37.5], "size": [84, 1] },
+    { "id": "outer-south", "center": [0, -33.5], "size": [84, 1] },
+    { "id": "outer-west", "center": [-41.5, 2], "size": [1, 70] },
+    { "id": "outer-east", "center": [41.5, 2], "size": [1, 70] },
+    { "id": "lobby-divider-west", "center": [-24.5, -18], "size": [33, 1] },
+    { "id": "lobby-divider-east", "center": [24.5, -18], "size": [33, 1] },
+    { "id": "server-divider-west", "center": [-21.5, 5], "size": [39, 1] },
+    { "id": "server-divider-east", "center": [25, 5], "size": [10, 1] },
+    { "id": "command-divider-west", "center": [-24.5, 20], "size": [33, 1] },
+    { "id": "command-divider-east", "center": [24.5, 20], "size": [33, 1] },
+    { "id": "armory-rail", "center": [-13, 14], "size": [1, 8] },
+    { "id": "server-rail", "center": [13, 12], "size": [1, 10] }
+  ],
+  "blockers": [
+    { "id": "cargo-stack-a", "center": [-27, -25], "size": [5, 4] },
+    { "id": "cargo-stack-b", "center": [27, -25], "size": [5, 4] },
+    { "id": "antenna-bank", "center": [-26, -4], "size": [6, 3] },
+    { "id": "server-bank-a", "center": [25, 11], "size": [5, 8] },
+    { "id": "server-bank-b", "center": [-25, 12], "size": [5, 8] },
+    { "id": "briefing-table", "center": [0, 26], "size": [11, 3] }
+  ],
+  "colliders": [
+    { "id": "lobby-door", "center": [0, -18], "size": [6, 0.8] },
+    { "id": "server-door", "center": [14, 5], "size": [6, 0.8] },
+    { "id": "extraction-door", "center": [0, 20], "size": [6, 0.8] }
+  ],
+  "spawns": [{ "id": "player", "position": [0, -29] }],
+  "objectives": [
+    { "id": "access-keycard", "position": [-31, -25] },
+    { "id": "security-terminal", "position": [30, -3] },
+    { "id": "command-codes", "position": [-32, 14] },
+    { "id": "extraction", "position": [0, 33] }
+  ]
+}

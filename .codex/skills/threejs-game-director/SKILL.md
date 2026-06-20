@@ -31,6 +31,7 @@ Invoke or recommend these repo-local skills when the task crosses their boundary
 - `$threejs-audio-haptics`: Web Audio graphs, spatial cues, stealth sound propagation, music states, SFX pooling, compression budgets, gamepad haptics.
 - `$threejs-ui-accessibility`: HUDs, menus, overlays, touch controls, gamepad prompts, focus management, contrast, accessibility semantics.
 - `$threejs-qa-automation`: Playwright browser smoke tests, screenshots, visual regression, canvas-pixel checks, debug metric assertions, trace artifacts.
+- `$shadow-recruit-game-tester`: gameplay evidence review, screenshot feedback, player-readability findings, FPS artifact review, tester reports.
 - `$shadow-recruit-release-manager`: SemVer buckets, changelog entries, validation gates, version source updates, commits, pushes.
 
 If several apply, start with the skill that owns the riskiest decision, then loop back here for production prioritization.

@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-06-19
+
 ### Minor
 
 - Expanded all six Three.js skills with advanced production, renderer, gameplay, image-generation, GLB asset, and memory guidance backed by fresh source research.
 - Added seven specialist handoff skills for level/world building, physics/navigation, character animation, audio/haptics, UI/accessibility, QA automation, and release management.
 - Added a level geometry validation skill with scripted blockout checks for bounds, wall overlaps, clearance gaps, and spawn/objective placement.
+- Added the Shadow Recruit 2 playable foundation with title logo art, hero selection, generated briefing art, Level 1 data, sliding-door unlocks, extraction completion, reusable assets, QA/playthrough scripts, and a game tester skill.
 
 ### Patch
 

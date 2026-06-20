@@ -8,6 +8,7 @@ coverage/
 artifacts/
 tmp/
 temp/
+*.log
 
 # Secrets
 .env

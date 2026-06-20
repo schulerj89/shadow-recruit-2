@@ -15,6 +15,7 @@ Shadow Recruit 2 starts as a repo-local Codex skill package. Before implementing
 - Use `$threejs-audio-haptics` for Web Audio graphs, stealth cues, music states, spatial audio, SFX budgets, and gamepad haptics.
 - Use `$threejs-ui-accessibility` for HUDs, menus, responsive overlays, control prompts, focus handling, contrast, and accessible input.
 - Use `$threejs-qa-automation` for Playwright smoke tests, visual regression, canvas checks, accessibility snapshots, input simulation, and release evidence.
+- Use `$shadow-recruit-game-tester` for playthrough evidence review, screenshot feedback, FPS artifact review, and game-tester reports.
 - Use `$shadow-recruit-release-manager` for SemVer bucketing, changelog maintenance, validation gates, version bumps, commits, and pushes.
 
 Shadow Circuit in `C:\Users\joshs\Projects\sneak-game` is a baseline reference only. Prefer stronger architecture, clearer player feedback, richer asset pipelines, and better debug/verification coverage over copying old patterns.
