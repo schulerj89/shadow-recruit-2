@@ -1,5 +1,5 @@
 import geometry from '../../../data/levels/level-one.geometry.json';
-import type { DoorDefinition, LevelDefinition, ObjectiveDefinition, RectSpec, Vec2 } from '../types';
+import type { DoorDefinition, LevelDefinition, ObjectiveDefinition, RectSpec, SetDressingAssetId, SetDressingDefinition, Vec2 } from '../types';
 import { vec } from '../math';
 
 type GeometryRect = {
@@ -7,6 +7,7 @@ type GeometryRect = {
   center: readonly number[];
   size: readonly number[];
   height?: number;
+  asset?: string;
 };
 
 type GeometryPoint = {
@@ -78,7 +79,7 @@ export const levelOne: LevelDefinition = {
   extraction: requiredPoint(geometry.objectives, 'extraction'),
   walls: geometry.walls.map(rectFromGeometry),
   blockers: geometry.blockers.map(rectFromGeometry),
-  setDressing: geometry.setDressing.map(rectFromGeometry),
+  setDressing: geometry.setDressing.map(setDressingFromGeometry),
   doors: geometry.doors.map(doorFromGeometry),
   objectives: objectiveOrder.map(objectiveFromGeometry),
   enemies: [
@@ -165,6 +166,20 @@ function rectFromGeometry(rect: GeometryRect): RectSpec {
     size: pointFromArray(rect.size),
     ...(rect.height === undefined ? {} : { height: rect.height }),
   };
+}
+
+function setDressingFromGeometry(rect: GeometryRect): SetDressingDefinition {
+  if (!isSetDressingAssetId(rect.asset)) {
+    throw new Error(`Missing set dressing asset for ${rect.id}`);
+  }
+  return {
+    ...rectFromGeometry(rect),
+    asset: rect.asset,
+  };
+}
+
+function isSetDressingAssetId(value: unknown): value is SetDressingAssetId {
+  return value === 'cable-tray' || value === 'wall-machinery' || value === 'extraction-beacon';
 }
 
 function doorFromGeometry(rect: GeometryRect): DoorDefinition {

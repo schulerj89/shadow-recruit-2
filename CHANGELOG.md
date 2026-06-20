@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.9.0 - 2026-06-20
+
+### Minor
+
+- Replaced Level 1 tactical set dressing primitives with reusable generated GLB kit assets for cable trays, wall machinery, and extraction equipment, with typed asset loading, manifest metadata, smoke assertions, and runtime placement diagnostics.
+
 ## 0.8.1 - 2026-06-20
 
 ### Patch

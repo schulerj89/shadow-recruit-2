@@ -31,6 +31,7 @@ import type {
   RectSpec,
   RendererMetrics,
   SceneObjectBounds,
+  SetDressingDefinition,
   TesterState,
   TitleComposition,
   TutorialState,
@@ -400,6 +401,7 @@ export class ShadowRecruitApp {
       this.assets.preloadHero(this.selectedHero),
       this.assets.preloadSentry(),
       this.assets.preloadObjectives(),
+      this.assets.preloadSetDressing(this.level.setDressing.map((item) => item.asset)),
     ]);
     this.setLoading(`building ${this.level.name.toLowerCase()}`, 0.68);
     this.buildPlayableLevel();
@@ -474,8 +476,8 @@ export class ShadowRecruitApp {
       this.addBox(blocker, 'blocker', 0.1);
     }
 
-    this.level.setDressing.forEach((dressing, index) => {
-      this.addSetDressing(dressing, index);
+    this.level.setDressing.forEach((dressing) => {
+      this.addSetDressing(dressing);
     });
 
     if (includeDoors) {
@@ -509,13 +511,37 @@ export class ShadowRecruitApp {
     return mesh;
   }
 
-  private addSetDressing(rect: RectSpec, index: number): THREE.Mesh {
-    const lowProfile = rect.height !== undefined && rect.height < 0.35;
-    const utility = /cable|pipe|spine|trench/i.test(rect.id);
-    const materialKind: ShellTextureKind = utility || index % 3 === 0 ? 'trim' : 'blocker';
-    const mesh = this.addBox(rect, materialKind, utility ? 0.3 : 0.14);
-    if (lowProfile) mesh.position.y = (rect.height ?? 0.2) / 2 + 0.02;
-    return mesh;
+  private addSetDressing(rect: SetDressingDefinition): THREE.Object3D {
+    const object = this.assets.createSetDressing(rect.asset, rect.id);
+    this.fitObjectToRect(object, rect);
+    this.applyObjectQuality(object);
+    this.scene.add(object);
+    this.runtimeObjects.push({ object, disposeResources: false });
+    this.anchorObjects.set(rect.id, object);
+    return object;
+  }
+
+  private fitObjectToRect(object: THREE.Object3D, rect: RectSpec): void {
+    object.position.set(0, 0, 0);
+    object.rotation.set(0, 0, 0);
+    object.scale.set(1, 1, 1);
+    object.updateMatrixWorld(true);
+    this.boundsScratch.setFromObject(object);
+    const sourceSize = this.boundsScratch.getSize(new THREE.Vector3());
+    const targetHeight = rect.height ?? Math.max(sourceSize.y, 1);
+    object.scale.set(
+      sourceSize.x > 0 ? rect.size.x / sourceSize.x : 1,
+      sourceSize.y > 0 ? targetHeight / sourceSize.y : 1,
+      sourceSize.z > 0 ? rect.size.z / sourceSize.z : 1,
+    );
+    object.updateMatrixWorld(true);
+    this.boundsScratch.setFromObject(object);
+    const center = this.boundsScratch.getCenter(new THREE.Vector3());
+    object.position.set(
+      rect.center.x - center.x,
+      -this.boundsScratch.min.y,
+      rect.center.z - center.z,
+    );
   }
 
   private addDoorFrame(door: DoorRuntime): void {
@@ -1518,13 +1544,13 @@ export class ShadowRecruitApp {
     checks.push({
       id: 'level-set-dressing',
       label: 'Tactical set dressing',
-      category: 'level-mesh',
+      category: 'set-dressing',
       grade: this.level.setDressing.every((item) => this.anchorObjects.has(item.id)) ? 'pass' : 'fail',
       visible: this.level.setDressing.every((item) => this.anchorObjects.has(item.id)),
       grounded: true,
       notes: this.level.setDressing.every((item) => this.anchorObjects.has(item.id))
-        ? [`${this.level.setDressing.length} coordinate-authored non-colliding dressing meshes add cables, wall machinery, racks, consoles, and extraction equipment without blocking the validation route.`]
-        : ['One or more authored set-dressing meshes are missing from the scene.'],
+        ? [`${this.level.setDressing.length} coordinate-authored non-colliding dressing placements use ${new Set(this.level.setDressing.map((item) => item.asset)).size} generated GLB kit assets for cables, wall machinery, racks, consoles, and extraction equipment without blocking the validation route.`]
+        : ['One or more authored set-dressing GLB placements are missing from the scene.'],
     });
 
     for (const objective of this.objectives) {

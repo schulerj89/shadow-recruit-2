@@ -34,6 +34,8 @@ export type DoorDefinition = RectSpec & {
 };
 
 export type ObjectiveType = 'keycard' | 'terminal' | 'codes';
+export type ObjectiveAssetId = 'keycard' | 'terminal' | 'codes';
+export type SetDressingAssetId = 'cable-tray' | 'wall-machinery' | 'extraction-beacon';
 
 export type ObjectiveDefinition = {
   id: string;
@@ -43,7 +45,11 @@ export type ObjectiveDefinition = {
   radius: number;
   required: boolean;
   unlocks: readonly string[];
-  asset: 'keycard' | 'terminal' | 'codes';
+  asset: ObjectiveAssetId;
+};
+
+export type SetDressingDefinition = RectSpec & {
+  asset: SetDressingAssetId;
 };
 
 export type EnemyDefinition = {
@@ -71,7 +77,7 @@ export type LevelDefinition = {
   extraction: Vec2;
   walls: readonly RectSpec[];
   blockers: readonly RectSpec[];
-  setDressing: readonly RectSpec[];
+  setDressing: readonly SetDressingDefinition[];
   doors: readonly DoorDefinition[];
   objectives: readonly ObjectiveDefinition[];
   enemies: readonly EnemyDefinition[];
@@ -134,7 +140,7 @@ export type AssetQualityGrade = 'pass' | 'review' | 'fail';
 export type AssetQualityCheck = {
   id: string;
   label: string;
-  category: 'level-mesh' | 'door' | 'objective' | 'enemy' | 'extraction' | 'hero';
+  category: 'level-mesh' | 'set-dressing' | 'door' | 'objective' | 'enemy' | 'extraction' | 'hero';
   grade: AssetQualityGrade;
   visible: boolean;
   grounded: boolean;

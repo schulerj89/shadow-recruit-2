@@ -110,7 +110,14 @@ try {
   if (state.renderer.drawCalls <= 0 || state.renderer.triangles <= 0) {
     throw new Error(`Expected live renderer metrics, got ${JSON.stringify(state.renderer)}`);
   }
-  if (state.memory.loadedAssets < 6 || !state.memory.loadedAssetIds.includes('sentry') || !state.memory.loadedAssetIds.includes('codes')) {
+  if (
+    state.memory.loadedAssets < 8 ||
+    !state.memory.loadedAssetIds.includes('sentry') ||
+    !state.memory.loadedAssetIds.includes('codes') ||
+    !state.memory.loadedAssetIds.includes('cable-tray') ||
+    !state.memory.loadedAssetIds.includes('wall-machinery') ||
+    !state.memory.loadedAssetIds.includes('extraction-beacon')
+  ) {
     throw new Error(`Expected loaded GLB asset metrics, got ${JSON.stringify(state.memory)}`);
   }
   if (!state.geometry || state.geometry.doorContinuity.length !== 3 || state.geometry.objectBounds.length < 20) {

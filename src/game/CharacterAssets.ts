@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import sentryUrl from '../assets/characters/sentry/enemy_sentry.glb?url';
+import cableTrayUrl from '../assets/environment/cable-tray-kit.glb?url';
+import extractionBeaconUrl from '../assets/environment/extraction-beacon-kit.glb?url';
+import wallMachineryUrl from '../assets/environment/wall-machinery-kit.glb?url';
 import commandCodesUrl from '../assets/objectives/command-codes-cinematic.glb?url';
 import keycardUrl from '../assets/objectives/keycard-cinematic.glb?url';
 import terminalUrl from '../assets/objectives/terminal-cinematic.glb?url';
 import { heroOptionById, type HeroId } from './heroes';
-import type { MemoryMetrics } from './types';
+import type { MemoryMetrics, ObjectiveAssetId, SetDressingAssetId } from './types';
 
 type Gltf = { scene: THREE.Group; animations: THREE.AnimationClip[] };
 type RuntimeGltfLoader = { loadAsync: (url: string) => Promise<Gltf> };
@@ -22,7 +25,7 @@ type CharacterAsset = {
   clips: CharacterAnimationClips;
 };
 
-type StaticAssetId = 'keycard' | 'terminal' | 'codes';
+type StaticAssetId = ObjectiveAssetId | SetDressingAssetId;
 
 export type CharacterInstance = {
   object: THREE.Object3D;
@@ -123,6 +126,11 @@ export class AssetLibrary {
     ]);
   }
 
+  async preloadSetDressing(assetIds: readonly SetDressingAssetId[]): Promise<void> {
+    const uniqueIds = [...new Set(assetIds)];
+    await Promise.all(uniqueIds.map((id) => this.loadStatic(id, setDressingAssetUrl(id), 1.0)));
+  }
+
   createHero(heroId: HeroId, name: string): CharacterInstance {
     const asset = this.requireCharacter(heroKey(heroId));
     return this.cloneCharacter(asset, name);
@@ -133,9 +141,17 @@ export class AssetLibrary {
     return this.cloneCharacter(asset, name);
   }
 
-  createObjective(assetId: StaticAssetId, name: string): THREE.Object3D {
+  createObjective(assetId: ObjectiveAssetId, name: string): THREE.Object3D {
+    return this.createStatic(assetId, name);
+  }
+
+  createSetDressing(assetId: SetDressingAssetId, name: string): THREE.Object3D {
+    return this.createStatic(assetId, name);
+  }
+
+  private createStatic(assetId: StaticAssetId, name: string): THREE.Object3D {
     const source = this.staticAssets.get(assetId);
-    if (!source) throw new Error(`Objective asset not loaded: ${assetId}`);
+    if (!source) throw new Error(`Static asset not loaded: ${assetId}`);
 
     const visual = source.clone(true);
     visual.name = `${name}:visual`;
@@ -216,7 +232,16 @@ function heroKey(heroId: HeroId): string {
 function staticAccent(id: StaticAssetId): string {
   if (id === 'keycard') return '#ffd45a';
   if (id === 'terminal') return '#67d7ff';
+  if (id === 'cable-tray') return '#6fffe2';
+  if (id === 'wall-machinery') return '#67d7ff';
+  if (id === 'extraction-beacon') return '#8eff81';
   return '#72ffd8';
+}
+
+function setDressingAssetUrl(id: SetDressingAssetId): string {
+  if (id === 'cable-tray') return cableTrayUrl;
+  if (id === 'wall-machinery') return wallMachineryUrl;
+  return extractionBeaconUrl;
 }
 
 function normalizeCharacterScene(scene: THREE.Group, targetHeight: number, bottomOffset: number): void {

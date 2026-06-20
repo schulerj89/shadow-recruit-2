@@ -1,0 +1,27 @@
+{
+  "active": true,
+  "heroVisible": true,
+  "heroReadable": true,
+  "facingDot": 0.99,
+  "heroYaw": 0.57,
+  "yawToCamera": 0.71,
+  "cameraDistance": 7.53,
+  "heroPosition": {
+    "x": 2.6,
+    "y": 0,
+    "z": -18
+  },
+  "cameraPosition": {
+    "x": 7.1,
+    "y": 2.95,
+    "z": -12.73
+  },
+  "cameraTarget": {
+    "x": 2.6,
+    "y": 1.12,
+    "z": -18
+  },
+  "notes": [
+    "Title hero faces the camera in a readable front/three-quarter pose."
+  ]
+}
