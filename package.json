@@ -1,6 +1,6 @@
 {
   "name": "shadow-recruit-2",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,8 @@
     "assets:command-codes": "node scripts/generate-command-codes-asset.mjs",
     "assets:environment-kit": "node scripts/generate-environment-dressing-assets.mjs",
     "level:doctor": "node scripts/level-authoring-doctor.mjs",
+    "level:registry": "node scripts/generate-level-registry.mjs",
+    "level:registry:check": "node scripts/generate-level-registry.mjs --check",
     "level:scaffold": "node scripts/scaffold-level.mjs",
     "test:geometry": "node .codex/skills/threejs-level-geometry-validator/scripts/validate_level_geometry.mjs data/levels/level-one.geometry.json --min-clearance 1.1 --json",
     "test:playthrough": "tsx scripts/scripted-playthrough.ts",

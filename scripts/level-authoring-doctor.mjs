@@ -3,6 +3,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { collectLevelAdapters, formatLevelRegistry } from './level-registry.mjs';
 
 const root = process.cwd();
 const dataDir = path.join(root, 'data', 'levels');
@@ -18,6 +19,11 @@ const adapterFiles = listFiles(levelsDir).filter((file) => file.endsWith('.ts') 
 const adapterImports = adapterFiles.map(readAdapterImport).filter(Boolean);
 const indexSource = readText(indexPath);
 const registry = readRegistry(indexSource);
+const expectedRegistry = readExpectedRegistry();
+
+if (expectedRegistry && indexSource !== expectedRegistry) {
+  errors.push('src/game/levels/index.ts is stale. Run npm run level:registry to regenerate the static mission selector registry.');
+}
 
 if (geometryFiles.length === 0) {
   errors.push('No geometry files found in data/levels.');
@@ -32,12 +38,12 @@ for (const geometryFile of geometryFiles) {
 
   const importEntry = registry.imports.get(adapter.moduleName);
   if (!importEntry) {
-    errors.push(`${adapter.file} exists but src/game/levels/index.ts does not import ./${adapter.moduleName}.`);
+    errors.push(`${adapter.file} exists but src/game/levels/index.ts does not import ./${adapter.moduleName}. Run npm run level:registry or re-run the scaffold with --register --force.`);
     continue;
   }
 
   if (!registry.levelNames.has(importEntry.exportName)) {
-    errors.push(`${importEntry.exportName} from ./${adapter.moduleName} is not included in the exported levels array.`);
+    errors.push(`${importEntry.exportName} from ./${adapter.moduleName} is not included in the exported levels array. Run npm run level:registry or re-run the scaffold with --register --force.`);
   }
 }
 
@@ -71,6 +77,15 @@ function readText(filePath) {
     return readFileSync(filePath, 'utf8');
   } catch (error) {
     errors.push(`Failed to read ${path.relative(root, filePath)}: ${error.message}`);
+    return '';
+  }
+}
+
+function readExpectedRegistry() {
+  try {
+    return formatLevelRegistry(collectLevelAdapters({ root }));
+  } catch (error) {
+    errors.push(`Failed to generate expected level registry: ${error.message}`);
     return '';
   }
 }

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.15.0 - 2026-06-20
+
+### Minor
+
+- Added a deterministic `level:registry` generator and check command so level adapters rewrite the static mission-selector registry from parsed `LevelDefinition` exports instead of manual index edits.
+- Updated `level:scaffold --register` and `level:doctor` to use the generated registry flow, with a decision note documenting the static-import approach for future big levels.
+
 ## 0.14.1 - 2026-06-20
 
 ### Patch

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { collectLevelAdapters, formatLevelRegistry, getLevelRegistryPath } from './level-registry.mjs';
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -21,18 +22,30 @@ const geometryPath = path.join(root, 'data', 'levels', `${slug}.geometry.json`);
 const moduleName = toCamel(slug);
 const exportName = `${moduleName}Level`;
 const adapterPath = path.join(root, 'src', 'game', 'levels', `${moduleName}.ts`);
+const indexPath = getLevelRegistryPath(root);
 const name = args.name ?? titleFromSlug(slug);
 const chapter = args.chapter ?? 'Operation New Shadow';
 const geometry = buildGeometryTemplate();
 const adapter = buildAdapterTemplate({ slug, exportName, name, chapter });
 const plannedFiles = [
-  { path: geometryPath, content: `${JSON.stringify(geometry, null, 2)}\n` },
-  { path: adapterPath, content: adapter },
+  { path: geometryPath, content: `${JSON.stringify(geometry, null, 2)}\n`, allowExisting: false },
+  { path: adapterPath, content: adapter, allowExisting: false },
 ];
+
+if (args.register) {
+  const indexSource = await readFile(indexPath, 'utf8');
+  const registeredIndex = formatLevelRegistry(collectLevelAdapters({
+    root,
+    extraAdapters: [{ file: `${moduleName}.ts`, source: adapter }],
+  }));
+  if (registeredIndex !== indexSource) {
+    plannedFiles.push({ path: indexPath, content: registeredIndex, allowExisting: true });
+  }
+}
 
 if (!args.force) {
   for (const file of plannedFiles) {
-    if (existsSync(file.path)) {
+    if (!file.allowExisting && existsSync(file.path)) {
       throw new Error(`${path.relative(root, file.path)} already exists. Re-run with --force to overwrite.`);
     }
   }
@@ -41,7 +54,7 @@ if (!args.force) {
 if (args.dryRun) {
   console.info(`[level-scaffold] dry run for ${slug}`);
   for (const file of plannedFiles) console.info(`would write ${path.relative(root, file.path)}`);
-  printNextSteps({ slug, moduleName, exportName });
+  printNextSteps({ slug, moduleName, exportName, registered: args.register });
   process.exit(0);
 }
 
@@ -51,14 +64,15 @@ for (const file of plannedFiles) {
   console.info(`[level-scaffold] wrote ${path.relative(root, file.path)}`);
 }
 
-printNextSteps({ slug, moduleName, exportName });
+printNextSteps({ slug, moduleName, exportName, registered: args.register });
 
 function parseArgs(tokens) {
-  const parsed = { dryRun: false, force: false, help: false, slug: '' };
+  const parsed = { dryRun: false, force: false, help: false, register: false, slug: '' };
   for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index];
     if (token === '--dry-run') parsed.dryRun = true;
     else if (token === '--force') parsed.force = true;
+    else if (token === '--register') parsed.register = true;
     else if (token === '--help' || token === '-h') parsed.help = true;
     else if (token === '--') continue;
     else if (token === '--name') parsed.name = requireValue(tokens[++index], '--name');
@@ -383,24 +397,30 @@ function escapeTs(value) {
   return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-function printNextSteps({ slug, moduleName, exportName }) {
+function printNextSteps({ slug, moduleName, exportName, registered }) {
   console.info('');
   console.info('Next steps:');
   console.info(`1. Review data/levels/${slug}.geometry.json and tune rooms, doors, blockers, objectives, patrols, zones, and set dressing.`);
   console.info(`2. Run: node .codex/skills/threejs-level-geometry-validator/scripts/validate_level_geometry.mjs data/levels/${slug}.geometry.json --min-clearance 1.1`);
-  console.info(`3. Register in src/game/levels/index.ts with: import { ${exportName} } from './${moduleName}';`);
-  console.info(`4. Add ${exportName} to the exported levels array, then run npm run level:doctor and npm run test:playthrough.`);
+  if (registered) {
+    console.info(`3. ${exportName} is included in the generated src/game/levels/index.ts registry for the mission selector.`);
+    console.info('4. Run npm run level:doctor and PLAYTHROUGH_LEVEL_ID=<level-id> npm run playthrough:browser when the route is tuned.');
+  } else {
+    console.info(`3. Register when ready with: npm run level:scaffold -- -- ${slug} --register --force`);
+    console.info('4. Or run npm run level:registry after the adapter is ready, then run npm run level:doctor.');
+  }
 }
 
 function printHelp() {
-  console.log(`Usage: npm run level:scaffold -- -- <level-slug> [--name "Mission Name"] [--chapter "Operation Name"] [--dry-run] [--force]
+  console.log(`Usage: npm run level:scaffold -- -- <level-slug> [--name "Mission Name"] [--chapter "Operation Name"] [--register] [--dry-run] [--force]
 
 Direct Node usage:
-node scripts/scaffold-level.mjs <level-slug> [--name "Mission Name"] [--chapter "Operation Name"] [--dry-run] [--force]
+node scripts/scaffold-level.mjs <level-slug> [--name "Mission Name"] [--chapter "Operation Name"] [--register] [--dry-run] [--force]
 
 Creates:
 - data/levels/<level-slug>.geometry.json
 - src/game/levels/<camelLevelSlug>.ts
+- optionally regenerates src/game/levels/index.ts when --register is passed
 
-The generated level is a large coordinate-backed Shadow Recruit mission template with outer walls, split divider walls, three sliding doors, objectives, validation route, density zones, set dressing, and sentry patrol metadata. It is not added to src/game/levels/index.ts automatically.`);
+The generated level is a large coordinate-backed Shadow Recruit mission template with outer walls, split divider walls, three sliding doors, objectives, validation route, density zones, set dressing, and sentry patrol metadata. Use --register when the new mission should appear in the player-facing mission selector.`);
 }
