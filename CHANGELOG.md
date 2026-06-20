@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.1 - 2026-06-20
+
+### Patch
+
+- Improved title-screen hero model framing with a staged plinth, focused lighting, and smoke coverage.
+
 ## 0.3.0 - 2026-06-20
 
 ### Minor

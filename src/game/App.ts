@@ -86,6 +86,8 @@ export class ShadowRecruitApp {
   private readonly camera = new THREE.PerspectiveCamera(55, 1, 0.1, 240);
   private readonly clock = new THREE.Clock();
   private readonly assets = new AssetLibrary();
+  private readonly titleHeroStagePosition = new THREE.Vector3(4, 0, -8);
+  private readonly titleCameraTarget = new THREE.Vector3(4, 1.05, -8);
   private readonly keyState = new Set<string>();
   private readonly pressedKeys = new Set<string>();
   private readonly frameDeltas: number[] = [];
@@ -176,12 +178,14 @@ export class ShadowRecruitApp {
     this.buildLevelShell(false);
     this.titleHero?.animator?.dispose();
     this.titleHero = this.assets.createHero(this.selectedHero, `title-hero:${this.selectedHero}`);
-    this.titleHero.object.position.set(10, 0, -24);
+    this.addTitleHeroStage(this.titleHeroStagePosition);
+    this.titleHero.object.position.copy(this.titleHeroStagePosition);
+    this.titleHero.object.scale.multiplyScalar(1.35);
     this.titleHero.object.rotation.y = -0.4;
     this.scene.add(this.titleHero.object);
     this.anchorObjects.set('hero', this.titleHero.object);
-    this.camera.position.set(18, 17, -26);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.set(22, 15, -24);
+    this.camera.lookAt(this.titleCameraTarget);
   }
 
   private async startRun(heroId = this.selectedHero): Promise<void> {
@@ -350,6 +354,37 @@ export class ShadowRecruitApp {
     this.runtimeObjects.push({ object: light });
   }
 
+  private addTitleHeroStage(position: THREE.Vector3): void {
+    const stage = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.55, 1.75, 0.18, 36),
+      new THREE.MeshStandardMaterial({
+        color: '#10222c',
+        roughness: 0.42,
+        metalness: 0.55,
+        emissive: '#123d42',
+        emissiveIntensity: 0.55,
+      }),
+    );
+    stage.name = 'title-hero-stage';
+    stage.position.set(position.x, 0.09, position.z);
+    stage.receiveShadow = true;
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.72, 0.035, 8, 72),
+      new THREE.MeshBasicMaterial({ color: '#6fffe2' }),
+    );
+    ring.name = 'title-hero-stage-ring';
+    ring.position.set(position.x, 0.22, position.z);
+    ring.rotation.x = -Math.PI / 2;
+
+    const light = new THREE.PointLight('#6fffe2', 5.2, 9);
+    light.name = 'title-hero-stage-light';
+    light.position.set(position.x, 2.8, position.z + 1.2);
+
+    this.scene.add(stage, ring, light);
+    this.runtimeObjects.push({ object: stage }, { object: ring }, { object: light });
+  }
+
   private createPlayer(): void {
     this.player = this.assets.createHero(this.selectedHero, `player:${this.selectedHero}`);
     this.player.object.position.set(this.playerPosition.x, 0, this.playerPosition.z);
@@ -424,10 +459,14 @@ export class ShadowRecruitApp {
   }
 
   private updateTitleCamera(time: number): void {
-    const radius = 48;
-    const angle = time * 0.12;
-    this.camera.position.set(Math.cos(angle) * radius, 26, Math.sin(angle) * radius);
-    this.camera.lookAt(0, 0, 0);
+    const radius = 38;
+    const angle = time * 0.1;
+    this.camera.position.set(
+      this.titleCameraTarget.x + Math.cos(angle) * radius,
+      20,
+      this.titleCameraTarget.z + Math.sin(angle) * radius,
+    );
+    this.camera.lookAt(this.titleCameraTarget);
     if (this.titleHero) {
       this.titleHero.object.rotation.y = -angle + Math.PI * 0.75;
     }

@@ -24,6 +24,10 @@ try {
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
   await expectPhase('title');
   await expectNonblankCanvas();
+  const titleHeroVisible = await page.evaluate(() => window.__shadowRecruitDebug?.playerVisible());
+  if (!titleHeroVisible) {
+    throw new Error('Expected title hero model to be visible.');
+  }
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });
 
   await page.getByRole('button', { name: 'Settings' }).click();
