@@ -154,6 +154,16 @@ export type CinematicFocusState = {
   remainingMs: number;
 };
 
+export type CompletionStats = {
+  active: boolean;
+  elapsedSeconds: number;
+  objectivesCompleted: number;
+  objectivesTotal: number;
+  alerts: number;
+  performanceProfile: PerformanceProfile;
+  triumphantCue: boolean;
+};
+
 export type TesterState = {
   phase: Phase;
   levelId: string;
@@ -161,6 +171,7 @@ export type TesterState = {
   settings: GameSettings;
   tutorial: TutorialState;
   cinematicFocus: CinematicFocusState;
+  completion: CompletionStats;
   playerPosition: Vec2;
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: readonly { id: string; open: boolean; progress: number }[];

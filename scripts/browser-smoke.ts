@@ -90,11 +90,18 @@ try {
     window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 });
   });
   await expectPhase('complete');
+  await page.locator('[data-testid="complete-panel"][data-completion-cue="triumphant"]').waitFor({ state: 'visible', timeout: 10000 });
+  await expectStat('complete-stat-objectives', '3/3');
+  await expectStat('complete-stat-alerts', '0');
+  await expectStat('complete-stat-profile', 'performance');
   await page.screenshot({ path: `${screenshotDir}/12-complete.png`, fullPage: true });
 
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
     throw new Error(`Expected completed objectives, got ${JSON.stringify(state)}`);
+  }
+  if (!state.completion.active || !state.completion.triumphantCue || state.completion.objectivesCompleted !== 3 || state.completion.objectivesTotal !== 3 || state.completion.alerts !== 0) {
+    throw new Error(`Expected completion stats with triumphant cue, got ${JSON.stringify(state.completion)}`);
   }
   if (state.renderer.drawCalls <= 0 || state.renderer.triangles <= 0) {
     throw new Error(`Expected live renderer metrics, got ${JSON.stringify(state.renderer)}`);
@@ -141,6 +148,13 @@ async function collectObjectiveAndExpectFocus(objectiveId: string, doorId: strin
   }
   await page.screenshot({ path: `${screenshotDir}/${screenshotName}`, fullPage: true });
   await expectPhase('playing');
+}
+
+async function expectStat(testId: string, value: string): Promise<void> {
+  const text = await page.locator(`[data-testid="${testId}"] strong`).innerText({ timeout: 10000 });
+  if (text.trim() !== value) {
+    throw new Error(`Expected ${testId} to be ${value}, got ${text}`);
+  }
 }
 
 async function expectNonblankCanvas(): Promise<void> {

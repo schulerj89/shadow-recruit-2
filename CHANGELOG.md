@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.3 - 2026-06-20
+
+### Patch
+
+- Added machine-readable completion stats and triumphant cue checks to the completion overlay, debug tester state, browser smoke, and browser playthrough evidence.
+
 ## 0.7.2 - 2026-06-20
 
 ### Patch

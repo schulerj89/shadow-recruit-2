@@ -77,6 +77,9 @@ try {
   if (finalState.objectives.collectedRequired !== finalState.objectives.totalRequired || !finalState.objectives.exitUnlocked) {
     throw new Error(`Playthrough did not complete all objectives: ${JSON.stringify(finalState.objectives)}`);
   }
+  if (!finalState.completion.active || !finalState.completion.triumphantCue || finalState.completion.objectivesCompleted !== 3 || finalState.completion.objectivesTotal !== 3) {
+    throw new Error(`Playthrough did not capture completion stats and triumphant cue: ${JSON.stringify(finalState.completion)}`);
+  }
   if (finalState.memory.loadedAssets < 5 || !finalState.memory.loadedAssetIds.includes('sentry') || !finalState.memory.loadedAssetIds.includes('codes')) {
     throw new Error(`Expected loaded gameplay assets, got ${JSON.stringify(finalState.memory)}`);
   }

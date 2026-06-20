@@ -73,6 +73,8 @@ const metrics = existsSync(fpsMetricsPath)
 const playthroughReport = existsSync(playthroughReportPath)
   ? await readFile(playthroughReportPath, 'utf8')
   : null;
+const playthrough = playthroughReport ? JSON.parse(playthroughReport) : null;
+const completion = playthrough?.finalState?.completion;
 const frame = metrics?.framePacing;
 const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
@@ -111,6 +113,7 @@ Date: ${date}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}` : 'not captured'}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
+- Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
 
 ## Asset Grading

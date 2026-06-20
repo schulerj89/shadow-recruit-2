@@ -13,6 +13,7 @@ import type {
   AssetQualityCheck,
   AssetQualityGrade,
   CinematicFocusState,
+  CompletionStats,
   DoorRuntime,
   EnemyRuntime,
   FramePacingSample,
@@ -1196,18 +1197,17 @@ export class ShadowRecruitApp {
           </div>
         </section>`;
     } else if (this.phase === 'complete') {
-      const elapsed = this.runStartedAt ? Math.max(0, Math.round((performance.now() - this.runStartedAt) / 1000)) : 0;
-      const progress = this.getObjectiveProgress();
+      const stats = this.completionStats();
       this.overlay.innerHTML = `
-        <section class="complete-panel" data-testid="complete-panel">
+        <section class="complete-panel" data-testid="complete-panel" data-completion-cue="${stats.triumphantCue ? 'triumphant' : 'none'}">
           <div class="screen-kicker">Extraction complete</div>
           <h2>Blacksite Threshold cleared</h2>
           <p>Command confirms exfil. Triumphant extraction cue is live and the level stats are locked.</p>
           <div class="stats-grid">
-            <div class="stat-card"><span>Time</span><strong>${elapsed}s</strong></div>
-            <div class="stat-card"><span>Objectives</span><strong>${progress.collectedRequired}/${progress.totalRequired}</strong></div>
-            <div class="stat-card"><span>Alerts</span><strong>${this.alarms}</strong></div>
-            <div class="stat-card"><span>Profile</span><strong>${this.settings.performanceProfile}</strong></div>
+            <div class="stat-card" data-testid="complete-stat-time"><span>Time</span><strong>${stats.elapsedSeconds}s</strong></div>
+            <div class="stat-card" data-testid="complete-stat-objectives"><span>Objectives</span><strong>${stats.objectivesCompleted}/${stats.objectivesTotal}</strong></div>
+            <div class="stat-card" data-testid="complete-stat-alerts"><span>Alerts</span><strong>${stats.alerts}</strong></div>
+            <div class="stat-card" data-testid="complete-stat-profile"><span>Profile</span><strong>${stats.performanceProfile}</strong></div>
           </div>
           <div class="button-row">
             <button type="button" data-action="retry">Replay Level</button>
@@ -1617,6 +1617,19 @@ export class ShadowRecruitApp {
     };
   }
 
+  private completionStats(): CompletionStats {
+    const progress = this.getObjectiveProgress();
+    return {
+      active: this.phase === 'complete',
+      elapsedSeconds: this.runStartedAt ? Math.max(0, Math.round((performance.now() - this.runStartedAt) / 1000)) : 0,
+      objectivesCompleted: progress.collectedRequired,
+      objectivesTotal: progress.totalRequired,
+      alerts: this.alarms,
+      performanceProfile: this.settings.performanceProfile,
+      triumphantCue: this.phase === 'complete',
+    };
+  }
+
   private cinematicFocusState(): CinematicFocusState {
     return {
       active: this.phase === 'cinematic-focus',
@@ -1672,6 +1685,7 @@ export class ShadowRecruitApp {
       settings: { ...this.settings },
       tutorial: this.tutorialState(),
       cinematicFocus: this.cinematicFocusState(),
+      completion: this.completionStats(),
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),
       doors: this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
