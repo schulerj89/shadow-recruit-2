@@ -26,8 +26,11 @@ try {
   await page.screenshot({ path: `${outputDir}/hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: 'Start Level' }).click();
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
-  await page.screenshot({ path: `${outputDir}/tutorial-general.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Skip' }).click();
+  for (const name of ['insertion', 'keycard', 'terminal', 'sentry', 'extraction']) {
+    const tutorial = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialStep());
+    await page.screenshot({ path: `${outputDir}/tutorial-${String((tutorial?.index ?? 0) + 1).padStart(2, '0')}-${name}.png`, fullPage: true });
+    await page.getByRole('button', { name: /Next|Begin Mission/ }).click();
+  }
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.movePlayerTo({ x: -31, z: -25 }));
   await page.screenshot({ path: `${outputDir}/gameplay-level-one.png`, fullPage: true });

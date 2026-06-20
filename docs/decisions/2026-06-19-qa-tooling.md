@@ -15,6 +15,7 @@ Expose:
 - `missionId`
 - `missions`
 - `settings`
+- `tutorialStep`
 - `playerPosition`
 - `playerVisible`
 - `enemies`

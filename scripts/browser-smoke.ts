@@ -45,9 +45,27 @@ try {
   await page.screenshot({ path: `${screenshotDir}/03-hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: 'Start Level' }).click();
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
-  await page.screenshot({ path: `${screenshotDir}/04-tutorial-general.png`, fullPage: true });
 
-  for (let i = 0; i < 5; i += 1) {
+  const tutorialSteps = [
+    { id: 'hero', title: 'Insertion', target: 'hero' },
+    { id: 'keycard', title: 'First Lock', target: 'access-keycard' },
+    { id: 'terminal', title: 'Security Stack', target: 'security-terminal' },
+    { id: 'sentry', title: 'Avoid Contact', target: 'sentry-lobby' },
+    { id: 'extraction', title: 'Extraction', target: 'extraction' },
+  ];
+  for (let i = 0; i < tutorialSteps.length; i += 1) {
+    const expected = tutorialSteps[i];
+    const tutorial = await page.evaluate(() => window.__shadowRecruitDebug?.tutorialStep());
+    if (!tutorial?.step || tutorial.index !== i || tutorial.total !== tutorialSteps.length) {
+      throw new Error(`Expected tutorial index ${i}, got ${JSON.stringify(tutorial)}`);
+    }
+    if (tutorial.step.id !== expected.id || tutorial.step.title !== expected.title || tutorial.step.target !== expected.target) {
+      throw new Error(`Unexpected tutorial step: ${JSON.stringify({ expected, tutorial })}`);
+    }
+    if (expected.id === 'extraction' && !/good luck, cadet/i.test(tutorial.step.text)) {
+      throw new Error(`Final tutorial step must end with Good luck, cadet: ${tutorial.step.text}`);
+    }
+    await page.screenshot({ path: `${screenshotDir}/${String(i + 4).padStart(2, '0')}-tutorial-${expected.id}.png`, fullPage: true });
     const button = page.getByRole('button', { name: /Next|Begin Mission/ });
     await button.click();
   }
@@ -60,7 +78,7 @@ try {
     window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 });
   });
   await expectPhase('complete');
-  await page.screenshot({ path: `${screenshotDir}/05-complete.png`, fullPage: true });
+  await page.screenshot({ path: `${screenshotDir}/09-complete.png`, fullPage: true });
 
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {

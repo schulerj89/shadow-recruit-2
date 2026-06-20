@@ -21,6 +21,7 @@ import type {
   RectSpec,
   RendererMetrics,
   TesterState,
+  TutorialState,
   Vec2,
 } from './types';
 
@@ -41,6 +42,7 @@ type ShadowRecruitDebugApi = {
   missionId: () => string;
   missions: () => readonly LevelCatalogEntry[];
   settings: () => GameSettings;
+  tutorialStep: () => TutorialState;
   selectedHero: () => HeroId;
   playerPosition: () => Vec2;
   playerVisible: () => boolean;
@@ -937,6 +939,14 @@ export class ShadowRecruitApp {
     };
   }
 
+  private tutorialState(): TutorialState {
+    return {
+      index: this.tutorialIndex,
+      total: this.level.tutorial.length,
+      step: this.level.tutorial[this.tutorialIndex] ?? null,
+    };
+  }
+
   private framePacing(): FramePacingSample {
     const samples = [...this.frameDeltas].sort((a, b) => a - b);
     const latest = this.frameDeltas[this.frameDeltas.length - 1] ?? 16.7;
@@ -977,6 +987,7 @@ export class ShadowRecruitApp {
       levelId: this.level.id,
       selectedHero: this.selectedHero,
       settings: { ...this.settings },
+      tutorial: this.tutorialState(),
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),
       doors: this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
@@ -993,6 +1004,7 @@ export class ShadowRecruitApp {
       missionId: () => this.level.id,
       missions: () => levelCatalog,
       settings: () => ({ ...this.settings }),
+      tutorialStep: () => this.tutorialState(),
       selectedHero: () => this.selectedHero,
       playerPosition: () => ({ ...this.playerPosition }),
       playerVisible: () => Boolean(this.player?.object.visible ?? this.titleHero?.object.visible),

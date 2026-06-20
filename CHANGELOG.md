@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.6 - 2026-06-20
+
+### Patch
+
+- Added tutorial-step debug state, smoke assertions, and screenshots for every cinematic tutorial beat.
+
 ## 0.1.5 - 2026-06-20
 
 ### Patch

@@ -63,7 +63,7 @@ Date: ${date}
 ## Tester Feedback
 
 - Title flow: verify logo, rotating level-one preview, hero model, Start, Change Hero, and Settings are visible.
-- Tutorial: verify General Caldwell text aligns with the camera target and final step includes "Good luck, cadet."
+- Tutorial: verify all five General Caldwell screenshots align with hero, keycard, terminal, sentry, and extraction targets, and the final step includes "Good luck, cadet."
 - Level: verify keycard, terminal, command codes, sliding doors, sentries, and extraction are readable.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate)}
