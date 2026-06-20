@@ -14,6 +14,7 @@ Expose:
 - `phase`
 - `missionId`
 - `missions`
+- `settings`
 - `playerPosition`
 - `playerVisible`
 - `enemies`
@@ -21,6 +22,7 @@ Expose:
 - `doors`
 - `rendererMetrics`
 - `framePacing`
+- `memoryMetrics`
 - `movePlayerTo`
 - `collectObjective`
 - `forceAlert`

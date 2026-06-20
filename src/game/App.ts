@@ -40,6 +40,7 @@ type ShadowRecruitDebugApi = {
   phase: () => Phase;
   missionId: () => string;
   missions: () => readonly LevelCatalogEntry[];
+  settings: () => GameSettings;
   selectedHero: () => HeroId;
   playerPosition: () => Vec2;
   playerVisible: () => boolean;
@@ -975,6 +976,7 @@ export class ShadowRecruitApp {
       phase: this.phase,
       levelId: this.level.id,
       selectedHero: this.selectedHero,
+      settings: { ...this.settings },
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),
       doors: this.doors.map((door) => ({ id: door.id, open: door.open, progress: door.progress })),
@@ -990,6 +992,7 @@ export class ShadowRecruitApp {
       phase: () => this.phase,
       missionId: () => this.level.id,
       missions: () => levelCatalog,
+      settings: () => ({ ...this.settings }),
       selectedHero: () => this.selectedHero,
       playerPosition: () => ({ ...this.playerPosition }),
       playerVisible: () => Boolean(this.player?.object.visible ?? this.titleHero?.object.visible),

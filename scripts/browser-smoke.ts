@@ -26,19 +26,33 @@ try {
   await expectNonblankCanvas();
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });
 
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });
+  await page.getByLabel('Debug overlays').check();
+  await page.getByLabel('Mute audio').check();
+  await page.getByLabel('Performance profile').selectOption('performance');
+  await page.screenshot({ path: `${screenshotDir}/02-settings.png`, fullPage: true });
+  const settings = await page.evaluate(() => window.__shadowRecruitDebug?.settings());
+  if (!settings?.debug || !settings.muted || settings.performanceProfile !== 'performance') {
+    throw new Error(`Expected settings to update, got ${JSON.stringify(settings)}`);
+  }
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expectPhase('title');
+
   await page.getByRole('button', { name: 'Start' }).click();
   await page.waitForSelector('[data-testid="hero-select-panel"]', { timeout: 12000 });
   await page.getByText('Echo Vanguard').click();
-  await page.screenshot({ path: `${screenshotDir}/02-hero-select.png`, fullPage: true });
+  await page.screenshot({ path: `${screenshotDir}/03-hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: 'Start Level' }).click();
   await page.waitForSelector('[data-testid="tutorial-panel"]', { timeout: 45000 });
-  await page.screenshot({ path: `${screenshotDir}/03-tutorial-general.png`, fullPage: true });
+  await page.screenshot({ path: `${screenshotDir}/04-tutorial-general.png`, fullPage: true });
 
   for (let i = 0; i < 5; i += 1) {
     const button = page.getByRole('button', { name: /Next|Begin Mission/ });
     await button.click();
   }
   await expectPhase('playing');
+  await page.locator('[data-testid="debug-panel"]').waitFor({ state: 'visible', timeout: 10000 });
   await page.evaluate(() => {
     window.__shadowRecruitDebug?.collectObjective('access-keycard');
     window.__shadowRecruitDebug?.collectObjective('security-terminal');
@@ -46,7 +60,7 @@ try {
     window.__shadowRecruitDebug?.movePlayerTo({ x: 0, z: 33 });
   });
   await expectPhase('complete');
-  await page.screenshot({ path: `${screenshotDir}/04-complete.png`, fullPage: true });
+  await page.screenshot({ path: `${screenshotDir}/05-complete.png`, fullPage: true });
 
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
@@ -57,6 +71,12 @@ try {
   }
   if (state.memory.loadedAssets < 5 || !state.memory.loadedAssetIds.includes('sentry')) {
     throw new Error(`Expected loaded GLB asset metrics, got ${JSON.stringify(state.memory)}`);
+  }
+  if (!state.settings.debug || !state.settings.muted || state.settings.performanceProfile !== 'performance') {
+    throw new Error(`Expected persisted settings in tester state, got ${JSON.stringify(state.settings)}`);
+  }
+  if (state.renderer.pixelRatio > 0.82) {
+    throw new Error(`Expected performance profile pixel ratio cap, got ${state.renderer.pixelRatio}`);
   }
 
   const errorLogs = logs

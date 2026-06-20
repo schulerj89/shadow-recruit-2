@@ -129,6 +129,7 @@ export type TesterState = {
   phase: Phase;
   levelId: string;
   selectedHero: string;
+  settings: GameSettings;
   playerPosition: Vec2;
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: readonly { id: string; open: boolean; progress: number }[];

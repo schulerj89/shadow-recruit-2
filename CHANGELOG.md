@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.5 - 2026-06-20
+
+### Patch
+
+- Added settings-state QA coverage for debug, mute, and performance profile controls and moved new QA artifacts to a current-date default.
+
 ## 0.1.4 - 2026-06-20
 
 ### Patch

@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import packageInfo from '../package.json';
 
-const date = '2026-06-19';
+const date = process.env.QA_DATE ?? '2026-06-20';
 const outputDir = process.env.TESTER_REPORT_DIR ?? `docs/qa/${date}/v${packageInfo.version}`;
 const smokeDir = process.env.SMOKE_SCREENSHOT_DIR ?? `artifacts/smoke/v${packageInfo.version}`;
 const fpsMetricsPath = process.env.FPS_METRICS_PATH ?? `artifacts/fps/v${packageInfo.version}/metrics.json`;
@@ -23,6 +23,8 @@ type Metrics = {
     status: 'pass' | 'environment-limited' | 'fail';
   };
   renderer?: { drawCalls: number; triangles: number; geometries: number; textures: number };
+  memory?: { loadedAssets: number; characterAssets: number; staticAssets: number; loadedAssetIds: readonly string[] };
+  settings?: { debug: boolean; muted: boolean; performanceProfile: string };
 };
 
 const metrics = existsSync(fpsMetricsPath)
@@ -32,6 +34,8 @@ const frame = metrics?.framePacing;
 const baseline = metrics?.browserBaseline;
 const fpsGate = metrics?.fpsGate;
 const renderer = metrics?.renderer;
+const memory = metrics?.memory;
+const settings = metrics?.settings;
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate);
 
 await mkdir(outputDir, { recursive: true });
@@ -53,6 +57,8 @@ Date: ${date}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}` : 'not captured'}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures` : 'not captured'}
+- Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}` : 'not captured'}
+- Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
 
 ## Tester Feedback
 
