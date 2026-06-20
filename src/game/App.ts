@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import emblemUrl from '../assets/generated/shadow-recruit-emblem.png?url';
 import generalUrl from '../assets/generated/general-caldwell.png?url';
 import doorPanelUrl from '../assets/generated/sliding-door-panel.png?url';
 import { AssetLibrary, type CharacterInstance, disposeObject } from './CharacterAssets';
@@ -261,8 +260,8 @@ export class ShadowRecruitApp {
   private readonly camera = new THREE.PerspectiveCamera(55, 1, 0.1, 240);
   private readonly clock = new THREE.Clock();
   private readonly assets = new AssetLibrary();
-  private readonly titleHeroStagePosition = new THREE.Vector3(4, 0, -8);
-  private readonly titleCameraTarget = new THREE.Vector3(4, 1.05, -8);
+  private readonly titleHeroStagePosition = new THREE.Vector3(2.6, 0, -18);
+  private readonly titleCameraTarget = new THREE.Vector3(2.6, 1.12, -18);
   private readonly keyState = new Set<string>();
   private readonly pressedKeys = new Set<string>();
   private readonly frameDeltas: number[] = [];
@@ -354,7 +353,8 @@ export class ShadowRecruitApp {
   private buildTitleScene(): void {
     this.clearRuntime();
     this.createBaseScene();
-    this.buildLevelShell(false);
+    this.addTitleStageFloor(this.titleHeroStagePosition);
+    this.addTitleDoorBackdrop(this.titleHeroStagePosition);
     this.titleHero?.animator?.dispose();
     this.titleHero = this.assets.createHero(this.selectedHero, `title-hero:${this.selectedHero}`);
     this.addTitleHeroStage(this.titleHeroStagePosition);
@@ -601,6 +601,102 @@ export class ShadowRecruitApp {
     this.runtimeObjects.push({ object: light });
   }
 
+  private addTitleStageFloor(position: THREE.Vector3): void {
+    const quality = this.quality();
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 12, Math.min(quality.floorSegments, 18), Math.min(quality.floorSegments, 14)),
+      this.createShellMaterial('floor', 2.6, 2.1, 0.16),
+    );
+    floor.name = 'title-cinematic-floor';
+    floor.position.set(position.x + 1.1, 0, position.z + 0.6);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = quality.shadowsEnabled;
+
+    const inlayMaterial = new THREE.MeshBasicMaterial({ color: '#6fffe2', transparent: true, opacity: 0.55 });
+    const centerLine = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 7.2), inlayMaterial);
+    centerLine.name = 'title-floor-centerline';
+    centerLine.position.set(position.x + 1.1, 0.035, position.z + 0.2);
+
+    const leftLine = centerLine.clone();
+    leftLine.name = 'title-floor-left-line';
+    leftLine.position.x -= 2.5;
+    const rightLine = centerLine.clone();
+    rightLine.name = 'title-floor-right-line';
+    rightLine.position.x += 2.5;
+
+    this.scene.add(floor, centerLine, leftLine, rightLine);
+    this.runtimeObjects.push({ object: floor }, { object: centerLine }, { object: leftLine }, { object: rightLine });
+  }
+
+  private addTitleDoorBackdrop(position: THREE.Vector3): void {
+    const quality = this.quality();
+    const group = new THREE.Group();
+    group.name = 'title-cinematic-backdrop';
+    group.position.set(position.x + 1.4, 0, position.z - 2.8);
+    group.rotation.y = -0.32;
+
+    const doorMaterial = new THREE.MeshStandardMaterial({
+      map: this.doorTexture,
+      color: '#d8e9ed',
+      roughness: 0.36,
+      metalness: 0.62,
+      emissive: '#14252c',
+      emissiveIntensity: 0.24,
+    });
+    const frameMaterial = this.createShellMaterial('trim', 1.8, 1.6, 0.34);
+
+    const backWall = new THREE.Mesh(
+      new THREE.BoxGeometry(7.2, 4.1, 0.34),
+      this.createShellMaterial('wall', 2.4, 1.8, 0.12),
+    );
+    backWall.name = 'title-backdrop-wall';
+    backWall.position.set(0, 2.05, -0.22);
+
+    const leftDoor = new THREE.Mesh(new THREE.BoxGeometry(2.1, 3.0, 0.22), doorMaterial.clone());
+    const rightDoor = new THREE.Mesh(new THREE.BoxGeometry(2.1, 3.0, 0.22), doorMaterial.clone());
+    leftDoor.name = 'title-door-left';
+    rightDoor.name = 'title-door-right';
+    leftDoor.position.set(-1.05, 1.55, 0.05);
+    rightDoor.position.set(1.05, 1.55, 0.05);
+
+    const header = new THREE.Mesh(new THREE.BoxGeometry(5.3, 0.38, 0.5), frameMaterial.clone());
+    const leftJamb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 3.4, 0.5), frameMaterial.clone());
+    const rightJamb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 3.4, 0.5), frameMaterial.clone());
+    const threshold = new THREE.Mesh(new THREE.BoxGeometry(5.3, 0.1, 0.6), frameMaterial.clone());
+    header.name = 'title-door-header';
+    leftJamb.name = 'title-door-left-jamb';
+    rightJamb.name = 'title-door-right-jamb';
+    threshold.name = 'title-door-threshold';
+    header.position.set(0, 3.28, 0.12);
+    leftJamb.position.set(-2.82, 1.7, 0.12);
+    rightJamb.position.set(2.82, 1.7, 0.12);
+    threshold.position.set(0, 0.05, 0.12);
+
+    const lightBar = new THREE.Mesh(
+      new THREE.BoxGeometry(4.7, 0.05, 0.08),
+      new THREE.MeshBasicMaterial({ color: '#6fffe2' }),
+    );
+    lightBar.name = 'title-door-lightbar';
+    lightBar.position.set(0, 3.55, 0.32);
+
+    const heroRim = new THREE.PointLight('#6fffe2', 5.5 * quality.lightIntensityScale, 8);
+    heroRim.name = 'title-door-rim-light';
+    heroRim.position.set(-2.8, 2.2, 2.2);
+
+    const alertGlow = new THREE.PointLight('#ff5a65', 3.2 * quality.lightIntensityScale, 7);
+    alertGlow.name = 'title-alert-glow';
+    alertGlow.position.set(2.8, 1.5, 1.8);
+
+    for (const object of [backWall, leftDoor, rightDoor, header, leftJamb, rightJamb, threshold]) {
+      object.castShadow = quality.shadowsEnabled;
+      object.receiveShadow = quality.shadowsEnabled;
+    }
+
+    group.add(backWall, leftDoor, rightDoor, header, leftJamb, rightJamb, threshold, lightBar, heroRim, alertGlow);
+    this.scene.add(group);
+    this.runtimeObjects.push({ object: group });
+  }
+
   private addTitleHeroStage(position: THREE.Vector3): void {
     const quality = this.quality();
     const stage = new THREE.Mesh(
@@ -714,16 +810,15 @@ export class ShadowRecruitApp {
   }
 
   private updateTitleCamera(time: number): void {
-    const radius = 38;
-    const angle = time * 0.1;
+    const angle = time * 0.18;
     this.camera.position.set(
-      this.titleCameraTarget.x + Math.cos(angle) * radius,
-      20,
-      this.titleCameraTarget.z + Math.sin(angle) * radius,
+      this.titleCameraTarget.x + Math.cos(angle) * 5.4,
+      3.15 + Math.sin(angle * 0.5) * 0.22,
+      this.titleCameraTarget.z + 6.4 + Math.sin(angle) * 2.2,
     );
     this.camera.lookAt(this.titleCameraTarget);
     if (this.titleHero) {
-      this.titleHero.object.rotation.y = -angle + Math.PI * 0.75;
+      this.titleHero.object.rotation.y = -angle * 0.35 + Math.PI * 0.82;
     }
   }
 
@@ -810,8 +905,8 @@ export class ShadowRecruitApp {
   }
 
   private updateGameplayCamera(snap = false): void {
-    const target = new THREE.Vector3(this.playerPosition.x, 0.8, this.playerPosition.z);
-    const desired = new THREE.Vector3(this.playerPosition.x + 8, 10, this.playerPosition.z + 12);
+    const target = new THREE.Vector3(this.playerPosition.x, 1.05, this.playerPosition.z);
+    const desired = new THREE.Vector3(this.playerPosition.x + 4.1, 5.2, this.playerPosition.z + 6.2);
     if (snap) {
       this.camera.position.copy(desired);
     } else {
@@ -944,15 +1039,14 @@ export class ShadowRecruitApp {
       this.overlay.innerHTML = `
         <div class="title-layout" data-testid="title-panel">
           <section class="title-mark">
-            <img class="title-emblem" src="${emblemUrl}" alt="" />
-            <div class="title-kicker">Blacksite field program</div>
+            <div class="title-kicker">Tactical infiltration prototype</div>
             <h1 class="title-logo">Shadow Recruit 2</h1>
-            <p class="title-copy">Run the first infiltration, unlock the blacksite, avoid sentries, and extract before command loses the signal.</p>
+            <p class="title-copy">A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.</p>
           </section>
           <section class="command-panel">
             <div class="screen-kicker">Ready room</div>
-            <h2 class="panel-title">Choose the mission posture.</h2>
-            <p class="panel-copy">Level One rotates behind the title screen. Pick your recruit, configure debug and performance, then begin the tutorial insertion.</p>
+            <h2 class="panel-title">Prepare the insertion.</h2>
+            <p class="panel-copy">The staged recruit and door set preview the mission tone. Configure debug and performance, then begin the cinematic tutorial.</p>
             <div class="button-row is-stacked">
               <button type="button" data-action="start">Start</button>
               <button type="button" data-action="hero-select">Change Hero</button>

@@ -1,0 +1,369 @@
+{
+  "build": "v0.7.0",
+  "levelId": "blacksite-threshold",
+  "routePoints": [
+    {
+      "x": 0,
+      "z": -29,
+      "phase": "playing"
+    },
+    {
+      "x": -31,
+      "z": -25,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": -19,
+      "phase": "playing"
+    },
+    {
+      "x": 1,
+      "z": -16,
+      "phase": "playing"
+    },
+    {
+      "x": 30,
+      "z": -3,
+      "phase": "playing"
+    },
+    {
+      "x": 15,
+      "z": 4,
+      "phase": "playing"
+    },
+    {
+      "x": 16,
+      "z": 7,
+      "phase": "playing"
+    },
+    {
+      "x": -32,
+      "z": 14,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": 19,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": 24,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": 33,
+      "phase": "complete"
+    }
+  ],
+  "interactions": [
+    {
+      "objectiveId": "access-keycard",
+      "doorId": "lobby-door",
+      "focusMs": 1920
+    },
+    {
+      "objectiveId": "security-terminal",
+      "doorId": "server-door",
+      "focusMs": 1940
+    },
+    {
+      "objectiveId": "command-codes",
+      "doorId": "extraction-door",
+      "focusMs": 1942
+    }
+  ],
+  "finalState": {
+    "phase": "complete",
+    "levelId": "blacksite-threshold",
+    "selectedHero": "shadow-operative",
+    "settings": {
+      "debug": false,
+      "muted": false,
+      "performanceProfile": "balanced"
+    },
+    "tutorial": {
+      "index": 5,
+      "total": 5,
+      "step": null
+    },
+    "cinematicFocus": {
+      "active": false,
+      "target": "extraction-door",
+      "remainingMs": 0
+    },
+    "playerPosition": {
+      "x": 0,
+      "z": 33
+    },
+    "objectives": {
+      "collectedRequired": 3,
+      "totalRequired": 3,
+      "exitUnlocked": true
+    },
+    "doors": [
+      {
+        "id": "lobby-door",
+        "open": true,
+        "progress": 1
+      },
+      {
+        "id": "server-door",
+        "open": true,
+        "progress": 1
+      },
+      {
+        "id": "extraction-door",
+        "open": true,
+        "progress": 1
+      }
+    ],
+    "renderer": {
+      "performanceProfile": "balanced",
+      "shadowsEnabled": true,
+      "shadowMapSize": 1024,
+      "drawCalls": 35,
+      "triangles": 275855,
+      "geometries": 56,
+      "textures": 40,
+      "pixelRatio": 1
+    },
+    "framePacing": {
+      "fps": 20,
+      "frameMs": 50,
+      "latestFrameMs": 50,
+      "p95FrameMs": 50,
+      "samples": 240
+    },
+    "memory": {
+      "runtimeObjects": 39,
+      "loadedAssets": 5,
+      "characterAssets": 2,
+      "staticAssets": 3,
+      "loadedAssetIds": [
+        "hero:shadow-operative",
+        "sentry",
+        "codes",
+        "keycard",
+        "terminal"
+      ]
+    },
+    "assetQuality": [
+      {
+        "id": "level-floor",
+        "label": "Floor mesh",
+        "category": "level-mesh",
+        "grade": "review",
+        "visible": true,
+        "grounded": true,
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "bounds": {
+          "minY": 0,
+          "maxY": 0,
+          "height": 0,
+          "width": 84,
+          "depth": 72
+        },
+        "notes": [
+          "Floor mesh covers the authored level bounds with repeated tactical panel texture detail.",
+          "Floor still uses a procedural canvas texture; replace with a generated image texture attached to the floor mesh before grading it as AAA-quality art."
+        ]
+      },
+      {
+        "id": "level-walls",
+        "label": "Wall meshes",
+        "category": "level-mesh",
+        "grade": "review",
+        "visible": true,
+        "grounded": true,
+        "notes": [
+          "12 wall meshes are present, but they use procedural panel texture instead of a generated AAA wall image attached to each wall material."
+        ]
+      },
+      {
+        "id": "sliding-doors",
+        "label": "Sliding door panels",
+        "category": "door",
+        "grade": "pass",
+        "visible": true,
+        "grounded": true,
+        "notes": [
+          "3 sliding door assemblies are present and use the generated door-panel texture."
+        ]
+      },
+      {
+        "id": "door-wall-seams",
+        "label": "Door-wall seams",
+        "category": "door",
+        "grade": "fail",
+        "visible": true,
+        "grounded": true,
+        "notes": [
+          "3 sliding-door openings have trim, but still need wall/portal continuity behind the door so the opening does not read as a missing wall gap; the opening door should visually take priority over that wall surface."
+        ]
+      },
+      {
+        "id": "access-keycard",
+        "label": "Recover the lobby keycard",
+        "category": "objective",
+        "grade": "pass",
+        "visible": false,
+        "grounded": true,
+        "notes": [
+          "Recover the lobby keycard was collected and intentionally removed from the scene."
+        ]
+      },
+      {
+        "id": "security-terminal",
+        "label": "Hack the security terminal",
+        "category": "objective",
+        "grade": "pass",
+        "visible": false,
+        "grounded": true,
+        "notes": [
+          "Hack the security terminal was collected and intentionally removed from the scene."
+        ]
+      },
+      {
+        "id": "command-codes",
+        "label": "Copy the command codes",
+        "category": "objective",
+        "grade": "pass",
+        "visible": false,
+        "grounded": true,
+        "notes": [
+          "Copy the command codes was collected and intentionally removed from the scene."
+        ]
+      },
+      {
+        "id": "sentry-lobby",
+        "label": "Lobby sentry",
+        "category": "enemy",
+        "grade": "pass",
+        "visible": true,
+        "grounded": true,
+        "position": {
+          "x": 11.71,
+          "y": 0,
+          "z": -24.64
+        },
+        "bounds": {
+          "minY": 0.02,
+          "maxY": 1.57,
+          "height": 1.55,
+          "width": 1.58,
+          "depth": 1.58
+        },
+        "notes": [
+          "Sentry GLB is visible above the floor and aligned to its patrol route."
+        ]
+      },
+      {
+        "id": "sentry-server",
+        "label": "Server sentry",
+        "category": "enemy",
+        "grade": "pass",
+        "visible": true,
+        "grounded": true,
+        "position": {
+          "x": 21.8,
+          "y": 0,
+          "z": 12.88
+        },
+        "bounds": {
+          "minY": 0.02,
+          "maxY": 1.57,
+          "height": 1.55,
+          "width": 1.75,
+          "depth": 1.75
+        },
+        "notes": [
+          "Sentry GLB is visible above the floor and aligned to its patrol route."
+        ]
+      },
+      {
+        "id": "sentry-command",
+        "label": "Command sentry",
+        "category": "enemy",
+        "grade": "pass",
+        "visible": true,
+        "grounded": true,
+        "position": {
+          "x": -9.9,
+          "y": 0,
+          "z": 25
+        },
+        "bounds": {
+          "minY": 0.02,
+          "maxY": 1.57,
+          "height": 1.55,
+          "width": 1.46,
+          "depth": 1.46
+        },
+        "notes": [
+          "Sentry GLB is visible above the floor and aligned to its patrol route."
+        ]
+      },
+      {
+        "id": "hero",
+        "label": "Playable hero",
+        "category": "hero",
+        "grade": "pass",
+        "visible": true,
+        "grounded": true,
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 33
+        },
+        "bounds": {
+          "minY": 0.02,
+          "maxY": 1.47,
+          "height": 1.45,
+          "width": 1.17,
+          "depth": 0.79
+        },
+        "notes": [
+          "Hero GLB is visible and grounded at the current player position."
+        ]
+      },
+      {
+        "id": "extraction",
+        "label": "Extraction point",
+        "category": "extraction",
+        "grade": "pass",
+        "visible": true,
+        "grounded": true,
+        "position": {
+          "x": 0,
+          "y": 0.08,
+          "z": 33
+        },
+        "bounds": {
+          "minY": 0,
+          "maxY": 0.16,
+          "height": 0.15,
+          "width": 4.96,
+          "depth": 4.96
+        },
+        "notes": [
+          "Extraction marker is visible and readable as the level-completion target."
+        ]
+      }
+    ]
+  },
+  "screenshots": [
+    "artifacts/playthrough/v0.7.0/01-title.png",
+    "artifacts/playthrough/v0.7.0/02-mission-start.png",
+    "artifacts/playthrough/v0.7.0/03-focus-lobby-door.png",
+    "artifacts/playthrough/v0.7.0/04-focus-server-door.png",
+    "artifacts/playthrough/v0.7.0/05-focus-extraction-door.png",
+    "artifacts/playthrough/v0.7.0/06-complete.png"
+  ]
+}

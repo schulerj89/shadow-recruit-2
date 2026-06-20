@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shadow Recruit Game Designer"
+  short_description: "Cinematic title and camera review"
+  default_prompt: "Use $shadow-recruit-game-designer to review title-screen composition and camera framing for Shadow Recruit 2."

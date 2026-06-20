@@ -88,24 +88,18 @@ input[type="checkbox"] {
 }
 
 .title-layout {
-  width: min(1180px, 96vw);
+  width: min(1120px, 96vw);
   height: min(760px, 92vh);
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(300px, 0.7fr);
-  align-items: end;
-  gap: 24px;
+  grid-template-columns: minmax(300px, 0.7fr) minmax(300px, 0.52fr);
+  align-items: center;
+  gap: 34px;
 }
 
 .title-mark {
-  align-self: center;
-  max-width: 680px;
-}
-
-.title-emblem {
-  width: clamp(120px, 16vw, 210px);
-  display: block;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 0 22px rgba(111, 255, 226, 0.34));
+  align-self: end;
+  max-width: 590px;
+  padding-bottom: clamp(24px, 8vh, 92px);
 }
 
 .title-kicker,
@@ -119,20 +113,23 @@ input[type="checkbox"] {
 }
 
 .title-logo {
-  margin: 0;
-  max-width: 10ch;
+  margin: 8px 0 0;
+  max-width: 8.4ch;
   color: #f7fbff;
-  font-size: clamp(3rem, 8vw, 7.4rem);
-  line-height: 0.82;
+  font-size: clamp(3rem, 7.4vw, 7.2rem);
+  line-height: 0.78;
   letter-spacing: 0;
   text-transform: uppercase;
+  border-left: 5px solid rgba(111, 255, 226, 0.86);
+  padding-left: clamp(14px, 2vw, 24px);
   text-shadow:
-    0 0 32px rgba(111, 255, 226, 0.32),
-    0 8px 0 rgba(4, 7, 11, 0.9);
+    0 0 28px rgba(111, 255, 226, 0.28),
+    0 6px 0 rgba(4, 7, 11, 0.95);
 }
 
 .title-copy {
-  max-width: 580px;
+  max-width: 540px;
+  margin-left: clamp(19px, 2vw, 29px);
   color: #c5d8e2;
   font-size: clamp(1rem, 1.5vw, 1.18rem);
   line-height: 1.55;

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.7.0 - 2026-06-20
+
+### Minor
+
+- Added a Shadow Recruit game-designer skill for cinematic title-screen and camera composition reviews.
+- Redesigned the title screen toward a closer cinematic recruit composition and tightened the gameplay camera framing.
+
 ## 0.6.4 - 2026-06-20
 
 ### Patch
