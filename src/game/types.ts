@@ -411,6 +411,43 @@ export type GameplayCameraState = {
   notes: readonly string[];
 };
 
+export type GameplayViewDensityCategory = 'cover' | 'set-dressing' | 'objective' | 'enemy' | 'door' | 'extraction';
+
+export type GameplayViewDensityObject = {
+  id: string;
+  category: GameplayViewDensityCategory;
+  distanceFromPlayer: number;
+  screenOccupancy: number;
+  screenBounds: ScreenBounds;
+  bounds: Bounds3;
+};
+
+export type GameplayViewDensityBand = {
+  id: 'near' | 'mid' | 'far';
+  label: string;
+  minDistance: number;
+  maxDistance: number;
+  grade: AssetQualityGrade;
+  visibleObjectCount: number;
+  tacticalCategoryCount: number;
+  screenOccupancy: number;
+  minVisibleObjects: number;
+  minTacticalCategories: number;
+  minScreenOccupancy: number;
+  objects: readonly GameplayViewDensityObject[];
+  notes: readonly string[];
+};
+
+export type GameplayViewDensityState = {
+  active: boolean;
+  grade: AssetQualityGrade;
+  screenshot: string;
+  cameraPosition: { x: number; y: number; z: number };
+  playerPosition: Vec2;
+  bands: readonly GameplayViewDensityBand[];
+  notes: readonly string[];
+};
+
 export type CompletionStats = {
   active: boolean;
   elapsedSeconds: number;
@@ -432,6 +469,7 @@ export type TesterState = {
   tutorial: TutorialState;
   cinematicFocus: CinematicFocusState;
   gameplayCamera: GameplayCameraState;
+  gameplayViewDensity: GameplayViewDensityState;
   completion: CompletionStats;
   playerPosition: Vec2;
   objectives: { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };

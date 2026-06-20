@@ -163,7 +163,8 @@ try {
   }
   await expectPhase('playing');
   await page.locator('[data-testid="debug-panel"]').waitFor({ state: 'visible', timeout: 10000 });
-  const gameplayCamera = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState().gameplayCamera);
+  const gameplayState = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
+  const gameplayCamera = gameplayState?.gameplayCamera;
   if (
     !gameplayCamera?.readable ||
     gameplayCamera.cameraDistance > 7.1 ||
@@ -171,6 +172,9 @@ try {
     gameplayCamera.playerScreenOccupancy < 0.004
   ) {
     throw new Error(`Expected closer player-readable gameplay camera, got ${JSON.stringify(gameplayCamera)}`);
+  }
+  if (!gameplayState?.gameplayViewDensity || gameplayState.gameplayViewDensity.grade !== 'pass') {
+    throw new Error(`Expected active gameplay camera to have near/mid/far tactical detail, got ${JSON.stringify(gameplayState?.gameplayViewDensity)}`);
   }
   await collectObjectiveAndExpectFocus('access-keycard', 'lobby-door', '09-focus-lobby-door.png');
   await collectObjectiveAndExpectFocus('security-terminal', 'server-door', '10-focus-server-door.png');

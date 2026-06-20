@@ -92,7 +92,8 @@ try {
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.teleportPlayerTo({ x: -24, z: -25 }));
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
-  const gameplayCamera = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState().gameplayCamera);
+  const gameplayState = await page.evaluate(() => window.__shadowRecruitDebug?.captureTesterState());
+  const gameplayCamera = gameplayState?.gameplayCamera;
   if (
     !gameplayCamera?.readable ||
     gameplayCamera.cameraDistance > 7.1 ||
@@ -101,7 +102,12 @@ try {
   ) {
     throw new Error(`Normal gameplay camera is not close enough for player readability: ${JSON.stringify(gameplayCamera)}`);
   }
+  const gameplayViewDensity = gameplayState?.gameplayViewDensity;
+  if (!gameplayViewDensity || gameplayViewDensity.grade !== 'pass') {
+    throw new Error(`Active gameplay camera lacks foreground/midground/background tactical detail: ${JSON.stringify(gameplayViewDensity)}`);
+  }
   await writeFile(`${qaDir}/gameplay-camera.json`, JSON.stringify(gameplayCamera, null, 2));
+  await writeFile(`${qaDir}/gameplay-view-density.json`, JSON.stringify(gameplayViewDensity, null, 2));
   await page.screenshot({ path: `${outputDir}/gameplay-level-one.png`, fullPage: true });
   await captureDoorFocus('access-keycard', 'lobby-door');
   await captureDoorFocus('security-terminal', 'server-door');

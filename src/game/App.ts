@@ -7,7 +7,7 @@ import { AssetLibrary, type CharacterInstance, disposeObject } from './Character
 import { AudioDirector } from './AudioDirector';
 import { defaultHeroId, heroOptionById, heroOptions, isHeroId, type HeroId } from './heroes';
 import { defaultLevel, getLevelById, levelCatalog } from './levels';
-import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract } from './math';
+import { add, clamp, distance, normalize, pointInBounds, pointInRect, scale, subtract, vec } from './math';
 import { isPerformanceProfile, loadSettings, saveSettings } from './settings';
 import type {
   AudioState,
@@ -22,6 +22,9 @@ import type {
   FramePacingSample,
   GameSettings,
   GameplayCameraState,
+  GameplayViewDensityCategory,
+  GameplayViewDensityObject,
+  GameplayViewDensityState,
   GeometryDiagnostics,
   LevelCatalogEntry,
   LevelDefinition,
@@ -83,7 +86,12 @@ type ShellTextureKind = 'floor' | 'wall' | 'blocker' | 'trim';
 
 const minimumLoadingScreenMs = 650;
 const gameplayCameraTargetHeight = 1.15;
-const gameplayCameraOffset = { x: 3.15, y: 3.85, z: 4.65 };
+const gameplayCameraOffset = { x: 3.15, y: 3.85, z: -4.65 };
+const gameplayDensityBands = [
+  { id: 'near', label: 'near foreground', minDistance: 0, maxDistance: 8, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.015 },
+  { id: 'mid', label: 'midground objective route', minDistance: 8, maxDistance: 18, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.006 },
+  { id: 'far', label: 'far background landmark', minDistance: 18, maxDistance: 34, minVisibleObjects: 1, minTacticalCategories: 1, minScreenOccupancy: 0.002 },
+] as const;
 
 const renderQualityByProfile: Record<PerformanceProfile, RenderQuality> = {
   performance: {
@@ -281,6 +289,10 @@ function drawTrimTexture(context: CanvasRenderingContext2D, size: number, panel:
 
 function roundMetric(value: number): number {
   return Number(value.toFixed(2));
+}
+
+function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 export class ShadowRecruitApp {
@@ -555,13 +567,41 @@ export class ShadowRecruitApp {
   }
 
   private addBlockerVisual(rect: RectSpec): THREE.Object3D {
-    const object = this.assets.createCoverBlocker(rect.id);
-    this.fitObjectToRect(object, rect);
-    this.applyObjectQuality(object);
-    this.scene.add(object);
-    this.runtimeObjects.push({ object, disposeResources: false });
-    this.anchorObjects.set(rect.id, object);
-    return object;
+    const cluster = new THREE.Group();
+    cluster.name = rect.id;
+    const modules = this.coverModuleRects(rect);
+    modules.forEach((moduleRect, index) => {
+      const object = this.assets.createCoverBlocker(`${rect.id}:cover-module-${index + 1}`);
+      this.fitObjectToRect(object, moduleRect);
+      object.rotation.y = index % 2 === 0 ? 0 : Math.PI;
+      this.applyObjectQuality(object);
+      cluster.add(object);
+    });
+    this.scene.add(cluster);
+    this.runtimeObjects.push({ object: cluster, disposeResources: false });
+    this.anchorObjects.set(rect.id, cluster);
+    return cluster;
+  }
+
+  private coverModuleRects(rect: RectSpec): RectSpec[] {
+    const columns = clamp(Math.round(rect.size.x / 3.2), 1, 3);
+    const rows = clamp(Math.round(rect.size.z / 2.6), 1, 2);
+    const moduleWidth = rect.size.x / columns * 0.86;
+    const moduleDepth = rect.size.z / rows * 0.68;
+    const modules: RectSpec[] = [];
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        const x = rect.center.x - rect.size.x / 2 + rect.size.x * ((column + 0.5) / columns);
+        const z = rect.center.z - rect.size.z / 2 + rect.size.z * ((row + 0.5) / rows);
+        modules.push({
+          id: `${rect.id}:cover-module-${row + 1}-${column + 1}`,
+          center: vec(x, z),
+          size: vec(moduleWidth, moduleDepth),
+          height: rect.height,
+        });
+      }
+    }
+    return modules;
   }
 
   private fitObjectToRect(object: THREE.Object3D, rect: RectSpec): void {
@@ -2559,6 +2599,103 @@ export class ShadowRecruitApp {
     };
   }
 
+  private gameplayViewDensityState(): GameplayViewDensityState {
+    const active = this.phase === 'playing';
+    const player = new THREE.Vector3(this.playerPosition.x, 0, this.playerPosition.z);
+    const cameraForward = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraForward);
+    const visibleObjects = this.gameplayDensityCandidates()
+      .map((candidate) => this.gameplayDensityObject(candidate.id, candidate.category, player, cameraForward))
+      .filter((object): object is GameplayViewDensityObject => Boolean(object));
+    const bands = gameplayDensityBands.map((band) => {
+      const objects = visibleObjects
+        .filter((object) => object.distanceFromPlayer >= band.minDistance && object.distanceFromPlayer < band.maxDistance)
+        .sort((a, b) => b.screenOccupancy - a.screenOccupancy);
+      const screenOccupancy = roundMetric(Math.min(1, objects.reduce((sum, object) => sum + object.screenOccupancy, 0)));
+      const tacticalCategoryCount = new Set(objects.map((object) => object.category)).size;
+      const grade: AssetQualityGrade = active &&
+        objects.length >= band.minVisibleObjects &&
+        tacticalCategoryCount >= band.minTacticalCategories &&
+        screenOccupancy >= band.minScreenOccupancy
+        ? 'pass'
+        : 'fail';
+      const notes = grade === 'pass'
+        ? [`${band.label} has ${objects.length} visible tactical object(s), ${tacticalCategoryCount} category/categories, and ${formatPercent(screenOccupancy)} screen occupancy from the active gameplay camera.`]
+        : [
+          `${band.label} is under-dressed from the active gameplay camera.`,
+          `Need ${band.minVisibleObjects}+ objects, ${band.minTacticalCategories}+ tactical categories, and ${formatPercent(band.minScreenOccupancy)} screen occupancy; got ${objects.length}, ${tacticalCategoryCount}, and ${formatPercent(screenOccupancy)}.`,
+        ];
+      return {
+        id: band.id,
+        label: band.label,
+        minDistance: band.minDistance,
+        maxDistance: band.maxDistance,
+        grade,
+        visibleObjectCount: objects.length,
+        tacticalCategoryCount,
+        screenOccupancy,
+        minVisibleObjects: band.minVisibleObjects,
+        minTacticalCategories: band.minTacticalCategories,
+        minScreenOccupancy: band.minScreenOccupancy,
+        objects,
+        notes,
+      };
+    });
+    const grade: AssetQualityGrade = active && bands.every((band) => band.grade === 'pass') ? 'pass' : 'fail';
+    const notes = grade === 'pass'
+      ? ['Active gameplay camera has measurable foreground, midground, and background tactical detail instead of relying on whole-level density averages.']
+      : ['Active gameplay camera density is below the player-facing AAA readability threshold in at least one distance band.'];
+
+    return {
+      active,
+      grade,
+      screenshot: 'gameplay-level-one.png',
+      cameraPosition: this.vectorSnapshot(this.camera.position),
+      playerPosition: { ...this.playerPosition },
+      bands,
+      notes,
+    };
+  }
+
+  private gameplayDensityCandidates(): readonly { id: string; category: GameplayViewDensityCategory }[] {
+    return [
+      ...this.level.blockers.map((blocker) => ({ id: blocker.id, category: 'cover' as const })),
+      ...this.level.setDressing.map((dressing) => ({ id: dressing.id, category: 'set-dressing' as const })),
+      ...this.objectives.filter((objective) => !objective.collected).map((objective) => ({ id: objective.id, category: 'objective' as const })),
+      ...this.enemies.map((enemy) => ({ id: enemy.id, category: 'enemy' as const })),
+      ...this.doors.map((door) => ({ id: door.id, category: 'door' as const })),
+      { id: 'extraction', category: 'extraction' as const },
+    ];
+  }
+
+  private gameplayDensityObject(
+    id: string,
+    category: GameplayViewDensityCategory,
+    player: THREE.Vector3,
+    cameraForward: THREE.Vector3,
+  ): GameplayViewDensityObject | null {
+    const object = this.anchorObjects.get(id);
+    if (!object?.visible) return null;
+    const bounds = this.objectBounds(object);
+    if (!bounds) return null;
+    const center = new THREE.Vector3(
+      (bounds.min.x + bounds.max.x) / 2,
+      (bounds.min.y + bounds.max.y) / 2,
+      (bounds.min.z + bounds.max.z) / 2,
+    );
+    if (cameraForward.dot(center.clone().sub(this.camera.position)) <= 0) return null;
+    const screenBounds = this.projectObjectScreenBounds(object);
+    if (!screenBounds || screenBounds.areaRatio < 0.00015 || screenBounds.heightRatio < 0.004) return null;
+    return {
+      id,
+      category,
+      distanceFromPlayer: roundMetric(center.distanceTo(player)),
+      screenOccupancy: screenBounds.areaRatio,
+      screenBounds,
+      bounds,
+    };
+  }
+
   private framePacing(): FramePacingSample {
     const samples = [...this.frameDeltas].sort((a, b) => a - b);
     const latest = this.frameDeltas[this.frameDeltas.length - 1] ?? 16.7;
@@ -2610,6 +2747,7 @@ export class ShadowRecruitApp {
       tutorial: this.tutorialState(),
       cinematicFocus: this.cinematicFocusState(),
       gameplayCamera: this.gameplayCameraState(),
+      gameplayViewDensity: this.gameplayViewDensityState(),
       completion: this.completionStats(),
       playerPosition: { ...this.playerPosition },
       objectives: this.getObjectiveProgress(),

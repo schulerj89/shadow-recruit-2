@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.17.0 - 2026-06-20
+
+### Minor
+
+- Added active gameplay-view density diagnostics that grade near, mid, and far camera bands with projected screen occupancy and visible tactical object categories.
+- Upgraded the cover-barricade GLB kit and runtime placement so blocker cover appears as repeated detailed modules instead of one stretched slab while preserving authored collision proxies.
+- Added insertion-spawn foreground cover, midground security-stack cover, and floor service dressing so the first playable and keycard camera views are not empty open floor.
+- Re-aimed the normal gameplay follow camera toward the mission route instead of the insertion wall so objective path detail appears in the active view.
+- Added smoke, screenshot, and tester-report gates for player-camera foreground, midground, and background tactical density.
+
 ## 0.16.4 - 2026-06-20
 
 ### Patch

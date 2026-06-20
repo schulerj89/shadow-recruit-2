@@ -15,9 +15,12 @@
     { "id": "server-rail", "center": [13, 12], "size": [1, 10], "height": 2.4 }
   ],
   "blockers": [
+    { "id": "insertion-route-cover", "center": [3, -26], "size": [2.5, 1.4], "height": 1.1 },
+    { "id": "insertion-cover-right", "center": [7, -29], "size": [3.6, 3], "height": 1.25 },
     { "id": "cargo-stack-a", "center": [-27, -25], "size": [5, 4], "height": 1.35 },
     { "id": "cargo-stack-b", "center": [27, -25], "size": [5, 4], "height": 1.35 },
     { "id": "antenna-bank", "center": [-26, -4], "size": [6, 3], "height": 1.75 },
+    { "id": "security-stack-cover-left", "center": [-24, -14], "size": [3, 2], "height": 1.2 },
     { "id": "server-bank-a", "center": [25, 11], "size": [5, 8], "height": 1.9 },
     { "id": "server-bank-b", "center": [-25, 12], "size": [5, 8], "height": 1.9 },
     { "id": "briefing-table", "center": [0, 26], "size": [11, 3], "height": 1.0 }
@@ -25,6 +28,8 @@
   "setDressing": [
     { "id": "south-cable-trench-west", "asset": "cable-tray", "center": [-22, -31], "size": [28, 1.2], "height": 0.16 },
     { "id": "south-cable-trench-east", "asset": "cable-tray", "center": [22, -31], "size": [28, 1.2], "height": 0.16 },
+    { "id": "insertion-floor-power-left", "asset": "cable-tray", "center": [-4.5, -30.3], "size": [7, 1.05], "height": 0.18 },
+    { "id": "insertion-floor-power-right", "asset": "cable-tray", "center": [5, -27.7], "size": [8, 1.05], "height": 0.18 },
     { "id": "entry-south-machinery-west", "asset": "wall-machinery", "center": [-15, -32.35], "size": [24, 1], "height": 0.9 },
     { "id": "entry-south-machinery-east", "asset": "wall-machinery", "center": [15, -32.35], "size": [24, 1], "height": 0.9 },
     { "id": "entry-floor-light-spine", "asset": "cable-tray", "center": [0, -21], "size": [42, 1.1], "height": 0.18 },
@@ -62,14 +67,14 @@
       "label": "Entry Lobby",
       "bounds": { "min": [-42, -34], "max": [42, -18] },
       "screenshot": "gameplay-level-one.png",
-      "expectedLandmarks": ["access-keycard", "lobby-door", "cargo-stack-a", "cargo-stack-b", "sentry-lobby", "entry-floor-light-spine", "entry-south-machinery-west", "entry-south-machinery-east"]
+      "expectedLandmarks": ["access-keycard", "lobby-door", "insertion-route-cover", "insertion-cover-right", "insertion-floor-power-left", "insertion-floor-power-right", "cargo-stack-a", "cargo-stack-b", "sentry-lobby", "entry-floor-light-spine", "entry-south-machinery-west", "entry-south-machinery-east"]
     },
     {
       "id": "security-stack",
       "label": "Security Stack",
       "bounds": { "min": [-42, -18], "max": [42, 5] },
       "screenshot": "tutorial-03-terminal.png",
-      "expectedLandmarks": ["security-terminal", "antenna-bank", "security-floor-cable-spine", "server-door", "security-west-service-stack", "security-east-service-stack", "security-warning-floor-stripe"]
+      "expectedLandmarks": ["security-terminal", "antenna-bank", "security-stack-cover-left", "security-floor-cable-spine", "server-door", "security-west-service-stack", "security-east-service-stack", "security-warning-floor-stripe"]
     },
     {
       "id": "server-wing",

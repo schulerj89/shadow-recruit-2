@@ -118,17 +118,26 @@ function buildExtractionBeacon() {
 function buildCoverBarricade() {
   const scene = namedScene('cover-barricade-kit');
   addBox(scene, 'armored-cover-base', [3.2, 0.22, 1.2], [0, 0.11, 0], palette.darkMetal);
-  addBox(scene, 'left-weighted-crate', [1.05, 0.82, 1.05], [-1.0, 0.62, 0], palette.panel);
-  addBox(scene, 'right-weighted-crate', [1.05, 0.82, 1.05], [1.0, 0.62, 0], palette.panel);
-  addBox(scene, 'center-armor-slab', [1.4, 1.18, 0.32], [0, 0.8, -0.36], palette.darkMetal);
+  addBox(scene, 'left-weighted-crate', [0.95, 0.78, 0.92], [-1.03, 0.61, 0.05], palette.panel);
+  addBox(scene, 'right-weighted-crate', [0.95, 0.78, 0.92], [1.03, 0.61, -0.05], palette.panel);
+  addBox(scene, 'center-armor-slab', [1.35, 1.18, 0.28], [0, 0.8, -0.42], palette.darkMetal, [0, 0.08, 0]);
+  addBox(scene, 'angled-front-deflector-left', [0.8, 0.78, 0.14], [-0.72, 0.72, -0.62], palette.panel, [0, -0.28, 0]);
+  addBox(scene, 'angled-front-deflector-right', [0.8, 0.78, 0.14], [0.72, 0.72, -0.62], palette.panel, [0, 0.28, 0]);
   addBox(scene, 'front-hazard-rail', [3.05, 0.08, 0.08], [0, 1.22, -0.6], palette.amber);
   addBox(scene, 'rear-cyan-status-rail', [2.8, 0.06, 0.08], [0, 1.04, 0.58], palette.cyan);
   addBox(scene, 'left-side-service-panel', [0.14, 0.52, 0.78], [-1.63, 0.72, 0], palette.darkMetal);
   addBox(scene, 'right-side-service-panel', [0.14, 0.52, 0.78], [1.63, 0.72, 0], palette.darkMetal);
+  addBox(scene, 'recessed-blue-status-screen', [0.46, 0.34, 0.04], [0, 0.82, -0.74], palette.cyan);
+  addBox(scene, 'amber-keypad-strip', [0.54, 0.06, 0.04], [0, 0.5, -0.75], palette.amber);
 
   for (let index = 0; index < 4; index += 1) {
     addBox(scene, `front-bolt-${index + 1}`, [0.14, 0.08, 0.08], [-1.2 + index * 0.8, 0.34, -0.64], palette.amber);
     addBox(scene, `top-rib-${index + 1}`, [0.08, 0.1, 1.0], [-1.2 + index * 0.8, 1.08, 0], palette.darkMetal);
+    addBox(scene, `crate-tie-down-${index + 1}`, [0.08, 0.05, 0.9], [-1.2 + index * 0.8, 1.03, 0.02], palette.amber, [0, 0, 0.15]);
+  }
+
+  for (let index = 0; index < 3; index += 1) {
+    addCylinder(scene, `rear-service-pipe-${index + 1}`, 0.035, 2.55, [-0.85 + index * 0.85, 0.43, 0.68], [Math.PI / 2, 0, Math.PI / 2], palette.cyan);
   }
 
   const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.1, 18), palette.cyan);
@@ -155,10 +164,19 @@ function namedScene(name) {
   return scene;
 }
 
-function addBox(scene, name, size, position, material) {
+function addBox(scene, name, size, position, material, rotation = [0, 0, 0]) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
   mesh.name = name;
   mesh.position.set(...position);
+  mesh.rotation.set(...rotation);
+  scene.add(mesh);
+}
+
+function addCylinder(scene, name, radius, length, position, rotation, material) {
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 12), material);
+  mesh.name = name;
+  mesh.position.set(...position);
+  mesh.rotation.set(...rotation);
   scene.add(mesh);
 }
 

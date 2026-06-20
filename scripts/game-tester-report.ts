@@ -15,6 +15,7 @@ const committedPlaythroughPath = `${outputDir}/playthrough-report.json`;
 const committedFailureRetryPath = `${outputDir}/failure-retry-report.json`;
 const titleCompositionPath = `${outputDir}/title-composition.json`;
 const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
+const gameplayViewDensityPath = `${outputDir}/gameplay-view-density.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
 const screenshotDir = `${outputDir}/screenshots`;
@@ -93,6 +94,7 @@ type Metrics = {
   geometry?: GeometryDiagnostics;
   titleComposition?: TitleComposition;
   gameplayCamera?: GameplayCameraState;
+  gameplayViewDensity?: GameplayViewDensityState;
   tutorialAlignment?: readonly TutorialAlignmentCheck[];
   loading?: LoadingState;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
@@ -134,6 +136,41 @@ type GameplayCameraState = {
   playerScreenBounds?: ScreenBounds;
   playerScreenOccupancy: number;
   playerScreenHeightRatio: number;
+  notes: readonly string[];
+};
+
+type GameplayViewDensityObject = {
+  id: string;
+  category: string;
+  distanceFromPlayer: number;
+  screenOccupancy: number;
+  screenBounds: ScreenBounds;
+  bounds: Bounds3;
+};
+
+type GameplayViewDensityBand = {
+  id: 'near' | 'mid' | 'far';
+  label: string;
+  minDistance: number;
+  maxDistance: number;
+  grade: 'pass' | 'review' | 'fail';
+  visibleObjectCount: number;
+  tacticalCategoryCount: number;
+  screenOccupancy: number;
+  minVisibleObjects: number;
+  minTacticalCategories: number;
+  minScreenOccupancy: number;
+  objects: readonly GameplayViewDensityObject[];
+  notes: readonly string[];
+};
+
+type GameplayViewDensityState = {
+  active: boolean;
+  grade: 'pass' | 'review' | 'fail';
+  screenshot: string;
+  cameraPosition: { x: number; y: number; z: number };
+  playerPosition: { x: number; z: number };
+  bands: readonly GameplayViewDensityBand[];
   notes: readonly string[];
 };
 
@@ -407,6 +444,9 @@ const titleComposition = existsSync(titleCompositionPath)
 const gameplayCamera = existsSync(gameplayCameraPath)
   ? JSON.parse(await readFile(gameplayCameraPath, 'utf8')) as GameplayCameraState
   : metrics?.gameplayCamera ?? (playthrough?.finalState?.gameplayCamera as GameplayCameraState | undefined);
+const gameplayViewDensity = existsSync(gameplayViewDensityPath)
+  ? JSON.parse(await readFile(gameplayViewDensityPath, 'utf8')) as GameplayViewDensityState
+  : metrics?.gameplayViewDensity ?? (playthrough?.finalState?.gameplayViewDensity as GameplayViewDensityState | undefined);
 const tutorialAlignment = existsSync(tutorialAlignmentPath)
   ? JSON.parse(await readFile(tutorialAlignmentPath, 'utf8')) as readonly TutorialAlignmentCheck[]
   : metrics?.tutorialAlignment ?? [];
@@ -435,6 +475,7 @@ const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
 const titleFindings = describeTitleFindings(titleComposition);
 const gameplayCameraFindings = describeGameplayCameraFindings(gameplayCamera);
+const gameplayViewDensityFindings = describeGameplayViewDensityFindings(gameplayViewDensity);
 const tutorialFindings = describeTutorialFindings(tutorialAlignment);
 const audioFindings = describeAudioFindings(metricAudio, completionAudio, settings, playthroughSettings);
 const failureRetryFindings = describeFailureRetryFindings(failureRetry);
@@ -465,6 +506,7 @@ Date: ${date}
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
 - Mission catalog evidence: \`${missionCatalogPath}\` (${missionCatalogArtifact ? 'captured' : 'not captured'})
+- Gameplay view density evidence: \`${gameplayViewDensityPath}\` (${gameplayViewDensity ? 'captured' : 'not captured'})
 - Screenshot coverage: ${screenshotCoverage.present.length}/${expectedScreenshots.length} expected captures present (${formatKb(screenshotCoverage.totalBytes)})
 - Metrics available: ${metrics ? 'yes' : 'no'}
 - Mission catalog: ${formatMissionCatalogSummary(missionCatalog, selectedMissionId, missionBrief)}
@@ -482,6 +524,7 @@ Date: ${date}
 - Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; screenHeight=${formatRatio(titleComposition.heroScreenHeightRatio)}; screenOccupancy=${formatRatio(titleComposition.heroScreenOccupancy)}; screenBounds=${formatScreenBounds(titleComposition.heroScreenBounds)}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Title treatment: ${titleComposition?.titleTreatment ? `wordmarkReadable=${titleComposition.titleTreatment.wordmarkReadable}; text="${titleComposition.titleTreatment.wordmarkText}"; kicker="${titleComposition.titleTreatment.kickerText}"; bounds=${formatScreenBounds(titleComposition.titleTreatment.wordmarkBounds)}; panelOverlap=${formatRatio(titleComposition.titleTreatment.panelOverlapRatio)}; heroOverlap=${formatRatio(titleComposition.titleTreatment.heroOverlapRatio)}` : 'not captured'}
 - Gameplay camera: ${formatGameplayCameraSummary(gameplayCamera)}
+- Gameplay view density: ${formatGameplayViewDensitySummary(gameplayViewDensity)}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; ${geometry.wallRunContinuity?.length ?? 0} wall-run checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%); aaaReady=${describeAaaDensitySummary(geometry)}; zones=${geometry.levelDensity.zones?.map((zone) => `${zone.id}:${zone.grade}:${(zone.totalFootprintRatio * 100).toFixed(1)}%`).join(', ') ?? 'not captured'}` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Failure/retry evidence: ${formatFailureRetrySummary(failureRetry)}
@@ -502,6 +545,10 @@ ${formatTutorialAlignment(tutorialAlignment)}
 ## Gameplay Camera QA
 
 ${formatGameplayCamera(gameplayCamera)}
+
+## Active Gameplay View Density QA
+
+${formatGameplayViewDensity(gameplayViewDensity)}
 
 ## Mission Catalog QA
 
@@ -536,7 +583,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - Playthrough: verify the browser route uses the authored validation route, keyboard interaction, door-focus pauses, and extraction completion without sentry contact.
 - Failure/retry: verify intentional sentry contact shows the operation-failed overlay, increments alerts, keeps the sentry GLB proven, and Retry returns to a clean mission start without carrying objectives, open doors, or alert count forward.
 - Coordinate QA: verify door/wall continuity by edge coordinates, not screenshot impression alone. Wall gaps must name door ID, wall IDs, frame/continuity bounds, and measured gap widths.
-- Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the closer gameplay camera to the current player position and proving player screen occupancy.
+- Camera QA: verify the normal gameplay screenshot is captured before objective interaction, with debug teleports snapping the closer gameplay camera to the current player position, proving player screen occupancy, and proving active-camera near/mid/far tactical density.
 - Asset QA: verify objective GLBs, sentry GLBs, cover/blocker GLBs, floor/wall meshes, floor/wall/object texture quality, door-panel clarity, wall-door gaps/seams, and extraction marker pass or have explicit review notes.
 - Completion: verify triumphant cue starts and level stats appear.
 - Performance: ${describePerformance(frame, baseline, fpsGate, fpsScenes)}
@@ -554,6 +601,7 @@ ${tutorialFindings}
 ${assetFindings}
 ${titleFindings}
 ${gameplayCameraFindings}
+${gameplayViewDensityFindings}
 ${geometryFindings}
 ${screenshotFindings}
 `);
@@ -893,6 +941,38 @@ function describeGameplayCameraFindings(camera: GameplayCameraState | undefined)
     return `- P1: Gameplay camera metrics are below readability thresholds: cameraDistance=${camera.cameraDistance}; screenHeight=${formatRatio(camera.playerScreenHeightRatio)}; screenOccupancy=${formatRatio(camera.playerScreenOccupancy)}.`;
   }
   return '- P1: None from generated gameplay camera diagnostics.';
+}
+
+function formatGameplayViewDensitySummary(density: GameplayViewDensityState | undefined): string {
+  if (!density) return 'not captured';
+  return `grade=${density.grade}; screenshot=${density.screenshot}; bands=${density.bands.map((band) => `${band.id}:${band.grade}:${band.visibleObjectCount} objects/${band.tacticalCategoryCount} categories/${formatRatio(band.screenOccupancy)}`).join(', ')}`;
+}
+
+function formatGameplayViewDensity(density: GameplayViewDensityState | undefined): string {
+  if (!density) return '- Gameplay view density diagnostics not captured.';
+  const bands = density.bands.map((band) => {
+    const objectSummary = band.objects
+      .slice(0, 8)
+      .map((object) => `${object.id}[${object.category}] d=${object.distanceFromPlayer}m area=${formatRatio(object.screenOccupancy)} bounds=${formatScreenBounds(object.screenBounds)}`)
+      .join('; ');
+    return `- ${band.grade.toUpperCase()} gameplay-view/${band.id}: ${band.label}; distance=${band.minDistance}..${band.maxDistance}m; visible=${band.visibleObjectCount}/${band.minVisibleObjects}; categories=${band.tacticalCategoryCount}/${band.minTacticalCategories}; occupancy=${formatRatio(band.screenOccupancy)} target=${formatRatio(band.minScreenOccupancy)}; objects=${objectSummary || 'none'}. ${band.notes.join(' ')}`;
+  });
+  return [
+    `- ${density.grade.toUpperCase()} gameplay-view-density: active=${density.active}; screenshot=${density.screenshot}; camera=(${density.cameraPosition.x},${density.cameraPosition.y},${density.cameraPosition.z}); player=(${density.playerPosition.x},${density.playerPosition.z}). ${density.notes.join(' ')}`,
+    ...bands,
+  ].join('\n');
+}
+
+function describeGameplayViewDensityFindings(density: GameplayViewDensityState | undefined): string {
+  if (!density) return '- P1: Active gameplay-view density diagnostics missing; tester cannot prove foreground/midground/background detail from the player camera.';
+  if (density.grade !== 'pass') {
+    const failures = density.bands
+      .filter((band) => band.grade !== 'pass')
+      .map((band) => `${band.id}: ${band.visibleObjectCount}/${band.minVisibleObjects} objects, ${band.tacticalCategoryCount}/${band.minTacticalCategories} categories, ${formatRatio(band.screenOccupancy)}/${formatRatio(band.minScreenOccupancy)} occupancy`)
+      .join('; ');
+    return `- P1: Active gameplay camera lacks AAA-readable tactical density in ${density.screenshot}: ${failures}.`;
+  }
+  return '- P1: None from generated active gameplay-view density diagnostics.';
 }
 
 function formatScreenBounds(bounds: ScreenBounds | undefined): string {
