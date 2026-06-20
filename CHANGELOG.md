@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.15.1 - 2026-06-20
+
+### Patch
+
+- Regenerated the full game-tester evidence set for the current build so title, hero selection, settings, loading, tutorial, door-focus, gameplay, completion, FPS, and tester-report artifacts match the latest level-authoring release.
+
 ## 0.15.0 - 2026-06-20
 
 ### Minor
