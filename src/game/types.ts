@@ -20,6 +20,79 @@ export type GameSettings = {
   performanceProfile: PerformanceProfile;
 };
 
+export type OperativeTraitMechanic =
+  | 'movement'
+  | 'stealth'
+  | 'interaction'
+  | 'hacking'
+  | 'objective'
+  | 'survivability';
+
+export type OperativeScalar = 'moveSpeed' | 'interactRadius' | 'enemyDetectionRadius' | 'terminalUseMs' | 'extractionRadius';
+
+export type OperativeTraitOperation = 'multiplier' | 'add';
+
+export type OperativeTraitDefinition = {
+  id: string;
+  label: string;
+  mechanic: OperativeTraitMechanic;
+  scalar: OperativeScalar;
+  operation: OperativeTraitOperation;
+  value: number;
+  notes: readonly string[];
+};
+
+export type OperativeMechanicsSnapshot = {
+  moveSpeed: number;
+  interactRadius: number;
+  enemyDetectionRadius: number;
+  terminalUseMs: number;
+  extractionRadius: number;
+};
+
+export type OperativeTraitState = {
+  id: string;
+  label: string;
+  mechanic: OperativeTraitMechanic;
+  applied: boolean;
+  scalar: OperativeScalar;
+  operation: OperativeTraitOperation;
+  value: number;
+  baseValue: number;
+  effectiveValue: number;
+  delta: number;
+  notes: readonly string[];
+};
+
+export type OperativeTraitProbe = {
+  id: string;
+  traitId: string;
+  mechanic: OperativeTraitMechanic;
+  grade: AssetQualityGrade;
+  expectedDelta: number;
+  actualDelta: number;
+  tolerance: number;
+  notes: readonly string[];
+};
+
+export type OperativeCatalogEntry = {
+  id: string;
+  name: string;
+  role: string;
+  assetAuditId: string;
+  traitIds: readonly string[];
+  traitSummary: readonly string[];
+  base: OperativeMechanicsSnapshot;
+  effective: OperativeMechanicsSnapshot;
+  changedScalars: readonly OperativeScalar[];
+};
+
+export type OperativeState = OperativeCatalogEntry & {
+  selectedId: string;
+  traits: readonly OperativeTraitState[];
+  probes: readonly OperativeTraitProbe[];
+};
+
 export type AudioTrackId = 'title' | 'loading' | 'gameplay' | 'complete';
 
 export type AudioState = {
@@ -561,6 +634,7 @@ export type TesterState = {
   levelId: string;
   missionCatalog: readonly LevelCatalogEntry[];
   selectedHero: string;
+  operative: OperativeState;
   settings: GameSettings;
   audio: AudioState;
   loading: LoadingState;

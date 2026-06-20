@@ -5,10 +5,23 @@ import { defaultLevel, getLevelById } from '../src/game/levels';
 import { distance } from '../src/game/math';
 import type { ObjectiveDefinition, TesterState, Vec2 } from '../src/game/types';
 
+const heroNames = {
+  'shadow-operative': 'Shadow Operative',
+  'echo-vanguard': 'Echo Vanguard',
+  'signal-warden': 'Signal Warden',
+  'circuit-nomad': 'Circuit Nomad',
+} as const;
+type PlaythroughHeroId = keyof typeof heroNames;
+const defaultHeroId: PlaythroughHeroId = 'shadow-operative';
+
 const baseUrl = process.env.PLAYTHROUGH_URL ?? 'http://127.0.0.1:5173/';
 const requestedLevelId = process.env.PLAYTHROUGH_LEVEL_ID ?? defaultLevel.id;
 const level = getLevelById(requestedLevelId);
 if (!level) throw new Error(`Unknown PLAYTHROUGH_LEVEL_ID: ${requestedLevelId}`);
+const requestedHeroValue = process.env.PLAYTHROUGH_HERO_ID;
+const requestedHeroId: PlaythroughHeroId = isPlaythroughHeroId(requestedHeroValue)
+  ? requestedHeroValue
+  : defaultHeroId;
 const outputDir = process.env.PLAYTHROUGH_OUTPUT_DIR ?? `artifacts/playthrough/v${packageInfo.version}`;
 const headless = process.env.PLAYTHROUGH_HEADLESS !== 'false';
 
@@ -37,6 +50,15 @@ try {
   const missionOptions = await page.evaluate(() => window.__shadowRecruitDebug?.missions());
   if (!missionOptions?.some((mission) => mission.id === level.id)) {
     throw new Error(`Mission ${level.id} is missing from the player-facing mission catalog: ${JSON.stringify(missionOptions)}`);
+  }
+  await page.getByText(heroNames[requestedHeroId], { exact: true }).click();
+  const selectedOperative = await page.evaluate(() => window.__shadowRecruitDebug?.operativeMechanics());
+  if (
+    selectedOperative?.selectedId !== requestedHeroId ||
+    selectedOperative.assetAuditId !== `hero:${requestedHeroId}` ||
+    selectedOperative.probes.some((probe) => probe.grade !== 'pass')
+  ) {
+    throw new Error(`Playthrough selected operative mechanics are invalid: ${JSON.stringify({ requestedHeroId, selectedOperative })}`);
   }
   await page.getByLabel('Mission').selectOption(level.id);
   await page.getByRole('button', { name: new RegExp(`^Start ${escapeRegex(level.name)}$`) }).click();
@@ -87,6 +109,12 @@ try {
   if (finalState.memory.loadedAssets < 5 || !finalState.memory.loadedAssetIds.includes('sentry') || !finalState.memory.loadedAssetIds.includes('codes')) {
     throw new Error(`Expected loaded gameplay assets, got ${JSON.stringify(finalState.memory)}`);
   }
+  if (finalState.selectedHero !== requestedHeroId || finalState.operative.selectedId !== requestedHeroId) {
+    throw new Error(`Playthrough used wrong operative: ${JSON.stringify({ requestedHeroId, selectedHero: finalState.selectedHero, operative: finalState.operative })}`);
+  }
+  if (finalState.operative.probes.some((probe) => probe.grade !== 'pass')) {
+    throw new Error(`Playthrough operative probes failed: ${JSON.stringify(finalState.operative.probes)}`);
+  }
 
   const errorLogs = logs
     .filter((line) => /^\[(error|warning)\]/i.test(line))
@@ -98,6 +126,7 @@ try {
   await writeFile(`${outputDir}/playthrough-report.json`, JSON.stringify({
     build: `v${packageInfo.version}`,
     levelId: level.id,
+    heroId: requestedHeroId,
     routePoints: visitedRoute,
     interactions,
     finalState,
@@ -149,4 +178,8 @@ async function captureState(): Promise<TesterState> {
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function isPlaythroughHeroId(value: unknown): value is PlaythroughHeroId {
+  return typeof value === 'string' && value in heroNames;
 }

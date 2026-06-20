@@ -1,0 +1,45 @@
+{
+  "active": true,
+  "readable": true,
+  "cameraPosition": {
+    "x": -20.85,
+    "y": 3.85,
+    "z": -29.65
+  },
+  "cameraTarget": {
+    "x": -24,
+    "y": 1.15,
+    "z": -25
+  },
+  "cameraDistance": 6.23,
+  "playerScreenBounds": {
+    "min": {
+      "x": 616.53,
+      "y": 375.93
+    },
+    "max": {
+      "x": 822.12,
+      "y": 633.73
+    },
+    "size": {
+      "x": 205.59,
+      "y": 257.8
+    },
+    "center": {
+      "x": 719.33,
+      "y": 504.83
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "widthRatio": 0.14,
+    "heightRatio": 0.29,
+    "areaRatio": 0.04
+  },
+  "playerScreenOccupancy": 0.04,
+  "playerScreenHeightRatio": 0.29,
+  "notes": [
+    "Gameplay camera keeps the player close enough to read the hero, nearby floor texture, cover, doors, and objectives."
+  ]
+}

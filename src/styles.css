@@ -275,7 +275,7 @@ input[type="checkbox"] {
 }
 
 .hero-card {
-  min-height: 134px;
+  min-height: 176px;
   padding: 12px;
   text-align: left;
   background: rgba(8, 16, 24, 0.86);
@@ -296,6 +296,32 @@ input[type="checkbox"] {
   display: block;
   color: #a9c0cc;
   line-height: 1.38;
+}
+
+.hero-trait-list {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-trait-list li {
+  color: #d7eaf0;
+  font-size: 0.76rem;
+  line-height: 1.28;
+}
+
+.hero-trait-list li::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(111, 255, 226, 0.45);
+  vertical-align: 0.08em;
 }
 
 .settings-grid {
@@ -518,9 +544,12 @@ input[type="checkbox"] {
     font-size: clamp(2.8rem, 14vw, 5rem);
   }
 
-  .hero-grid,
   .stats-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
   }
 
   .mission-select-panel {

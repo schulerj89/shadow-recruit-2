@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.20.0 - 2026-06-20
+
+### Minor
+
+- Added operative trait definitions for all four hero recruits, with selected traits changing movement speed, sentry contact radius, interaction reach, extraction radius, or terminal-use timing while keeping the default operative as a baseline.
+- Exposed operative mechanics, catalog comparisons, changed scalars, trait applications, and deterministic probes through the debug API and tester state.
+- Updated hero-select UI, browser smoke, screenshot capture, browser playthrough, and the game-tester report so QA can prove hero choice affects gameplay mechanics rather than only swapping GLB assets.
+
 ## 0.19.1 - 2026-06-20
 
 ### Patch

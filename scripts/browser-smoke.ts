@@ -21,6 +21,27 @@ type RuntimeAssetAuditState = {
   grade: string;
 };
 
+type OperativeDebugState = {
+  selectedId: string;
+  assetAuditId: string;
+  traitIds: readonly string[];
+  base: Record<string, number>;
+  effective: Record<string, number>;
+  changedScalars: readonly string[];
+  traits: readonly { id: string; applied: boolean; scalar: string; baseValue: number; effectiveValue: number }[];
+  probes: readonly { id: string; traitId: string; grade: string; expectedDelta: number; actualDelta: number; tolerance: number }[];
+};
+
+type OperativeCatalogDebugState = {
+  id: string;
+  name: string;
+  assetAuditId: string;
+  traitIds: readonly string[];
+  changedScalars: readonly string[];
+  base: Record<string, number>;
+  effective: Record<string, number>;
+};
+
 const browser = await chromium.launch({ headless });
 const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: 1 });
 const logs: string[] = [];
@@ -113,6 +134,22 @@ try {
   if (selectedHero !== 'echo-vanguard') {
     throw new Error(`Expected Echo Vanguard selection, got ${selectedHero}`);
   }
+  const operativeCatalog = await page.evaluate(() => window.__shadowRecruitDebug?.operativeCatalog()) as
+    | readonly OperativeCatalogDebugState[]
+    | undefined;
+  if (
+    !operativeCatalog ||
+    operativeCatalog.length < 2 ||
+    operativeCatalog.filter((hero) => hero.changedScalars.length > 0).length < 2 ||
+    !operativeCatalog.some((hero) => hero.id === 'shadow-operative' && hero.changedScalars.length === 0) ||
+    !operativeCatalog.some((hero) => hero.id === 'echo-vanguard' && hero.assetAuditId === 'hero:echo-vanguard' && hero.changedScalars.includes('enemyDetectionRadius'))
+  ) {
+    throw new Error(`Expected mechanically distinct operative catalog, got ${JSON.stringify(operativeCatalog)}`);
+  }
+  const selectedOperative = await page.evaluate(() => window.__shadowRecruitDebug?.operativeMechanics()) as
+    | OperativeDebugState
+    | undefined;
+  assertOperativeMechanics(selectedOperative, 'echo-vanguard');
   const selectedHeroVisible = await page.evaluate(() => window.__shadowRecruitDebug?.playerVisible());
   if (!selectedHeroVisible) {
     throw new Error('Expected selected hero preview to remain visible.');
@@ -205,6 +242,7 @@ try {
   if (!state || state.objectives.collectedRequired !== state.objectives.totalRequired) {
     throw new Error(`Expected completed objectives, got ${JSON.stringify(state)}`);
   }
+  assertOperativeMechanics(state.operative as OperativeDebugState | undefined, 'echo-vanguard');
   if (
     state.levelId !== defaultLevel.id ||
     state.missionCatalog.length !== missions.length ||
@@ -378,6 +416,24 @@ async function expectAudioState(
   const state = await page.evaluate(() => window.__shadowRecruitDebug?.audioState());
   if (!state || state.activeTrack !== activeTrack || state.muted !== expected.muted || state.unlocked !== expected.unlocked) {
     throw new Error(`Expected audio ${activeTrack} muted=${expected.muted} unlocked=${expected.unlocked}, got ${JSON.stringify(state)}`);
+  }
+}
+
+function assertOperativeMechanics(operative: OperativeDebugState | undefined, expectedHeroId: string): void {
+  if (!operative || operative.selectedId !== expectedHeroId || operative.assetAuditId !== `hero:${expectedHeroId}`) {
+    throw new Error(`Expected ${expectedHeroId} operative mechanics, got ${JSON.stringify(operative)}`);
+  }
+  if (operative.traitIds.length === 0 || operative.traits.some((trait) => !trait.applied)) {
+    throw new Error(`Expected selected operative traits to be applied, got ${JSON.stringify(operative.traits)}`);
+  }
+  const changedScalars = Object.keys(operative.base).filter((key) =>
+    Math.abs((operative.effective[key] ?? 0) - (operative.base[key] ?? 0)) > 0.001
+  );
+  if (changedScalars.length === 0 || operative.changedScalars.length === 0) {
+    throw new Error(`Selected operative changed no gameplay scalars, got ${JSON.stringify(operative)}`);
+  }
+  if (operative.probes.length < operative.traitIds.length || operative.probes.some((probe) => probe.grade !== 'pass')) {
+    throw new Error(`Expected every operative trait to have a passing mechanics probe, got ${JSON.stringify(operative.probes)}`);
   }
 }
 

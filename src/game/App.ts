@@ -36,6 +36,13 @@ import type {
   LoadingStep,
   MemoryMetrics,
   ObjectiveRuntime,
+  OperativeCatalogEntry,
+  OperativeMechanicsSnapshot,
+  OperativeScalar,
+  OperativeState,
+  OperativeTraitDefinition,
+  OperativeTraitProbe,
+  OperativeTraitState,
   PerformanceProfile,
   Phase,
   RectSpec,
@@ -98,6 +105,14 @@ type ShellTextureKind = 'floor' | 'wall' | 'blocker' | 'trim';
 const minimumLoadingScreenMs = 650;
 const gameplayCameraTargetHeight = 1.15;
 const gameplayCameraOffset = { x: 3.15, y: 3.85, z: -4.65 };
+const baseMoveSpeedByProfile: Record<PerformanceProfile, number> = {
+  performance: 8.2,
+  balanced: 7.6,
+  cinematic: 7.6,
+};
+const baseTerminalUseMs = 1200;
+const baseExtractionRadius = 2.7;
+const operativeProbeTolerance = 0.01;
 const gameplayDensityBands = [
   { id: 'near', label: 'near foreground', minDistance: 0, maxDistance: 8, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.015, maxNegativeSpaceRatio: 0.38 },
   { id: 'mid', label: 'midground objective route', minDistance: 8, maxDistance: 18, minVisibleObjects: 2, minTacticalCategories: 2, minScreenOccupancy: 0.006, maxNegativeSpaceRatio: 0.5 },
@@ -187,7 +202,16 @@ type ShadowRecruitDebugApi = {
   titleComposition: () => TitleComposition;
   setTitleOrbitAngle: (angle: number) => void;
   clearTitleOrbitAngle: () => void;
-  enemies: () => readonly { id: string; position: Vec2; start: Vec2; detectionRadius: number }[];
+  operativeMechanics: () => OperativeState;
+  operativeCatalog: () => readonly OperativeCatalogEntry[];
+  enemies: () => readonly {
+    id: string;
+    position: Vec2;
+    start: Vec2;
+    detectionRadius: number;
+    baseDetectionRadius: number;
+    effectiveContactRadius: number;
+  }[];
   assetQuality: () => readonly AssetQualityCheck[];
   objectives: () => { collectedRequired: number; totalRequired: number; exitUnlocked: boolean };
   doors: () => readonly { id: string; open: boolean; progress: number }[];
@@ -1173,7 +1197,7 @@ export class ShadowRecruitApp {
     const movement = this.readMovement();
     const moving = movement.x !== 0 || movement.z !== 0;
     if (moving) {
-      const speed = this.settings.performanceProfile === 'performance' ? 8.2 : 7.6;
+      const speed = this.effectiveMoveSpeed();
       const next = add(this.playerPosition, scale(normalize(movement), speed * delta));
       if (this.canMoveTo(next)) {
         this.playerPosition = next;
@@ -1234,7 +1258,7 @@ export class ShadowRecruitApp {
       const cone = this.enemyDetectionCones.get(enemy.id);
       if (cone) cone.position.set(enemy.position.x, 0.03, enemy.position.z);
 
-      if (distance(enemy.position, this.playerPosition) <= enemy.detectionRadius && this.phase === 'playing') {
+      if (distance(enemy.position, this.playerPosition) <= this.effectiveEnemyDetectionRadius(enemy) && this.phase === 'playing') {
         this.alarms += 1;
         this.activePrompt = '';
         this.setPhase('caught');
@@ -1276,7 +1300,7 @@ export class ShadowRecruitApp {
   }
 
   private tryInteract(): void {
-    const objective = this.objectives.find((item) => !item.collected && distance(item.position, this.playerPosition) <= item.radius);
+    const objective = this.objectives.find((item) => !item.collected && distance(item.position, this.playerPosition) <= this.effectiveObjectiveRadius(item));
     if (!objective) return;
     this.collectObjective(objective.id);
   }
@@ -1308,10 +1332,10 @@ export class ShadowRecruitApp {
   }
 
   private updatePrompt(): void {
-    const objective = this.objectives.find((item) => !item.collected && distance(item.position, this.playerPosition) <= item.radius);
+    const objective = this.objectives.find((item) => !item.collected && distance(item.position, this.playerPosition) <= this.effectiveObjectiveRadius(item));
     if (objective) {
       this.activePrompt = `Press E: ${objective.label}`;
-    } else if (this.getObjectiveProgress().exitUnlocked && distance(this.level.extraction, this.playerPosition) <= 3) {
+    } else if (this.getObjectiveProgress().exitUnlocked && distance(this.level.extraction, this.playerPosition) <= this.effectiveExtractionRadius() + 0.3) {
       this.activePrompt = 'Extraction zone ready.';
     } else if (this.phase === 'playing') {
       this.activePrompt = '';
@@ -1320,7 +1344,7 @@ export class ShadowRecruitApp {
 
   private checkExtraction(): void {
     if (!this.getObjectiveProgress().exitUnlocked) return;
-    if (distance(this.playerPosition, this.level.extraction) <= 2.7) {
+    if (distance(this.playerPosition, this.level.extraction) <= this.effectiveExtractionRadius()) {
       this.completeMission();
     }
   }
@@ -1457,10 +1481,13 @@ export class ShadowRecruitApp {
           </section>
           <div class="hero-grid">
             ${heroOptions.map((hero) => `
-              <button type="button" class="hero-card ${hero.id === this.selectedHero ? 'is-selected' : ''}" data-hero-id="${hero.id}">
+              <button type="button" class="hero-card ${hero.id === this.selectedHero ? 'is-selected' : ''}" data-hero-id="${hero.id}" data-testid="hero-card-${hero.id}">
                 <strong>${hero.name}</strong>
                 <span>${hero.role}</span>
                 <small>${hero.description}</small>
+                <ul class="hero-trait-list" data-testid="hero-traits-${hero.id}" aria-label="${hero.name} operative traits">
+                  ${hero.traitSummary.map((trait) => `<li>${trait}</li>`).join('')}
+                </ul>
               </button>
             `).join('')}
           </div>
@@ -1591,6 +1618,7 @@ export class ShadowRecruitApp {
     this.debugPanel.textContent = [
       `phase=${this.phase}`,
       `hero=${this.selectedHero}`,
+      `operative=${this.operativeMechanics().changedScalars.join(',') || 'baseline'}`,
       `pos=${this.playerPosition.x.toFixed(1)},${this.playerPosition.z.toFixed(1)}`,
       `fps=${pacing.fps.toFixed(1)} frame=${pacing.frameMs.toFixed(1)}ms p95=${pacing.p95FrameMs.toFixed(1)}ms`,
       `draw=${metrics.drawCalls} tri=${metrics.triangles}`,
@@ -1721,6 +1749,155 @@ export class ShadowRecruitApp {
 
   private quality(): RenderQuality {
     return renderQualityByProfile[this.settings.performanceProfile];
+  }
+
+  private operativeBaseMechanics(): OperativeMechanicsSnapshot {
+    const objectiveRadiusTotal = this.level.objectives.reduce((sum, objective) => sum + objective.radius, 0);
+    const enemyRadiusTotal = this.level.enemies.reduce((sum, enemy) => sum + enemy.detectionRadius, 0);
+    return {
+      moveSpeed: roundMetric(baseMoveSpeedByProfile[this.settings.performanceProfile]),
+      interactRadius: roundMetric(objectiveRadiusTotal / Math.max(1, this.level.objectives.length)),
+      enemyDetectionRadius: roundMetric(enemyRadiusTotal / Math.max(1, this.level.enemies.length)),
+      terminalUseMs: baseTerminalUseMs,
+      extractionRadius: baseExtractionRadius,
+    };
+  }
+
+  private applyOperativeTrait(value: number, trait: OperativeTraitDefinition): number {
+    return trait.operation === 'multiplier' ? value * trait.value : value + trait.value;
+  }
+
+  private effectiveOperativeScalar(scalar: OperativeScalar, baseValue: number, heroId = this.selectedHero): number {
+    let value = baseValue;
+    for (const trait of heroOptionById(heroId).traits) {
+      if (trait.scalar === scalar) value = this.applyOperativeTrait(value, trait);
+    }
+    return roundMetric(value);
+  }
+
+  private operativeEffectiveMechanics(heroId = this.selectedHero, base = this.operativeBaseMechanics()): OperativeMechanicsSnapshot {
+    return {
+      moveSpeed: this.effectiveOperativeScalar('moveSpeed', base.moveSpeed, heroId),
+      interactRadius: this.effectiveOperativeScalar('interactRadius', base.interactRadius, heroId),
+      enemyDetectionRadius: this.effectiveOperativeScalar('enemyDetectionRadius', base.enemyDetectionRadius, heroId),
+      terminalUseMs: this.effectiveOperativeScalar('terminalUseMs', base.terminalUseMs, heroId),
+      extractionRadius: this.effectiveOperativeScalar('extractionRadius', base.extractionRadius, heroId),
+    };
+  }
+
+  private operativeChangedScalars(base: OperativeMechanicsSnapshot, effective: OperativeMechanicsSnapshot): OperativeScalar[] {
+    return (Object.keys(base) as OperativeScalar[]).filter((scalar) =>
+      Math.abs(effective[scalar] - base[scalar]) > operativeProbeTolerance
+    );
+  }
+
+  private operativeTraitStates(
+    heroId = this.selectedHero,
+    base = this.operativeBaseMechanics(),
+    effective = this.operativeEffectiveMechanics(heroId, base),
+  ): OperativeTraitState[] {
+    return heroOptionById(heroId).traits.map((trait) => {
+      const baseValue = base[trait.scalar];
+      const expectedEffective = roundMetric(this.applyOperativeTrait(baseValue, trait));
+      const effectiveValue = effective[trait.scalar];
+      const expectedDelta = roundMetric(expectedEffective - baseValue);
+      const actualDelta = roundMetric(effectiveValue - baseValue);
+      const applied = Math.abs(actualDelta - expectedDelta) <= operativeProbeTolerance;
+      return {
+        id: trait.id,
+        label: trait.label,
+        mechanic: trait.mechanic,
+        applied,
+        scalar: trait.scalar,
+        operation: trait.operation,
+        value: trait.value,
+        baseValue,
+        effectiveValue,
+        delta: actualDelta,
+        notes: applied
+          ? trait.notes
+          : [`Expected ${trait.scalar} delta ${expectedDelta}, got ${actualDelta}.`, ...trait.notes],
+      };
+    });
+  }
+
+  private operativeTraitProbes(
+    heroId = this.selectedHero,
+    base = this.operativeBaseMechanics(),
+    effective = this.operativeEffectiveMechanics(heroId, base),
+  ): OperativeTraitProbe[] {
+    return heroOptionById(heroId).traits.map((trait) => {
+      const baseValue = base[trait.scalar];
+      const expectedDelta = roundMetric(this.applyOperativeTrait(baseValue, trait) - baseValue);
+      const actualDelta = roundMetric(effective[trait.scalar] - baseValue);
+      const grade: AssetQualityGrade = Math.abs(actualDelta - expectedDelta) <= operativeProbeTolerance ? 'pass' : 'fail';
+      return {
+        id: `${heroId}:${trait.id}`,
+        traitId: trait.id,
+        mechanic: trait.mechanic,
+        grade,
+        expectedDelta,
+        actualDelta,
+        tolerance: operativeProbeTolerance,
+        notes: grade === 'pass'
+          ? [`${trait.label} changes ${trait.scalar} by ${actualDelta}.`]
+          : [`${trait.label} expected ${trait.scalar} delta ${expectedDelta}, got ${actualDelta}.`],
+      };
+    });
+  }
+
+  private operativeCatalog(): OperativeCatalogEntry[] {
+    const base = this.operativeBaseMechanics();
+    return heroOptions.map((hero) => {
+      const effective = this.operativeEffectiveMechanics(hero.id, base);
+      return {
+        id: hero.id,
+        name: hero.name,
+        role: hero.role,
+        assetAuditId: `hero:${hero.id}`,
+        traitIds: hero.traits.map((trait) => trait.id),
+        traitSummary: hero.traitSummary,
+        base,
+        effective,
+        changedScalars: this.operativeChangedScalars(base, effective),
+      };
+    });
+  }
+
+  private operativeMechanics(heroId = this.selectedHero): OperativeState {
+    const hero = heroOptionById(heroId);
+    const base = this.operativeBaseMechanics();
+    const effective = this.operativeEffectiveMechanics(heroId, base);
+    return {
+      id: hero.id,
+      selectedId: hero.id,
+      name: hero.name,
+      role: hero.role,
+      assetAuditId: `hero:${hero.id}`,
+      traitIds: hero.traits.map((trait) => trait.id),
+      traitSummary: hero.traitSummary,
+      base,
+      effective,
+      changedScalars: this.operativeChangedScalars(base, effective),
+      traits: this.operativeTraitStates(heroId, base, effective),
+      probes: this.operativeTraitProbes(heroId, base, effective),
+    };
+  }
+
+  private effectiveMoveSpeed(): number {
+    return this.effectiveOperativeScalar('moveSpeed', baseMoveSpeedByProfile[this.settings.performanceProfile]);
+  }
+
+  private effectiveObjectiveRadius(objective: ObjectiveRuntime): number {
+    return Math.max(0.4, this.effectiveOperativeScalar('interactRadius', objective.radius));
+  }
+
+  private effectiveEnemyDetectionRadius(enemy: EnemyRuntime): number {
+    return this.effectiveOperativeScalar('enemyDetectionRadius', enemy.detectionRadius);
+  }
+
+  private effectiveExtractionRadius(): number {
+    return this.effectiveOperativeScalar('extractionRadius', baseExtractionRadius);
   }
 
   private applyObjectQuality(object: THREE.Object3D): void {
@@ -3009,6 +3186,7 @@ export class ShadowRecruitApp {
       levelId: this.level.id,
       missionCatalog: levelCatalog,
       selectedHero: this.selectedHero,
+      operative: this.operativeMechanics(),
       settings: { ...this.settings },
       audio: this.audio.snapshot(),
       loading: this.loadingState(),
@@ -3356,11 +3534,15 @@ export class ShadowRecruitApp {
       titleComposition: () => this.titleComposition(),
       setTitleOrbitAngle: (angle) => this.setTitleOrbitAngle(angle),
       clearTitleOrbitAngle: () => this.clearTitleOrbitAngle(),
+      operativeMechanics: () => this.operativeMechanics(),
+      operativeCatalog: () => this.operativeCatalog(),
       enemies: () => this.enemies.map((enemy) => ({
         id: enemy.id,
         position: { ...enemy.position },
         start: { ...enemy.start },
         detectionRadius: enemy.detectionRadius,
+        baseDetectionRadius: enemy.detectionRadius,
+        effectiveContactRadius: this.effectiveEnemyDetectionRadius(enemy),
       })),
       assetQuality: () => this.assetQualityChecks(),
       objectives: () => this.getObjectiveProgress(),

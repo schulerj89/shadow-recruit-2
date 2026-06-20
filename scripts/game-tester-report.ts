@@ -18,6 +18,7 @@ const gameplayCameraPath = `${outputDir}/gameplay-camera.json`;
 const gameplayViewDensityPath = `${outputDir}/gameplay-view-density.json`;
 const tutorialAlignmentPath = `${outputDir}/tutorial-alignment.json`;
 const missionCatalogPath = `${outputDir}/mission-catalog.json`;
+const operativeTraitsPath = `${outputDir}/operative-traits.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 const fpsSceneDir = `${outputDir}/fps`;
 const aaaReadyZoneFootprintRatio = 0.2;
@@ -119,6 +120,7 @@ type Metrics = {
   titleComposition?: TitleComposition;
   gameplayCamera?: GameplayCameraState;
   gameplayViewDensity?: GameplayViewDensityState;
+  operative?: OperativeReportState;
   tutorialAlignment?: readonly TutorialAlignmentCheck[];
   loading?: LoadingState;
   settings?: { debug: boolean; muted: boolean; performanceProfile: string };
@@ -251,6 +253,54 @@ type MissionCatalogArtifact = {
   selectedMissionId?: string;
   missions?: readonly LevelCatalogEntry[];
   missionBrief?: string;
+};
+
+type OperativeReportState = {
+  selectedId: string;
+  name: string;
+  role: string;
+  assetAuditId: string;
+  traitIds: readonly string[];
+  traitSummary?: readonly string[];
+  base: Record<string, number>;
+  effective: Record<string, number>;
+  changedScalars: readonly string[];
+  traits: readonly {
+    id: string;
+    label: string;
+    mechanic: string;
+    applied: boolean;
+    scalar: string;
+    baseValue: number;
+    effectiveValue: number;
+    delta: number;
+  }[];
+  probes: readonly {
+    id: string;
+    traitId: string;
+    mechanic: string;
+    grade: 'pass' | 'review' | 'fail';
+    expectedDelta: number;
+    actualDelta: number;
+    tolerance: number;
+  }[];
+};
+
+type OperativeCatalogReportEntry = {
+  id: string;
+  name: string;
+  role: string;
+  assetAuditId: string;
+  traitIds: readonly string[];
+  traitSummary?: readonly string[];
+  base: Record<string, number>;
+  effective: Record<string, number>;
+  changedScalars: readonly string[];
+};
+
+type OperativeTraitsArtifact = {
+  selected?: OperativeReportState;
+  catalog?: readonly OperativeCatalogReportEntry[];
 };
 
 type TutorialAlignmentCheck = {
@@ -536,6 +586,9 @@ const failureRetry = failureRetryReport ? JSON.parse(failureRetryReport) as Fail
 const missionCatalogArtifact = existsSync(missionCatalogPath)
   ? JSON.parse(await readFile(missionCatalogPath, 'utf8')) as MissionCatalogArtifact
   : null;
+const operativeTraitsArtifact = existsSync(operativeTraitsPath)
+  ? JSON.parse(await readFile(operativeTraitsPath, 'utf8')) as OperativeTraitsArtifact
+  : null;
 const titleComposition = existsSync(titleCompositionPath)
   ? JSON.parse(await readFile(titleCompositionPath, 'utf8')) as TitleComposition
   : metrics?.titleComposition;
@@ -567,9 +620,12 @@ const playthroughSettings = playthrough?.finalState?.settings as { debug: boolea
 const missionCatalog = missionCatalogArtifact?.missions ?? metrics?.missionCatalog ?? playthrough?.finalState?.missionCatalog ?? [];
 const selectedMissionId = missionCatalogArtifact?.selectedMissionId ?? metrics?.levelId ?? playthrough?.finalState?.levelId;
 const missionBrief = missionCatalogArtifact?.missionBrief;
+const operative = (operativeTraitsArtifact?.selected ?? metrics?.operative ?? playthrough?.finalState?.operative) as OperativeReportState | undefined;
+const operativeCatalog = operativeTraitsArtifact?.catalog ?? [];
 const frameFinding = describeFrameFinding(frame, baseline, fpsGate, fpsScenes);
 const renderBudgetFindings = describeRenderBudgetFindings(renderBudget, fpsScenes);
 const missionCatalogFindings = describeMissionCatalogFindings(missionCatalog, selectedMissionId, missionBrief);
+const operativeFindings = describeOperativeFindings(operative, operativeCatalog);
 const assetAuditFindings = describeAssetAuditFindings(assetAudit);
 const assetFindings = describeAssetFindings(assetQuality);
 const geometryFindings = describeGeometryFindings(geometry);
@@ -606,10 +662,12 @@ Date: ${date}
 - Committed screenshots: \`${screenshotDir}\`
 - FPS metrics: \`${committedMetricsPath}\`
 - Mission catalog evidence: \`${missionCatalogPath}\` (${missionCatalogArtifact ? 'captured' : 'not captured'})
+- Operative trait evidence: \`${operativeTraitsPath}\` (${operativeTraitsArtifact ? 'captured' : 'not captured'})
 - Gameplay view density evidence: \`${gameplayViewDensityPath}\` (${gameplayViewDensity ? 'captured' : 'not captured'})
 - Screenshot coverage: ${screenshotCoverage.present.length}/${expectedScreenshots.length} expected captures present (${formatKb(screenshotCoverage.totalBytes)})
 - Metrics available: ${metrics ? 'yes' : 'no'}
 - Mission catalog: ${formatMissionCatalogSummary(missionCatalog, selectedMissionId, missionBrief)}
+- Operative traits: ${formatOperativeSummary(operative, operativeCatalog)}
 - Game frame pacing: ${frame ? `${frame.fps.toFixed(1)} FPS, ${frame.frameMs.toFixed(1)} ms median, ${(frame.latestFrameMs ?? frame.frameMs).toFixed(1)} ms latest, ${frame.p95FrameMs.toFixed(1)} ms p95, ${frame.samples} samples` : 'not captured'}
 - Browser baseline: ${baseline ? `${baseline.fps.toFixed(1)} FPS, ${baseline.frameMs.toFixed(1)} ms median, ${baseline.p95FrameMs.toFixed(1)} ms p95, ${baseline.samples} samples` : 'not captured'}
 - FPS gate: ${fpsGate ? `${fpsGate.status}; profile=${fpsGate.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}; strictTarget=${fpsGate.strictTargetMet}; browserCanProve60=${fpsGate.browserCanProve60}; tracksBaseline=${fpsGate.tracksBaseline}; overhead=${formatMs(fpsGate.frameOverheadMs)} median/${formatMs(fpsGate.p95OverheadMs)} p95; headroom=${formatMs(fpsGate.gameHeadroomMs)} game/${formatMs(fpsGate.browserBaselineHeadroomMs)} browser` : 'not captured'}
@@ -659,6 +717,10 @@ ${formatGameplayCamera(gameplayCamera)}
 
 ${formatGameplayViewDensity(gameplayViewDensity)}
 
+## Operative Trait QA
+
+${formatOperativeTraits(operative, operativeCatalog)}
+
 ## Mission Catalog QA
 
 ${formatMissionCatalog(missionCatalog, selectedMissionId, missionBrief)}
@@ -703,6 +765,7 @@ ${formatScreenshotCoverage(screenshotCoverage)}
 - P0: None recorded by generated report.
 ${frameFinding}
 ${renderBudgetFindings}
+${operativeFindings}
 ${missionCatalogFindings}
 ${describeLoadingFindings(loading)}
 ${audioFindings}
@@ -718,6 +781,81 @@ ${screenshotFindings}
 `);
 
 console.info(`[tester-report] wrote ${reportPath}`);
+
+function formatOperativeSummary(
+  operative: OperativeReportState | undefined,
+  catalog: readonly OperativeCatalogReportEntry[],
+): string {
+  if (!operative) return 'not captured';
+  const passCount = operative.probes.filter((probe) => probe.grade === 'pass').length;
+  const contrastCount = catalog.filter((hero) => hero.changedScalars.length > 0).length;
+  return `selected=${operative.selectedId}; asset=${operative.assetAuditId}; traits=${operative.traitIds.join(', ') || 'none'}; changed=${operative.changedScalars.join(', ') || 'none'}; probes=${passCount}/${operative.probes.length} pass; catalogChanged=${contrastCount}/${catalog.length}`;
+}
+
+function formatOperativeTraits(
+  operative: OperativeReportState | undefined,
+  catalog: readonly OperativeCatalogReportEntry[],
+): string {
+  if (!operative) return '- Operative trait diagnostics not captured.';
+  const lines = [
+    `- ${operative.traitIds.length > 0 ? 'PASS' : 'FAIL'} operative-selected: selected=${operative.selectedId}; asset=${operative.assetAuditId}; traits=${operative.traitIds.join(', ') || 'none'}`,
+    `- ${operative.changedScalars.length > 0 ? 'PASS' : 'FAIL'} operative-scalars/${operative.selectedId}: base=${formatOperativeScalars(operative.base)}; effective=${formatOperativeScalars(operative.effective)}; changed=${operative.changedScalars.join(', ') || 'none'}`,
+    ...operative.traits.map((trait) =>
+      `- ${trait.applied ? 'PASS' : 'FAIL'} trait/${trait.id}: mechanic=${trait.mechanic}; scalar=${trait.scalar}; ${trait.baseValue}->${trait.effectiveValue}; delta=${trait.delta}`
+    ),
+    ...operative.probes.map((probe) =>
+      `- ${probe.grade.toUpperCase()} trait-probe/${probe.id}: trait=${probe.traitId}; mechanic=${probe.mechanic}; expectedDelta=${probe.expectedDelta}; actualDelta=${probe.actualDelta}; tolerance=${probe.tolerance}`
+    ),
+  ];
+  if (catalog.length > 0) {
+    lines.push(...catalog.map((hero) =>
+      `- ${hero.changedScalars.length > 0 || hero.id === 'shadow-operative' ? 'PASS' : 'REVIEW'} operative-catalog/${hero.id}: asset=${hero.assetAuditId}; traits=${hero.traitIds.join(', ') || 'none'}; changed=${hero.changedScalars.join(', ') || 'baseline'}`
+    ));
+  }
+  return lines.join('\n');
+}
+
+function formatOperativeScalars(scalars: Record<string, number>): string {
+  return Object.entries(scalars).map(([key, value]) => `${key}:${value}`).join(', ');
+}
+
+function describeOperativeFindings(
+  operative: OperativeReportState | undefined,
+  catalog: readonly OperativeCatalogReportEntry[],
+): string {
+  if (!operative) {
+    return '- P1: Operative trait diagnostics missing; tester cannot prove hero selection changes gameplay mechanics.';
+  }
+  const findings: string[] = [];
+  if (!operative.assetAuditId || operative.assetAuditId !== `hero:${operative.selectedId}`) {
+    findings.push(`- P1: Selected operative ${operative.selectedId} does not link to its hero asset audit id: ${operative.assetAuditId}.`);
+  }
+  if (operative.traitIds.length === 0 || operative.traits.length === 0) {
+    findings.push(`- P1: Selected operative ${operative.selectedId} has no trait diagnostics.`);
+  }
+  if (operative.changedScalars.length === 0) {
+    findings.push(`- P1: Selected operative ${operative.selectedId} has no gameplay scalar delta from base mechanics.`);
+  }
+  for (const trait of operative.traits) {
+    if (!trait.applied) {
+      findings.push(`- P1: Operative trait ${trait.id} is advertised but not applied to ${trait.scalar}.`);
+    }
+  }
+  if (operative.probes.length < operative.traitIds.length) {
+    findings.push(`- P1: Selected operative ${operative.selectedId} has fewer deterministic mechanics probes than trait IDs.`);
+  }
+  for (const probe of operative.probes) {
+    if (probe.grade !== 'pass') {
+      findings.push(`- P1: Operative trait ${probe.traitId} is advertised but has no passing deterministic mechanics probe.`);
+    }
+  }
+  if (catalog.length < 2) {
+    findings.push('- P1: Operative catalog diagnostics need at least two operatives to prove hero selection is mechanically meaningful.');
+  } else if (catalog.filter((hero) => hero.changedScalars.length > 0).length < 2) {
+    findings.push('- P1: Operative catalog does not expose at least two non-default operatives with changed gameplay scalars.');
+  }
+  return findings.length > 0 ? findings.join('\n') : '- P1: None from generated operative trait diagnostics.';
+}
 
 function formatMissionCatalogSummary(
   catalog: readonly LevelCatalogEntry[],

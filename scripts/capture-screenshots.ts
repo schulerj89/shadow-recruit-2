@@ -8,6 +8,17 @@ const qaDir = process.env.SCREENSHOT_QA_DIR ?? `docs/qa/${qaDate}/v${packageInfo
 const outputDir = process.env.SCREENSHOT_OUTPUT_DIR ?? `${qaDir}/screenshots`;
 const headless = process.env.SCREENSHOT_HEADLESS !== 'false';
 
+type OperativeEvidence = {
+  selected?: {
+    selectedId: string;
+    assetAuditId: string;
+    changedScalars: readonly string[];
+    traitIds: readonly string[];
+    probes: readonly { grade: string }[];
+  };
+  catalog?: readonly { id: string; changedScalars: readonly string[] }[];
+};
+
 const browser = await chromium.launch({ headless });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const tutorialAlignmentCaptures: unknown[] = [];
@@ -69,6 +80,22 @@ try {
   }
   const selectedMissionName = catalogMissions.find((mission) => mission.id === selectedMission)?.name ?? 'Blacksite Threshold';
   await writeFile(`${qaDir}/mission-catalog.json`, JSON.stringify({ ...missionCatalog, missionBrief }, null, 2));
+  await page.getByText('Echo Vanguard').click();
+  const operativeEvidence = await page.evaluate(() => ({
+    selected: window.__shadowRecruitDebug?.operativeMechanics(),
+    catalog: window.__shadowRecruitDebug?.operativeCatalog(),
+  })) as OperativeEvidence;
+  if (
+    operativeEvidence.selected?.selectedId !== 'echo-vanguard' ||
+    operativeEvidence.selected.assetAuditId !== 'hero:echo-vanguard' ||
+    operativeEvidence.selected.changedScalars.length === 0 ||
+    operativeEvidence.selected.probes.some((probe) => probe.grade !== 'pass') ||
+    !operativeEvidence.catalog?.some((hero) => hero.id === 'shadow-operative' && hero.changedScalars.length === 0) ||
+    !operativeEvidence.catalog.some((hero) => hero.id === 'echo-vanguard' && hero.changedScalars.includes('enemyDetectionRadius'))
+  ) {
+    throw new Error(`Operative trait evidence is incomplete: ${JSON.stringify(operativeEvidence)}`);
+  }
+  await writeFile(`${qaDir}/operative-traits.json`, JSON.stringify(operativeEvidence, null, 2));
   await page.screenshot({ path: `${outputDir}/hero-select.png`, fullPage: true });
   await page.getByRole('button', { name: new RegExp(`^Start ${escapeRegex(selectedMissionName)}$`) }).click();
   await page.waitForSelector('[data-testid="loading-panel"]', { timeout: 12000 });
