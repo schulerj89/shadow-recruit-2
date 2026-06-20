@@ -14,6 +14,7 @@ const titleCompositionPath = `${outputDir}/title-composition.json`;
 const screenshotDir = `${outputDir}/screenshots`;
 const expectedScreenshots = [
   'title.png',
+  'title-orbit-preview.png',
   'settings.png',
   'hero-select.png',
   'tutorial-01-insertion.png',
@@ -62,13 +63,17 @@ type TitleComposition = {
   active: boolean;
   heroVisible: boolean;
   heroReadable: boolean;
+  levelPreviewVisible?: boolean;
   facingDot: number;
   heroYaw: number;
   yawToCamera: number;
   cameraDistance: number;
+  orbitAngle?: number;
+  orbitRadius?: number;
   heroPosition?: { x: number; y: number; z: number };
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
+  levelPreviewBounds?: Bounds3;
   notes: readonly string[];
 };
 
@@ -197,7 +202,7 @@ Date: ${date}
 - Renderer metrics: ${renderer ? `${renderer.drawCalls} draw calls, ${renderer.triangles} triangles, ${renderer.geometries} geometries, ${renderer.textures} textures, profile=${renderer.performanceProfile ?? settings?.performanceProfile ?? 'unknown'}, shadows=${renderer.shadowsEnabled ?? 'unknown'}, shadowMap=${renderer.shadowMapSize ?? 'unknown'}` : 'not captured'}
 - Loaded assets: ${memory ? `${memory.loadedAssets} total (${memory.characterAssets} character, ${memory.staticAssets} static): ${memory.loadedAssetIds.join(', ')}${memory.failedAssetIds?.length ? `; failed optional assets: ${memory.failedAssetIds.join(', ')}` : ''}` : 'not captured'}
 - Asset grades: ${assetQuality.length > 0 ? describeAssetSummary(assetQuality) : 'not captured'}
-- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
+- Title composition: ${titleComposition ? `heroReadable=${titleComposition.heroReadable}; levelPreview=${Boolean(titleComposition.levelPreviewVisible)}; facingDot=${titleComposition.facingDot}; cameraDistance=${titleComposition.cameraDistance}; orbitAngle=${titleComposition.orbitAngle ?? 'unknown'}; orbitRadius=${titleComposition.orbitRadius ?? 'unknown'}; heroYaw=${titleComposition.heroYaw}; yawToCamera=${titleComposition.yawToCamera}` : 'not captured'}
 - Geometry diagnostics: ${geometry ? `${geometry.objectBounds.length} object bounds; ${geometry.doorContinuity.length} door checks; levelDensity=${geometry.levelDensity.grade} (${(geometry.levelDensity.setDressingRatio * 100).toFixed(1)}%)` : 'not captured'}
 - Completion stats: ${completion ? `active=${completion.active}; objectives=${completion.objectivesCompleted}/${completion.objectivesTotal}; alerts=${completion.alerts}; cue=${completion.triumphantCue ? 'triumphant' : 'missing'}; elapsed=${completion.elapsedSeconds}s` : 'not captured'}
 - Settings state: ${settings ? `debug=${settings.debug}; muted=${settings.muted}; performance=${settings.performanceProfile}` : 'not captured'}
@@ -293,8 +298,13 @@ function describeAssetFindings(checks: readonly AssetQualityCheck[]): string {
 
 function describeTitleFindings(composition: TitleComposition | undefined): string {
   if (!composition) return '- P1: Title composition metrics missing.';
-  if (composition.heroReadable) return '- P1: None from generated title composition diagnostics.';
-  return `- P1: Title hero is not readable from the camera: facingDot=${composition.facingDot}; cameraDistance=${composition.cameraDistance}; heroYaw=${composition.heroYaw}; yawToCamera=${composition.yawToCamera}. ${composition.notes.join(' ')}`;
+  if (!composition.heroReadable) {
+    return `- P1: Title hero is not readable from the camera: facingDot=${composition.facingDot}; cameraDistance=${composition.cameraDistance}; heroYaw=${composition.heroYaw}; yawToCamera=${composition.yawToCamera}. ${composition.notes.join(' ')}`;
+  }
+  if (!composition.levelPreviewVisible || (composition.orbitRadius ?? 0) < 5) {
+    return `- P1: Title Level 1 orbit preview is not proven: levelPreview=${Boolean(composition.levelPreviewVisible)}; orbitRadius=${composition.orbitRadius ?? 'missing'}. ${composition.notes.join(' ')}`;
+  }
+  return '- P1: None from generated title composition diagnostics.';
 }
 
 function formatGeometryDiagnostics(geometry: GeometryDiagnostics | undefined): string {

@@ -17,12 +17,16 @@ try {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
   await page.evaluate(() => window.__shadowRecruitDebug?.setPerformanceProfile('performance'));
+  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(0.35));
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
   await writeFile(`${qaDir}/title-composition.json`, JSON.stringify(titleComposition, null, 2));
-  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65) {
+  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65 || !titleComposition.levelPreviewVisible || titleComposition.orbitRadius < 5) {
     throw new Error(`Title hero is not readable from camera: ${JSON.stringify(titleComposition)}`);
   }
   await page.screenshot({ path: `${outputDir}/title.png`, fullPage: true });
+  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(1.85));
+  await page.screenshot({ path: `${outputDir}/title-orbit-preview.png`, fullPage: true });
+  await page.evaluate(() => window.__shadowRecruitDebug?.clearTitleOrbitAngle());
   await page.getByRole('button', { name: 'Settings' }).click();
   await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });
   await page.screenshot({ path: `${outputDir}/settings.png`, fullPage: true });

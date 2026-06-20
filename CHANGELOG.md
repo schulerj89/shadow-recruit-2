@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.11.0 - 2026-06-20
+
+### Minor
+
+- Added a deterministic Level 1 title-orbit preview with a holographic mission map, 360 camera diagnostics, smoke assertions, and committed title orbit screenshots.
+
 ## 0.10.1 - 2026-06-20
 
 ### Patch

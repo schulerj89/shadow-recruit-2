@@ -224,13 +224,17 @@ export type TitleComposition = {
   active: boolean;
   heroVisible: boolean;
   heroReadable: boolean;
+  levelPreviewVisible: boolean;
   facingDot: number;
   heroYaw: number;
   yawToCamera: number;
   cameraDistance: number;
+  orbitAngle: number;
+  orbitRadius: number;
   heroPosition?: { x: number; y: number; z: number };
   cameraPosition: { x: number; y: number; z: number };
   cameraTarget: { x: number; y: number; z: number };
+  levelPreviewBounds?: Bounds3;
   notes: readonly string[];
 };
 

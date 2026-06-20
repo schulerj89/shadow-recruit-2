@@ -24,16 +24,30 @@ try {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__shadowRecruitDebug?.ready(), undefined, { timeout: 30000 });
   await expectPhase('title');
+  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(0.35));
   await expectNonblankCanvas();
   const titleHeroVisible = await page.evaluate(() => window.__shadowRecruitDebug?.playerVisible());
   if (!titleHeroVisible) {
     throw new Error('Expected title hero model to be visible.');
   }
   const titleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
-  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65) {
-    throw new Error(`Expected title hero to face the camera in a readable front/three-quarter pose, got ${JSON.stringify(titleComposition)}`);
+  if (!titleComposition?.heroReadable || titleComposition.facingDot < 0.65 || !titleComposition.levelPreviewVisible || titleComposition.orbitRadius < 5) {
+    throw new Error(`Expected title hero and Level 1 preview orbit to be readable, got ${JSON.stringify(titleComposition)}`);
   }
   await page.screenshot({ path: `${screenshotDir}/01-title.png`, fullPage: true });
+  await page.evaluate(() => window.__shadowRecruitDebug?.setTitleOrbitAngle(1.85));
+  const laterTitleComposition = await page.evaluate(() => window.__shadowRecruitDebug?.titleComposition());
+  if (
+    !laterTitleComposition?.levelPreviewVisible ||
+    Math.hypot(
+      laterTitleComposition.cameraPosition.x - titleComposition.cameraPosition.x,
+      laterTitleComposition.cameraPosition.z - titleComposition.cameraPosition.z,
+    ) < 4
+  ) {
+    throw new Error(`Expected deterministic title orbit camera movement around Level 1 preview, got ${JSON.stringify({ titleComposition, laterTitleComposition })}`);
+  }
+  await page.screenshot({ path: `${screenshotDir}/01b-title-orbit-preview.png`, fullPage: true });
+  await page.evaluate(() => window.__shadowRecruitDebug?.clearTitleOrbitAngle());
 
   await page.getByRole('button', { name: 'Settings' }).click();
   await page.waitForSelector('[data-testid="settings-panel"]', { timeout: 12000 });
