@@ -1,0 +1,162 @@
+{
+  "build": "v0.4.1",
+  "levelId": "blacksite-threshold",
+  "routePoints": [
+    {
+      "x": 0,
+      "z": -29,
+      "phase": "playing"
+    },
+    {
+      "x": -31,
+      "z": -25,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": -19,
+      "phase": "playing"
+    },
+    {
+      "x": 1,
+      "z": -16,
+      "phase": "playing"
+    },
+    {
+      "x": 30,
+      "z": -3,
+      "phase": "playing"
+    },
+    {
+      "x": 15,
+      "z": 4,
+      "phase": "playing"
+    },
+    {
+      "x": 16,
+      "z": 7,
+      "phase": "playing"
+    },
+    {
+      "x": -32,
+      "z": 14,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": 19,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": 24,
+      "phase": "playing"
+    },
+    {
+      "x": 0,
+      "z": 33,
+      "phase": "complete"
+    }
+  ],
+  "interactions": [
+    {
+      "objectiveId": "access-keycard",
+      "doorId": "lobby-door",
+      "focusMs": 1943
+    },
+    {
+      "objectiveId": "security-terminal",
+      "doorId": "server-door",
+      "focusMs": 2027
+    },
+    {
+      "objectiveId": "command-codes",
+      "doorId": "extraction-door",
+      "focusMs": 2026
+    }
+  ],
+  "finalState": {
+    "phase": "complete",
+    "levelId": "blacksite-threshold",
+    "selectedHero": "shadow-operative",
+    "settings": {
+      "debug": false,
+      "muted": false,
+      "performanceProfile": "balanced"
+    },
+    "tutorial": {
+      "index": 5,
+      "total": 5,
+      "step": null
+    },
+    "cinematicFocus": {
+      "active": false,
+      "target": "extraction-door",
+      "remainingMs": 0
+    },
+    "playerPosition": {
+      "x": 0,
+      "z": 33
+    },
+    "objectives": {
+      "collectedRequired": 3,
+      "totalRequired": 3,
+      "exitUnlocked": true
+    },
+    "doors": [
+      {
+        "id": "lobby-door",
+        "open": true,
+        "progress": 1
+      },
+      {
+        "id": "server-door",
+        "open": true,
+        "progress": 1
+      },
+      {
+        "id": "extraction-door",
+        "open": true,
+        "progress": 1
+      }
+    ],
+    "renderer": {
+      "performanceProfile": "balanced",
+      "shadowsEnabled": true,
+      "shadowMapSize": 1024,
+      "drawCalls": 27,
+      "triangles": 275759,
+      "geometries": 44,
+      "textures": 18,
+      "pixelRatio": 1
+    },
+    "framePacing": {
+      "fps": 27.322404353786425,
+      "frameMs": 36.60000002384186,
+      "latestFrameMs": 50,
+      "p95FrameMs": 50,
+      "samples": 240
+    },
+    "memory": {
+      "runtimeObjects": 33,
+      "loadedAssets": 5,
+      "characterAssets": 2,
+      "staticAssets": 3,
+      "loadedAssetIds": [
+        "hero:shadow-operative",
+        "sentry",
+        "codes",
+        "keycard",
+        "terminal"
+      ]
+    }
+  },
+  "screenshots": [
+    "artifacts/playthrough/v0.4.1/01-title.png",
+    "artifacts/playthrough/v0.4.1/02-mission-start.png",
+    "artifacts/playthrough/v0.4.1/03-focus-lobby-door.png",
+    "artifacts/playthrough/v0.4.1/04-focus-server-door.png",
+    "artifacts/playthrough/v0.4.1/05-focus-extraction-door.png",
+    "artifacts/playthrough/v0.4.1/06-complete.png"
+  ]
+}

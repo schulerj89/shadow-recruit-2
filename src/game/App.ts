@@ -620,10 +620,14 @@ export class ShadowRecruitApp {
     }
   }
 
-  private updateGameplayCamera(): void {
+  private updateGameplayCamera(snap = false): void {
     const target = new THREE.Vector3(this.playerPosition.x, 0.8, this.playerPosition.z);
     const desired = new THREE.Vector3(this.playerPosition.x + 8, 10, this.playerPosition.z + 12);
-    this.camera.position.lerp(desired, 0.08);
+    if (snap) {
+      this.camera.position.copy(desired);
+    } else {
+      this.camera.position.lerp(desired, 0.08);
+    }
     this.camera.lookAt(target);
   }
 
@@ -1130,6 +1134,7 @@ export class ShadowRecruitApp {
   private teleportPlayerTo(point: Vec2): void {
     this.playerPosition = { ...point };
     if (this.player) this.player.object.position.set(point.x, 0, point.z);
+    if (this.phase === 'playing') this.updateGameplayCamera(true);
   }
 
   private forceAlert(): void {

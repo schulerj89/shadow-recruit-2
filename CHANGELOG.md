@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-06-20
+
+### Patch
+
+- Improved gameplay camera QA framing by snapping debug teleports to the current player position and capturing normal gameplay before objective interaction.
+
 ## 0.4.0 - 2026-06-20
 
 ### Minor

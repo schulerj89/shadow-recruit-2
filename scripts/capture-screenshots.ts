@@ -32,7 +32,8 @@ try {
     await page.getByRole('button', { name: /Next|Begin Mission/ }).click();
   }
   await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
-  await page.evaluate(() => window.__shadowRecruitDebug?.movePlayerTo({ x: -31, z: -25 }));
+  await page.evaluate(() => window.__shadowRecruitDebug?.teleportPlayerTo({ x: -24, z: -25 }));
+  await page.waitForFunction(() => window.__shadowRecruitDebug?.phase() === 'playing', undefined, { timeout: 30000 });
   await page.screenshot({ path: `${outputDir}/gameplay-level-one.png`, fullPage: true });
   await captureDoorFocus('access-keycard', 'lobby-door');
   await captureDoorFocus('security-terminal', 'server-door');
