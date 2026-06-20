@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.6 - 2026-06-20
+
+### Patch
+
+- Closed Level 1 divider wall gaps around all three sliding doors by aligning authored wall segments to the door collision extents so coordinate QA can prove door/wall continuity.
+
 ## 0.7.5 - 2026-06-20
 
 ### Patch
