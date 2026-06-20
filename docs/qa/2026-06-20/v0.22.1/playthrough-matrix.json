@@ -1,0 +1,26 @@
+{
+  "build": "v0.22.1",
+  "generatedAt": "2026-06-20T11:38:08.533Z",
+  "levels": [
+    {
+      "levelId": "blacksite-threshold",
+      "reportPath": "artifacts\\playthrough\\v0.22.1\\playthrough-report.json",
+      "status": "pass",
+      "reportCopied": true,
+      "committedReportPath": "docs/qa/2026-06-20/v0.22.1/playthroughs/blacksite-threshold/playthrough-report.json",
+      "committedScreenshotDir": "docs/qa/2026-06-20/v0.22.1/playthroughs/blacksite-threshold/screenshots",
+      "screenshotCount": 6,
+      "missingScreenshots": []
+    },
+    {
+      "levelId": "relay-vault",
+      "reportPath": "artifacts\\playthrough\\v0.22.1\\relay-vault\\playthrough-report.json",
+      "status": "pass",
+      "reportCopied": true,
+      "committedReportPath": "docs/qa/2026-06-20/v0.22.1/playthroughs/relay-vault/playthrough-report.json",
+      "committedScreenshotDir": "docs/qa/2026-06-20/v0.22.1/playthroughs/relay-vault/screenshots",
+      "screenshotCount": 6,
+      "missingScreenshots": []
+    }
+  ]
+}

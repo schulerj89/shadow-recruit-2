@@ -1196,12 +1196,27 @@ function describeMissionCatalogFindings(
     findings.push('- P1: Mission selector brief was not captured in the hero-select screenshot evidence.');
   } else if (!/required objectives/i.test(missionBrief) || !/sentries/i.test(missionBrief)) {
     findings.push(`- P1: Mission selector brief does not expose objective and enemy counts: ${JSON.stringify(missionBrief)}.`);
+  } else {
+    const leakedTerm = firstPlayerFacingInternalTerm(missionBrief);
+    if (leakedTerm) {
+      findings.push(`- P1: Mission selector brief leaks implementation vocabulary (${leakedTerm}) instead of player-facing mission language: ${JSON.stringify(missionBrief)}.`);
+    }
   }
   for (const mission of catalog) {
     if (mission.objectiveCount <= 0) findings.push(`- P1: Mission ${mission.id} exposes no required objectives in the catalog.`);
     if (mission.enemyCount <= 0) findings.push(`- P1: Mission ${mission.id} exposes no sentry/enemy count in the catalog.`);
   }
   return findings.length > 0 ? findings.join('\n') : '- P1: None from generated mission catalog diagnostics.';
+}
+
+function firstPlayerFacingInternalTerm(copy: string): string | null {
+  const terms = [
+    { label: 'GLB', pattern: /\bGLB\b/i },
+    { label: 'density zones', pattern: /\bdensity zones?\b/i },
+    { label: 'asset audit', pattern: /\basset audit\b/i },
+    { label: 'runtime', pattern: /\bruntime\b/i },
+  ];
+  return terms.find((term) => term.pattern.test(copy))?.label ?? null;
 }
 
 function buildMissionReadiness(

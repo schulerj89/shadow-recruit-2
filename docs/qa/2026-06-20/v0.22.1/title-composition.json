@@ -1,0 +1,211 @@
+{
+  "active": true,
+  "heroVisible": true,
+  "heroReadable": true,
+  "levelPreviewVisible": true,
+  "facingDot": 0.99,
+  "heroYaw": 1.13,
+  "yawToCamera": 1.27,
+  "cameraDistance": 6.14,
+  "orbitAngle": 0.3,
+  "orbitRadius": 5.31,
+  "heroScreenOccupancy": 0.11,
+  "heroScreenHeightRatio": 0.44,
+  "identityReadable": true,
+  "identityAnchors": [
+    {
+      "id": "head",
+      "label": "Head silhouette",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 1.79,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 349.33,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Head silhouette projects into the title screenshot without UI occlusion."
+      ]
+    },
+    {
+      "id": "visor",
+      "label": "Face/visor read",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 1.64,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 373.51,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Face/visor read projects into the title screenshot without UI occlusion."
+      ]
+    },
+    {
+      "id": "chest",
+      "label": "Chest/gear read",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 1.17,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 443.28,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Chest/gear read projects into the title screenshot without UI occlusion."
+      ]
+    },
+    {
+      "id": "feet",
+      "label": "Foot grounding",
+      "source": "bounds-estimate",
+      "worldPosition": {
+        "x": 2.6,
+        "y": 0.11,
+        "z": -18
+      },
+      "screenPosition": {
+        "x": 720,
+        "y": 586.43,
+        "visible": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "visible": true,
+      "uiOccluded": false,
+      "notes": [
+        "Foot grounding projects into the title screenshot without UI occlusion."
+      ]
+    }
+  ],
+  "heroPosition": {
+    "x": 2.6,
+    "y": 0,
+    "z": -18
+  },
+  "heroScreenBounds": {
+    "min": {
+      "x": 550.97,
+      "y": 289.78
+    },
+    "max": {
+      "x": 921.64,
+      "y": 688.63
+    },
+    "size": {
+      "x": 370.67,
+      "y": 398.85
+    },
+    "center": {
+      "x": 736.3,
+      "y": 489.21
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "widthRatio": 0.26,
+    "heightRatio": 0.44,
+    "areaRatio": 0.11
+  },
+  "cameraPosition": {
+    "x": 7.67,
+    "y": 3.08,
+    "z": -16.42
+  },
+  "cameraTarget": {
+    "x": 2.6,
+    "y": 1.12,
+    "z": -18
+  },
+  "levelPreviewBounds": {
+    "min": {
+      "x": -4.12,
+      "y": 0.03,
+      "z": -23.76
+    },
+    "max": {
+      "x": 9.32,
+      "y": 0.58,
+      "z": -12.24
+    },
+    "size": {
+      "x": 13.44,
+      "y": 0.54,
+      "z": 11.52
+    }
+  },
+  "titleTreatment": {
+    "active": true,
+    "wordmarkText": "SHADOW RECRUIT 2",
+    "kickerText": "OPERATION BLACKGLASS",
+    "copyText": "A blacksite door waits in the fog. Pick your operative, breach the patrol route, and extract before command loses the signal.",
+    "wordmarkVisible": true,
+    "wordmarkReadable": true,
+    "wordmarkBounds": {
+      "min": {
+        "x": 160,
+        "y": 405.42
+      },
+      "max": {
+        "x": 671.75,
+        "y": 661.75
+      },
+      "size": {
+        "x": 511.75,
+        "y": 256.33
+      },
+      "center": {
+        "x": 415.88,
+        "y": 533.59
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "widthRatio": 0.36,
+      "heightRatio": 0.28,
+      "areaRatio": 0.1
+    },
+    "panelOverlapRatio": 0,
+    "heroOverlapRatio": 0.24,
+    "notes": [
+      "Native CSS wordmark is visible, final-title branded, and does not collide with the command panel or staged hero."
+    ]
+  },
+  "notes": [
+    "Title hero faces the camera in a readable front/three-quarter pose while the Level 1 preview map supports the rotating title background."
+  ]
+}

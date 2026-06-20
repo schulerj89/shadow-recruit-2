@@ -1,0 +1,20 @@
+{
+  "selectedMissionId": "blacksite-threshold",
+  "missions": [
+    {
+      "id": "blacksite-threshold",
+      "name": "Blacksite Threshold",
+      "chapter": "Operation Glass Dagger",
+      "objectiveCount": 3,
+      "enemyCount": 3
+    },
+    {
+      "id": "relay-vault",
+      "name": "Relay Vault",
+      "chapter": "Operation Night Compass",
+      "objectiveCount": 3,
+      "enemyCount": 3
+    }
+  ],
+  "missionBrief": "OPERATION GLASS DAGGER\nBlacksite Threshold\n3 required objectives, 3 sentries, 3 sliding doors, 4 mission sectors."
+}

@@ -1461,7 +1461,7 @@ export class ShadowRecruitApp {
         <section class="screen-panel hero-select" data-testid="hero-select-panel">
           <div class="screen-kicker">Recruit roster</div>
           <h2>Select your operative</h2>
-          <p>The selected GLB is used in the title preview, tutorial, and mission runtime.</p>
+          <p>The selected operative model carries through the title preview, tutorial, and mission run.</p>
           <section class="mission-select-panel" data-testid="mission-select-panel">
             <label class="mission-select-row">
               <span>Mission</span>
@@ -1476,7 +1476,7 @@ export class ShadowRecruitApp {
             <div class="mission-brief" data-testid="mission-brief">
               <strong>${this.level.chapter}</strong>
               <span>${this.level.name}</span>
-              <small>${this.level.objectives.filter((objective) => objective.required).length} required objectives, ${this.level.enemies.length} sentries, ${this.level.doors.length} sliding doors, ${this.level.zones.length} density zones.</small>
+              <small>${this.level.objectives.filter((objective) => objective.required).length} required objectives, ${this.level.enemies.length} sentries, ${this.level.doors.length} sliding doors, ${this.level.zones.length} mission sectors.</small>
             </div>
           </section>
           <div class="hero-grid">

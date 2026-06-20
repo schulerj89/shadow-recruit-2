@@ -120,12 +120,15 @@ try {
   const missions = await page.evaluate(() => window.__shadowRecruitDebug?.missions());
   const missionSelectValue = await page.getByLabel('Mission').inputValue();
   const missionBrief = await page.locator('[data-testid="mission-brief"]').innerText();
+  const heroSelectCopy = await page.locator('[data-testid="hero-select-panel"]').innerText();
+  assertNoPlayerFacingInternalTerms(heroSelectCopy, 'hero-select panel');
   if (
     !missions?.some((mission) => mission.id === defaultLevel.id && mission.objectiveCount === 3 && mission.enemyCount === 3) ||
     missionSelectValue !== defaultLevel.id ||
     !missionBrief.includes(defaultLevel.name) ||
     !missionBrief.includes('3 required objectives') ||
-    !missionBrief.includes('3 sentries')
+    !missionBrief.includes('3 sentries') ||
+    !missionBrief.includes('4 mission sectors')
   ) {
     throw new Error(`Expected mission catalog selector for ${defaultLevel.id}, got ${JSON.stringify({ missions, missionSelectValue, missionBrief })}`);
   }
@@ -434,6 +437,14 @@ function assertOperativeMechanics(operative: OperativeDebugState | undefined, ex
   }
   if (operative.probes.length < operative.traitIds.length || operative.probes.some((probe) => probe.grade !== 'pass')) {
     throw new Error(`Expected every operative trait to have a passing mechanics probe, got ${JSON.stringify(operative.probes)}`);
+  }
+}
+
+function assertNoPlayerFacingInternalTerms(copy: string, surface: string): void {
+  const bannedTerms = [/\bGLB\b/i, /\bdensity zones?\b/i, /\basset audit\b/i, /\bruntime\b/i];
+  const leaked = bannedTerms.find((term) => term.test(copy));
+  if (leaked) {
+    throw new Error(`Player-facing ${surface} leaks internal vocabulary ${leaked}: ${JSON.stringify(copy)}`);
   }
 }
 

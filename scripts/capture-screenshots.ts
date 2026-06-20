@@ -69,12 +69,15 @@ try {
   }));
   const selectedMission = await page.getByLabel('Mission').inputValue();
   const missionBrief = await page.locator('[data-testid="mission-brief"]').innerText();
+  const heroSelectCopy = await page.locator('[data-testid="hero-select-panel"]').innerText();
+  assertNoPlayerFacingInternalTerms(heroSelectCopy, 'hero-select panel');
   const catalogMissions = missionCatalog.missions ?? [];
   if (
     selectedMission !== missionCatalog.selectedMissionId ||
     !catalogMissions.some((mission) => mission.id === selectedMission) ||
     !missionBrief.includes('required objectives') ||
-    !missionBrief.includes('sentries')
+    !missionBrief.includes('sentries') ||
+    !missionBrief.includes('mission sectors')
   ) {
     throw new Error(`Mission selector evidence is incomplete: ${JSON.stringify({ selectedMission, missionCatalog, missionBrief })}`);
   }
@@ -200,4 +203,12 @@ async function captureFailureRetry(missionId: string): Promise<void> {
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function assertNoPlayerFacingInternalTerms(copy: string, surface: string): void {
+  const bannedTerms = [/\bGLB\b/i, /\bdensity zones?\b/i, /\basset audit\b/i, /\bruntime\b/i];
+  const leaked = bannedTerms.find((term) => term.test(copy));
+  if (leaked) {
+    throw new Error(`Player-facing ${surface} leaks internal vocabulary ${leaked}: ${JSON.stringify(copy)}`);
+  }
 }

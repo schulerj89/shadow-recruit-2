@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.22.1 - 2026-06-20
+
+### Patch
+
+- Replaced internal pre-mission vocabulary with player-facing operative and mission-sector language, with smoke, screenshot, and tester-report checks to keep implementation terms out of the hero-select screen.
+
 ## 0.22.0 - 2026-06-20
 
 ### Minor
